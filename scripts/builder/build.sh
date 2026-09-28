@@ -111,7 +111,11 @@ iso=$(cd "$(dirname "$iso")" && pwd)/$(basename "$iso")
 out=${out:-$root/$PROFILE_DEFAULT_OUT}
 mkdir -p "$out"
 out=$(cd "$out" && pwd)
-case "$out" in "$root"/build/*|"$root"/build) ;; *) echo "builder: note: $out is outside build/, which git ignores" ;; esac
+case "$out" in
+    "$root") die "--out must not be the source checkout itself; use build/device" ;;
+    "$root"/*) git check-ignore -q "$out/" || die "--out inside this checkout must be git-ignored; use build/device" ;;
+    *) echo "builder: using external private build directory $out" ;;
+esac
 if [ -n "$identity" ] && [ -z "$profile" ]; then die "--identity needs --profile"; fi
 if [ -n "$install_device" ] && [ -z "$identity" ]; then die "--install needs --identity and --profile"; fi
 for f in ${composite_pgo[@]+"${composite_pgo[@]}"} "$host_pgo" "$profile" "$training_save"; do
