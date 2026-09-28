@@ -77,13 +77,15 @@ A port whose app builds differently only changes its `profile_build_app`.
 The terminal reports the active stage and elapsed time, with available compiler progress. A
 `logs/progress.jsonl` event stream under the output directory records stage state for future PadForge
 integration. Individual command logs remain under `logs/`; a failed stage reports its log path.
-Measured on an M3 Max with 16 jobs on 2026-09-28, from a fresh clone of the public repository:
-the tools, dependencies, disc checks, translation and mods took about 2 minutes, and local training
-(its Mac test build plus playback) took 23 minutes. Its training profile matched an earlier
-independent run to within 84 counts out of 469 billion. Compiling the game module takes about
-80 minutes at the default `-O2` (78m42s in an earlier run with a local profile), so expect a first
-build of about 1 hour 45 minutes on that Mac and longer on smaller ones. `--no-train` saves the
-23 minutes. The build needs about 10 GB in `build/` and writes a 96 MB IPA.
+Measured on an M3 Max with 16 jobs on 2026-09-28, from a fresh clone of the public repository, the
+whole default build took 104 minutes: about 2 minutes for tools, dependencies, disc checks,
+translation and mods, 23 minutes of local training (its Mac test build plus playback), 79 minutes
+compiling the game module at `-O2`, and under a minute for the app and IPA. Smaller Macs take longer.
+`--no-train` saves the 23 minutes. A rerun with nothing changed reuses everything and took 31 seconds.
+The build needs about 25 GB and writes a 161 MB IPA.
+
+Training is reproducible: the fresh clone's profile matched an earlier independent run to within 84
+counts out of 469 billion, and its compiled game module was byte-identical to that run's module.
 
 A lighter `-O1` build was measured the same day as a faster option: it compiled in 47 minutes, but on an
 iPad Pro (M2) at the Outset Island pier it averaged 26.1 FPS with the CPU at 99 percent (121 one-second
