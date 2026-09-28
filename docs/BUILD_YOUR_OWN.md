@@ -7,7 +7,7 @@ build, so **the app you build is yours alone: never share or upload it.**
 ## What you need
 
 - A Mac with Apple silicon that runs the current Xcode, and at least 12 GB of free disk space
-  (more for local optimization training)
+  for the baseline build; allow at least 25 GB when trying local optimization training
 - Xcode from the App Store. Open it once, and under **Settings › Components** install the iOS platform.
 - [Homebrew](https://brew.sh), then in Terminal:
   ```sh
@@ -100,6 +100,10 @@ Only what changed is rebuilt. Install the new IPA **over** the existing app with
 before; your saves and settings stay. Never delete BlueWake to update it: deleting it deletes its saves.
 Back up first with **⋯ › Game Data & Saves › Back Up Saves…**.
 
+If you used local training, rerun your original command with `--train-pgo` and
+the same `--out` directory (and `--training-save`, if selected). Omitting those
+options builds the baseline version instead of updating the trained version.
+
 ## Bringing your Dolphin saves
 
 Export the save from Dolphin (**Tools › Memory Card Manager**, or the `.gci` file in its GC folder), copy
@@ -111,6 +115,7 @@ BlueWake slot for it; your current saves are backed up first. USA saves only.
 The build includes the Widescreen and Better Wind Waker code mods (`--no-mods` leaves them out). Better
 Wind Waker also needs a patched disc, which the build writes to `build/device/mods/betterww.iso`: copy it
 to the device and use **⋯ › Mods › Install Better Wind Waker…**. See [MODS.md](MODS.md).
+With a custom `--out`, the patched disc is in that directory's `mods/betterww.iso`.
 
 ## If something fails
 
