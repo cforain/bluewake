@@ -35,7 +35,7 @@ The steps are:
 | 4 translate | `profile_translate` | Translate the game's code to C |
 | 5 generate | `profile_generate` | Assemble the source to compile; compare it with the verified digest |
 | 6 mods | `profile_mods` | Optional code mods (skipped with `--no-mods`) |
-| optional training | `profile_train` | `--train-pgo`: local instrumented Mac build and playback; records a private game profile |
+| training | `profile_train` | Default (`--no-train` skips): local instrumented Mac build and playback; records a private game profile |
 | 7 compile | `profile_compile` | Compile the game module (the long step); set `module` |
 | 8 app | `profile_build_app`, then pipeline | Build the app, set `app`; the pipeline embeds and signs |
 | 9 package | pipeline | `--ipa` and `--install` |
@@ -56,8 +56,8 @@ A profile is a shell file sourced by the pipeline. It sets:
 | `PROFILE_DEFAULT_OUT` | `build/device` (must be git-ignored) |
 | `PROFILE_HAS_MODS` | `1` or `0` |
 
-and defines the required `profile_*` hooks in the table above. `profile_train` is optional, but must
-exist when a player selects `--train-pgo`. Hooks may use the pipeline's helpers
+and defines the required `profile_*` hooks in the table above. `profile_train` is required unless
+players always pass `--no-train` or `--no-pgo`. Hooks may use the pipeline's helpers
 (`run LOGNAME cmd...`, `die`, `pgo_flags FILE`) and variables (`root`, `out`, `logs`, `jobs`, `iso`,
 `opt_level`, `device_cpu`, `composite_pgo`, `host_pgo`, `accept_new`, `mods`). `profile_compile` must
 set `module` and `profile_build_app` must set `app`.
@@ -77,18 +77,13 @@ A port whose app builds differently only changes its `profile_build_app`.
 The terminal reports the active stage and elapsed time, with available compiler progress. A
 `logs/progress.jsonl` event stream under the output directory records stage state for future PadForge
 integration. Individual command logs remain under `logs/`; a failed stage reports its log path.
-There is no measured total-time estimate for the experimental training path yet.
-
-Its optimized iOS module compilation completed in 78m42s on an M3 Max with
-16 jobs on 2026-09-28, after reusing a verified local profile. The profile's
-training playback took 18m24s separately; these timings exclude the training
-build and other setup, so their sum is not a complete first-build estimate.
-The resulting personal IPA passed package and provenance validation. Matched
-iPad performance testing of this locally trained build remains pending.
-
-A fresh-clone run on 2026-09-28 (M3 Max, 16 jobs, default settings with mods) took 83 minutes, 80 of them
-compiling the game module at the default `-O2`; it needed about 10 GB in `build/` and wrote a 96 MB IPA.
-Smaller Macs take longer.
+Measured on an M3 Max with 16 jobs on 2026-09-28, from a fresh clone of the public repository:
+the tools, dependencies, disc checks, translation and mods took about 2 minutes, and local training
+(its Mac test build plus playback) took 23 minutes. Its training profile matched an earlier
+independent run to within 84 counts out of 469 billion. Compiling the game module takes about
+80 minutes at the default `-O2` (78m42s in an earlier run with a local profile), so expect a first
+build of about 1 hour 45 minutes on that Mac and longer on smaller ones. `--no-train` saves the
+23 minutes. The build needs about 10 GB in `build/` and writes a 96 MB IPA.
 
 A lighter `-O1` build was measured the same day as a faster option: it compiled in 47 minutes, but on an
 iPad Pro (M2) at the Outset Island pier it averaged 26.1 FPS with the CPU at 99 percent (121 one-second
@@ -105,20 +100,24 @@ functions, including third-party code, rather than executable instructions. Both
 provenance or licensing determination. `--no-pgo` skips them.
 
 The developer's third profile records translated game functions and stays private. The player
-build must generate a replacement locally from the player's disc. The experimental `--train-pgo`
-option implements this through a separate instrumented Mac build and headless playback. It requires
+build generates a replacement locally from the player's disc, by default (`--no-train` skips it),
+through a separate instrumented Mac build and headless playback. It requires
 reaching player control and executing translated functions before accepting a profile. The optional
 `--training-save FILE` uses a copy of the player's BlueWake memory card; the default creates a new one.
 The resulting `OUT/pgo-local/composite.profdata` stays local and is added to the device build. The
 bundled host profile remains in use because headless training does not cover the renderer.
-Full-speed equivalence has not yet been demonstrated. Measurements on 2026-09-28 used an iPad Pro
-(M2) at the Outset pier and the same scripted route:
+Measurements on 2026-09-28 used an iPad Pro (M2) at the Outset pier and the same scripted route:
 
 | Build | FPS | CPU |
 | --- | --- | --- |
 | No profiles | 26.0 | 99% |
 | The two bundled profiles | 27.5 | 99% |
 | All three (the developer's build) | 29.9 | 83% |
+
+A locally trained game module has not yet been measured on the iPad. On the Mac, four alternating
+runs of the same saved-game route (developer, local, local, developer) produced identical game-state
+records, and the local module averaged 13.26 ms per frame against the developer module's 13.62 ms.
+That is CPU evidence from a headless test, not an iPad frame rate.
 
 ## PadForge
 

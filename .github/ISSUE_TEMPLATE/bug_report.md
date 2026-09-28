@@ -11,7 +11,7 @@ Describe what you expected and what happened. Include steps to reproduce it.
 
 - BlueWake source revision or app build:
 - Device and iOS/iPadOS version (or Mac and Xcode version for build failures):
-- Build: baseline or local training (`--train-pgo`):
+- Build: default (local training) or `--no-train`:
 
 ## If this happened while playing
 

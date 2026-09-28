@@ -25,10 +25,12 @@
 #   --identity NAME           codesign identity, e.g. "Apple Development: You (TEAMID)"
 #   --profile FILE            provisioning profile for the app (with --identity)
 #   --install DEVICE          install with devicectl after signing (needs --identity)
-#   --no-pgo                  skip the profile's bundled optimization profiles
-#   --train-pgo               experimentally generate game optimization counts on
-#                             this Mac before compiling; performance under validation
-#   --training-save FILE      optional personal memory card for --train-pgo (copied)
+#   --no-train                skip local optimization training: about 20 minutes of
+#                             training and a Mac test build saved, but slower in game
+#                             (about 27.5 instead of 30 FPS measured on an iPad Pro M2)
+#   --no-pgo                  skip all optimization profiles (also skips training)
+#   --train-pgo               train even when it would otherwise be skipped (default on)
+#   --training-save FILE      optional personal memory card for training (copied)
 #   --composite-pgo FILE      LLVM .profdata for the game module (repeatable; replaces
 #                             the profile's bundled one)
 #   --host-pgo FILE           LLVM .profdata for the app's host code (replaces the bundled one)
@@ -47,7 +49,7 @@ cd "$root"
 iso="" game=bluewake out="" ipa=""
 jobs=$(sysctl -n hw.ncpu)
 identity="" profile="" install_device="" host_pgo=""
-train_pgo=0 training_save=""
+train_pgo=auto training_save=""
 composite_pgo=()
 # -O2 always: -O1 compiled in 47 min instead of 80 but held only 26 FPS
 # on an iPad Pro (M2) at Outset (docs/BUILDER.md), so there is no quick option.
@@ -74,6 +76,7 @@ while [ $# -gt 0 ]; do
         --host-pgo) host_pgo=$2; shift 2 ;;
         --no-pgo) use_pgo=0; shift ;;
         --train-pgo) train_pgo=1; shift ;;
+        --no-train) train_pgo=0; shift ;;
         --training-save) training_save=$2; shift 2 ;;
         --device-cpu) device_cpu=$2; shift 2 ;;
         --accept-new-composite) accept_new=1; shift ;;
@@ -87,8 +90,11 @@ done
 [[ "$game" =~ ^[a-z][a-z0-9_-]*$ ]] || die "invalid game profile name: $game"
 [[ "$jobs" =~ ^[1-9][0-9]*$ ]] || die "--jobs must be a positive integer"
 [[ "$device_cpu" =~ ^[a-zA-Z0-9_-]+$ ]] || die "invalid --device-cpu"
-[ "$train_pgo" -eq 0 ] || [ "$use_pgo" -eq 1 ] || die "--train-pgo conflicts with --no-pgo"
-[ -z "$training_save" ] || [ "$train_pgo" -eq 1 ] || die "--training-save needs --train-pgo"
+[ "$train_pgo" != 1 ] || [ "$use_pgo" -eq 1 ] || die "--train-pgo conflicts with --no-pgo"
+# Local training is the default: it replaces the developer's private game
+# profile, which is what the measured 30 FPS depends on (docs/BUILDER.md).
+[ "$train_pgo" != auto ] || train_pgo=$use_pgo
+[ -z "$training_save" ] || [ "$train_pgo" -eq 1 ] || die "--training-save needs training (remove --no-train/--no-pgo)"
 profile_file=$root/scripts/builder/profiles/$game.sh
 [ -f "$profile_file" ] || die "no profile $profile_file"
 # shellcheck source=profiles/bluewake.sh
@@ -188,9 +194,12 @@ step "6/9 mods"
 if [ "$mods" -eq 1 ]; then profile_mods; else echo "skipped"; fi
 
 if [ "$train_pgo" -eq 1 ]; then
-    step "local optimization training (first run adds a separate Mac build)"
+    step "local optimization training (first run adds a Mac test build and about 20 minutes of playback)"
     declare -F profile_train >/dev/null || die "$game does not support local training"
     profile_train
+else
+    step "local optimization training"
+    echo "skipped: this build will run slower in game (about 27.5 instead of 30 FPS on an iPad Pro M2)"
 fi
 
 step "7/9 compile the game module (-O$opt_level, $device_cpu; this is the long step)"

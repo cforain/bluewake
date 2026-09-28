@@ -25,8 +25,8 @@
 > disc on your device.
 >
 > **Source preview.** No prebuilt IPA is provided. You build BlueWake on a Mac from your disc and
-> install it on your own device. The tested developer build reaches 30 FPS; equivalent performance
-> for freshly trained player builds is still being checked. See [Getting started](#getting-started).
+> install it on your own device. The builder tunes the game on your Mac as part of the build; the
+> developer build tuned this way reaches 30 FPS on an iPad Pro (M2). See [Getting started](#getting-started).
 >
 > **AI disclosure:** BlueWake is developed with substantial AI assistance for code, testing,
 > documentation and debugging. The status log records what has actually been checked, and on what.
@@ -68,11 +68,13 @@ Later dungeons and boss fights are still largely untested. If you find a problem
 | iPhone 14 (A15) | 30 FPS in most play; dips to about 25-27 FPS in the busiest scenes and the title-screen flyover |
 | Older devices | A13 or newer is required; slower chips have not been measured |
 
-These measurements come from the developer build, which uses an extra optimization profile for
-the game's own code. The default baseline build omits that profile and is slower: at the Outset Island pier on the iPad
-Pro (M2) it runs at about 27.5 FPS instead of 30. Matching that result in player builds is still being validated. An experimental [`--train-pgo` option](docs/BUILD_YOUR_OWN.md#experimental-local-optimization)
-now generates a game optimization profile on your own Mac. Its training route passes, but the
-resulting build still needs matched device performance tests.
+These measurements come from the developer build. Much of its speed comes from an optimization
+profile: a record of which parts of the game's code run most, which the compiler uses to arrange
+that code for speed. That profile is made from the game itself, so it cannot be published. Instead,
+the builder makes your own: it runs the game briefly on your Mac, records the same kind of counts,
+then compiles your app with them. On the Mac, an app built this way ran the same test route slightly
+faster than the developer build; iPad frame-rate tests of it are still to come. Without the profile
+(`--no-train`), the game runs at about 27.5 FPS instead of 30 at the Outset Island pier on the iPad Pro (M2).
 
 In the measured slow scenes, the CPU is the main limit, so lowering render resolution alone has
 not recovered full speed. Other scenes and HD texture packs can have different limits. Performance
@@ -87,24 +89,23 @@ on smaller devices is active work.
 You need:
 
 - a Mac with Apple silicon, Xcode, CMake and Ninja, and at least 12 GB of free disk space
-  (more for local optimization training)
+  (25 GB recommended)
 - your `GZLE01` revision 0 disc image
 - an A13 or newer iPhone or iPad on iOS/iPadOS 17 or later, with Developer Mode on
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
-The baseline command builds your own app from a fresh checkout. It uses the bundled runtime
-profiles; it does not yet reproduce the developer build's measured 30 FPS result:
+One command builds your own app from a fresh checkout:
 
 ~~~bash
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
 ~~~
 
-It fetches the pinned runtime and translator, checks your disc, translates the game from it, compiles
-it for iOS and writes an unsigned IPA. Install that with Sideloadly, AltStore, SideStore or Xcode, then
+It fetches the pinned runtime and translator, checks your disc, translates the game from it, tunes it
+on your Mac, compiles it for iOS and writes an unsigned IPA. Install that with Sideloadly, AltStore, SideStore or Xcode, then
 copy the same disc image to your device (Finder › your device › Files › BlueWake); BlueWake imports it on
-first launch. The baseline first build measured 83 minutes on an M3 Max; local optimization training adds work
-and its total time is not yet verified. Completed compatible compilation work is reused; run it with
-`--source-only` first to check your tools and disc in a few minutes.
+first launch. Expect a first build of well over an hour on a fast Mac, longer on smaller ones; the
+terminal shows each stage and its elapsed time, and completed work is reused if you stop and rerun
+the same command. Run it with `--source-only` first to check your tools and disc in a few minutes.
 
 **The IPA you build contains code translated from your disc: it is yours alone. Never share or upload it.**
 

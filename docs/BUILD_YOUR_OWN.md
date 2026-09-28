@@ -6,8 +6,7 @@ build, so **the app you build is yours alone: never share or upload it.**
 
 ## What you need
 
-- A Mac with Apple silicon that runs the current Xcode, and at least 12 GB of free disk space
-  for the baseline build; allow at least 25 GB when trying local optimization training
+- A Mac with Apple silicon that runs the current Xcode, and at least 25 GB of free disk space
 - Xcode from the App Store. Open it once, and under **Settings › Components** install the iOS platform.
 - [Homebrew](https://brew.sh), then in Terminal:
   ```sh
@@ -17,7 +16,7 @@ build, so **the app you build is yours alone: never share or upload it.**
   `.iso`. The build checks it and refuses other versions.
 - An iPhone or iPad with an A13 chip or newer, on iOS/iPadOS 17 or later
 
-## 1. Build the baseline or trained candidate
+## 1. Build
 
 ```sh
 git clone https://github.com/chrissotraidis/bluewake.git
@@ -25,45 +24,36 @@ cd bluewake
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --source-only
 ```
 
-`--source-only` checks your tools and disc and generates the base source. It stops before mods,
-training, compilation and packaging; it produces no app. If it passes, the **baseline** build is:
+`--source-only` checks your tools and disc and generates the base source in a few minutes. It stops
+before mods, training, compilation and packaging; it produces no app. If it passes, build the app:
 
 ```sh
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
 ```
 
-The baseline measured about 27.5 FPS at the tested Outset scene on an iPad Pro M2. It does not
-include locally trained game counters. For that candidate, use the separate training command below.
-
-The baseline build measured 83 minutes on an M3 Max. Local optimization training adds another build
-and a training run; its complete time and performance are still being verified. Smaller Macs take
-longer, and the Mac stays busy. Rerunning the same command reuses compatible compiled objects and
-completed matching profiles. Interrupted training playback starts again from an isolated card; it does
-not resume mid-sequence. Keep the same output directory and build options to reuse completed work.
+This includes [local optimization](#local-optimization), which is what lets the game hold 30 FPS.
+Expect well over an hour on a fast Mac and longer on smaller ones; the Mac stays busy. The terminal
+shows each stage and its elapsed time. Rerunning the same command reuses compiled work and completed
+matching profiles. Interrupted training playback starts again from an isolated card; it does not
+resume mid-sequence. Keep the same output directory and build options to reuse completed work.
 
 Generated game code and build outputs stay in `build/`; downloaded runtime and translator sources
 live in `ref/`. Nothing is uploaded.
 Keep the IPA there or anywhere else that is not synced: iCloud Drive (including a synced Desktop or
 Documents folder), Dropbox and similar would upload it.
 
-## Experimental local optimization
+## Local optimization
 
-The developer build reaches about 30 FPS in the measured iPad scenes; the baseline player build
-measured about 27.5 FPS. To help validate a locally generated replacement for the private game
-optimization profile, use:
+The developer build reaches about 30 FPS in the measured iPad scenes because it is compiled with an
+optimization profile: counts of which game code runs most. That profile comes from the game, so it
+cannot be published. The builder makes yours instead. It builds a test version for your Mac, runs
+a training sequence from your disc without a window or sound, records the counts, then compiles the
+device version with them. You do not need to play or supply a save. The playback took 18 minutes
+24 seconds on the development M3 Max. Logs are under `build/device/logs` and `build/device/pgo-local/logs`.
 
-```sh
-scripts/builder/build.sh "/path/to/disc.iso" --train-pgo \
-    --out build/device-trained --ipa build/BlueWake-trained.ipa
-```
-
-This builds an instrumented Mac version, runs a training sequence from your disc, records execution
-counts, then uses them to compile the device version. You do not need to play through it manually or
-supply a save. The HLE playback portion took
-18 minutes 24 seconds on the development M3 Max, in addition to the separate training compile and
-final iOS compile; this is not a complete-build time estimate. The terminal reports the stage and elapsed time; logs are under `build/device-trained/logs` and
-`build/device-trained/pgo-local/logs`. No full-speed result is promised yet: completing training is
-not the same as passing hardware performance tests.
+On the Mac, an app built this way ran the test route as fast as the developer build; iPad frame-rate
+tests of it are still to come. To skip training, add `--no-train`: the build is faster, but the game
+measured about 27.5 FPS instead of 30 at the Outset Island pier on an iPad Pro M2.
 
 Training starts with a new private card by default; that is the route validated so far. You can add
 `--training-save "/path/to/GZLE01.card"`
@@ -109,9 +99,8 @@ the new IPA **over** the existing app. If your installer requires removing BlueW
 the signing mismatch first. Never delete BlueWake to update it: deleting it deletes its saves.
 Back up first with **⋯ › Game Data & Saves › Back Up Saves…**.
 
-If you used local training, rerun your original command with `--train-pgo` and
-the same `--out` directory (and `--training-save`, if selected). Omitting those
-options builds the baseline version instead of updating the trained version.
+Use the same options as your first build (for example `--no-train` or `--training-save`) so
+completed work is reused.
 
 ## Bringing your Dolphin saves
 

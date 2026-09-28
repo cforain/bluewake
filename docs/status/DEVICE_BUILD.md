@@ -20,7 +20,7 @@ and nothing is uploaded.
 - CMake 3.25 or newer and Ninja: `brew install cmake ninja` (verified with CMake 3.27.1, Ninja
   1.13.2). Python 3, git and curl come with macOS and Xcode; the mods' Python packages
   (PyYAML, Pillow) are installed into `build/python` when missing.
-- Network access to GitHub on the first run, and at least 12 GB of free disk space (more for local optimization training).
+- Network access to GitHub on the first run, and at least 25 GB of free disk space.
 - The disc image, GZLE01 USA revision 0. Other revisions and regions are refused.
 - To install: an Apple ID in Xcode, the iPad or iPhone (A13 or newer, iOS/iPadOS 17 or newer)
   with Developer Mode on, and a USB cable or the same network.
@@ -98,10 +98,10 @@ What to check on the iPad is listed in [IPAD_STATE_2026-09-24.md](IPAD_STATE_202
 See [the Builder's current optimization status](../BUILDER.md#optimization-profiles) for the
 measured difference between baseline and developer builds. Runtime and host profiles are bundled;
 the developer's translated-game profile is private and is not an input players should obtain.
-The supported release workflow must generate the game profile on each player's Mac from their
-own disc, then verify the resulting performance on hardware. `--train-pgo` enables the experimental
-local workflow; `--training-save FILE` optionally supplies a copy of the player's own BlueWake card.
-See [the player guide](../BUILD_YOUR_OWN.md#experimental-local-optimization). This remains under validation.
+The builder generates the game profile on each player's Mac from their own disc by default
+(`--no-train` skips it); `--training-save FILE` optionally supplies a copy of the player's own
+BlueWake card. See [the player guide](../BUILD_YOUR_OWN.md#local-optimization). iPad performance of
+locally trained builds is still being measured.
 
 The advanced `--composite-pgo FILE` (repeatable) and `--host-pgo FILE` options accept profiles you
 created locally; use a separate `--out build/device-pgo` directory when changing compiler flags.
@@ -204,4 +204,3 @@ Nothing in it refers to local paths (the only `/Users/` strings are Dawn's CI so
 
 **Not verified here:** installing and running on a physical iPad (this Mac has no signing identity)
 and the `--identity`, `--profile` and `--install` path, which only runs with them.
-
