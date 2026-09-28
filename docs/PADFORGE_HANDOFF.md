@@ -6,15 +6,15 @@ The first supported workflow is an Apple Silicon Mac producing a personal iOS
 IPA from a supported disc. Additional games and platforms can use the same
 stage interface after their own validation.
 
-**Release requirement:** a fresh user's locally generated optimization profile
+**Full-speed acceptance requirement:** a fresh user's locally generated optimization profile
 must reproduce the accepted developer build's performance in matched iPad
 tests. Generating an IPA alone does not satisfy this requirement. Do not present
 the slower unprofiled build as the recommended release path.
 
 ## What exists
 
-This handoff was reviewed on 2026-09-28 against BlueWake's initial clean source
-snapshot and these upstream revisions:
+The initial design was reviewed on 2026-09-28 against these source snapshots;
+implementation evidence follows below:
 
 - [PadForge](https://github.com/chrissotraidis/padforge) at
   `96611e4f1d582e2fbd0bbb72c158f08abae27509`: README and project rules; no executable
@@ -26,6 +26,23 @@ snapshot and these upstream revisions:
 - BlueWake: [`scripts/builder/build.sh`](../scripts/builder/build.sh) orchestrates
   a shell [profile](../scripts/builder/profiles/bluewake.sh), from disc validation
   through translation, mods, compilation, signing, and local packaging.
+
+A private PadForge implementation now wraps both backends through a Python CLI
+([PadForge PR #1](https://github.com/chrissotraidis/padforge/pull/1)). It checks the
+reviewed source revision and clean checkout, hashes the disc, locks the checkout,
+relays progress, cancels nested processes, and writes a local build record.
+It validates IPA structure and provenance before reporting packaging success.
+
+A real BlueWake source-only integration passed at revision `36b8488`: seven
+stage start/completion pairs, the expected generated-source digest, and a clean
+unchanged checkout afterward. Twenty-six synthetic PadForge tests passed. Source preflight and full builds
+reuse the same workspace, including when the job count changes. Different
+backend commits still use separate workspaces, so those builds can require a
+full rebuild; cross-revision cache reuse is future work.
+This establishes source generation through the shared runner. Full-build,
+packaging and hardware acceptance are separate checks; it does not yet prove
+the complete PadForge-to-iPad workflow. The CLI is the current interface; a Mac
+GUI remains future work.
 
 Reuse these implementations through adapters. Do not rewrite KartPad's working
 pipeline or move game-specific translation into PadForge merely to make the

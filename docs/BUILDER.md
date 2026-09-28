@@ -41,7 +41,8 @@ The steps are:
 | 9 package | pipeline | `--ipa` and `--install` |
 
 `--source-only` stops after step 5, so a player can check their disc and tools in minutes before the long
-compile. Each step reuses finished work, so an interrupted build resumes.
+compile. Compatible compilation work and completed matching profiles are reused. Interrupted training
+playback starts again; source-only does not exercise that stage.
 
 ## Writing a profile for another port
 
@@ -114,12 +115,15 @@ Full-speed equivalence has not yet been demonstrated. Measurements on 2026-09-28
 
 ## PadForge
 
-[PadForge](https://github.com/chrissotraidis/padforge) is the planned shared Mac builder for multiple
-ports. BlueWake currently uses the command-line pipeline above; a finished graphical PadForge app
-is not required by these instructions and is not available from this repository. Its shared interface
-should report stages, elapsed time, compiler progress and resumable failures, while each game profile
-owns disc validation, translation, mods and optimization training. Local profile generation and
-matched-device performance verification remain release requirements.
+[PadForge](https://github.com/chrissotraidis/padforge) is the shared Mac builder being developed for
+multiple ports. Its experimental Python CLI wraps the existing BlueWake and KartPad backends, with
+source revision checks, progress, cancellation and local build records. A real BlueWake source-only
+run has passed; complete packaging and device acceptance are separate checks. A graphical Mac app
+remains future work and is not required by the direct builder instructions above.
+
+Each game backend owns disc validation, translation, mods and optimization training. See the
+[PadForge handoff](PADFORGE_HANDOFF.md) for the interface and validation status. Local profile
+generation and matched-device performance verification remain release requirements.
 
 ## What is public and what is not
 

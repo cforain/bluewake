@@ -2,8 +2,10 @@
 
 The release goal is a public BlueWake source repository and a reproducible,
 interactive Mac builder that produces a personal IPA from the player's disc.
-The optimized player build must pass the same device performance checks as the
-developer build. A successful compile alone does not establish readiness.
+A source preview can be published after its source/history audit and accurate
+build instructions pass. Claiming full-speed player-build equivalence additionally
+requires matched device performance checks against the developer build; a
+successful compile alone does not establish that result.
 
 ## Goal loop
 
@@ -38,12 +40,21 @@ check remains unverified.
 
 - The private repository was renamed and its local checkout preserved.
 - The new checkout began with the same source tree and one initial commit.
-- A fresh-card Mac training run reached player control and produced valid game
-  counters: 262 translated functions executed, including all 100 covered by
-  the developer's retained profile. That first run used LLE audio. Validation
-  with the shipping HLE backend and optimized device performance is in progress.
+- Fresh-card Mac training passed with the shipping HLE audio backend: 18m24s
+  of playback, player control at retrace 20,405, and a normal stop at 23,000.
+  It recorded 262 translated functions, including all 100 covered by the
+  retained developer profile. A sampled function's profile hash matched across
+  Mac O0 training and iOS O2 compilation. Hardware performance remains unverified.
+- The complete builder verified and reused those local profiles for a freshly
+  regenerated source tree. The optimized iOS compilation is in progress.
+- PadForge's real source-only BlueWake integration passed: expected source
+  digest, seven stage start/completion pairs, and a clean unchanged checkout.
 - Fresh extraction, translation and all mod variants reproduced the same
   805-file source digest as the training input. The iOS host app also compiled.
+- The public-assets wrapper now normalizes ZIP/TAR contents safely before
+  scanning; the old compressed-TAR result was insufficient content evidence.
+  Malformed, unsafe and nested archives fail closed. Source references were
+  reviewed separately from actual translated function implementations.
 - Stage cancellation (including a TERM-resistant descendant), profile changes
   forcing recompilation, paths with spaces and mod-cache invalidation passed
   focused checks. The source archive passed the publication scan and manual
@@ -53,8 +64,11 @@ check remains unverified.
 - Earlier matched Outset tests measured about 26 FPS without PGO, 27.5 FPS
   with runtime/host profiles, and 29.9 FPS with the developer's full profile.
   These measurements do not yet prove the new local-training path.
-- Public distribution remains paused pending the checks above. Personal IPAs
-  contain translated game code and remain on the builder's machine.
+- Corrected ZIP/TAR source scans, manual history/provenance review and player
+  documentation checks passed for the source preview. The maintainer controls
+  repository visibility. Hardware acceptance separately gates full-speed
+  player-build claims. Personal IPAs contain translated game code and remain
+  on the builder's machine.
 - The iPad is unavailable during this pass. All ongoing work is Mac-only;
   hardware acceptance is deferred until the owner makes it available.
 

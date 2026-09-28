@@ -9,7 +9,7 @@
   <img alt="iPhone and iPad" src="https://img.shields.io/badge/platform-iPhone%20%2F%20iPad-0A84FF?logo=apple">
   <img alt="Metal renderer" src="https://img.shields.io/badge/renderer-Metal-5E5CE6">
   <img alt="Ahead-of-time static recompilation" src="https://img.shields.io/badge/PowerPC-static%20recompilation-FF9F0A">
-  <img alt="Runs at 30 FPS" src="https://img.shields.io/badge/iPad%20Pro%20(M2)-30%20FPS%20full%20speed-30D158">
+  <img alt="Developer build: 30 FPS on iPad Pro M2" src="https://img.shields.io/badge/developer%20build%20(M2)-30%20FPS-30D158">
   <img alt="Game data not included" src="https://img.shields.io/badge/game%20data-not%20included-FF453A">
   <img alt="License: GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-lightgrey">
   <img alt="Status: source preview" src="https://img.shields.io/badge/status-source%20preview-FFD60A">
@@ -24,8 +24,9 @@
 > assets or saves. Your personal app contains code translated from your disc; you also import the
 > disc on your device.
 >
-> **Source preview.** There is no download yet: you build BlueWake on a Mac from your disc and install
-> it on your own device. See [Getting started](#getting-started).
+> **Source preview.** No prebuilt IPA is provided. You build BlueWake on a Mac from your disc and
+> install it on your own device. The tested developer build reaches 30 FPS; equivalent performance
+> for freshly trained player builds is still being checked. See [Getting started](#getting-started).
 >
 > **AI disclosure:** BlueWake is developed with substantial AI assistance for code, testing,
 > documentation and debugging. The status log records what has actually been checked, and on what.
@@ -48,7 +49,7 @@ BlueWake is a static recompilation with a hardware compatibility layer, not an "
 - **Tested areas and features:** the opening and prologue, Outset Island, sailing the
   Great Sea, Windfall, a late-game Hyrule save, menus, and saving and reloading through the game's own
   memory card
-- **30 FPS at full speed** on an iPad Pro (M2), the game's native frame rate, with stereo audio
+- **Developer build: 30 FPS at full speed** on an iPad Pro (M2), the game's native frame rate, with stereo audio
 - **Touch controls** with a layout editor, opacity and size settings
 - **Game controllers and keyboards**, with camera inversion and button remapping
 - **The ⋯ menu:** FPS display, render resolution up to 4×, texture filtering up to 16× anisotropic,
@@ -67,10 +68,11 @@ Later dungeons and boss fights are still largely untested. If you find a problem
 | iPhone 14 (A15) | 30 FPS in most play; dips to about 25-27 FPS in the busiest scenes and the title-screen flyover |
 | Older devices | A13 or newer is required; slower chips have not been measured |
 
-These are the developer's build, which uses an extra optimization profile for the game's own code. A
-build you make with the Builder does not have it yet and is slower: at the Outset Island pier on the iPad
-Pro (M2) it runs at about 27.5 FPS instead of 30. Closing that gap is the top item before the first
-release.
+These measurements come from the developer build, which uses an extra optimization profile for
+the game's own code. The default baseline build omits that profile and is slower: at the Outset Island pier on the iPad
+Pro (M2) it runs at about 27.5 FPS instead of 30. Matching that result in player builds is still being validated. An experimental [`--train-pgo` option](docs/BUILD_YOUR_OWN.md#experimental-local-optimization)
+now generates a game optimization profile on your own Mac. Its training route passes, but the
+resulting build still needs matched device performance tests.
 
 In the measured slow scenes, the CPU is the main limit, so lowering render resolution alone has
 not recovered full speed. Other scenes and HD texture packs can have different limits. Performance
@@ -90,7 +92,8 @@ You need:
 - an A13 or newer iPhone or iPad on iOS/iPadOS 17 or later, with Developer Mode on
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
-One command builds your own app from a fresh checkout:
+The baseline command builds your own app from a fresh checkout. It uses the bundled runtime
+profiles; it does not yet reproduce the developer build's measured 30 FPS result:
 
 ~~~bash
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
@@ -100,7 +103,7 @@ It fetches the pinned runtime and translator, checks your disc, translates the g
 it for iOS and writes an unsigned IPA. Install that with Sideloadly, AltStore, SideStore or Xcode, then
 copy the same disc image to your device (Finder › your device › Files › BlueWake); BlueWake imports it on
 first launch. The baseline first build measured 83 minutes on an M3 Max; local optimization training adds work
-and its total time is not yet verified. Interrupted compilation can resume; run it with
+and its total time is not yet verified. Completed compatible compilation work is reused; run it with
 `--source-only` first to check your tools and disc in a few minutes.
 
 **The IPA you build contains code translated from your disc: it is yours alone. Never share or upload it.**
@@ -149,8 +152,8 @@ into the app. Details are in [docs/MODS.md](docs/MODS.md).
 
 ### Can I download it?
 
-No. The app runs code translated from the game, so it cannot be shared. Everyone builds their own from
-their own disc, on a Mac, with one command: see [Build your own BlueWake](docs/BUILD_YOUR_OWN.md).
+The source is available; a prebuilt app is not provided. The app runs code translated from the game,
+so everyone builds their own from their own disc, on a Mac, with one command: see [Build your own BlueWake](docs/BUILD_YOUR_OWN.md).
 
 ### Why does it need my disc?
 

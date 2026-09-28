@@ -1,6 +1,6 @@
 # Build your own BlueWake
 
-BlueWake is not downloadable. You build it on your Mac from your own copy of *The Wind Waker*, and the
+BlueWake is distributed as source. You build it on your Mac from your own copy of *The Wind Waker*, and the
 result is an app for your own iPhone or iPad. The game's code is translated from your disc during the
 build, so **the app you build is yours alone: never share or upload it.**
 
@@ -17,7 +17,7 @@ build, so **the app you build is yours alone: never share or upload it.**
   `.iso`. The build checks it and refuses other versions.
 - An iPhone or iPad with an A13 chip or newer, on iOS/iPadOS 17 or later
 
-## 1. Build
+## 1. Build the baseline or trained candidate
 
 ```sh
 git clone https://github.com/chrissotraidis/bluewake.git
@@ -25,17 +25,21 @@ cd bluewake
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --source-only
 ```
 
-`--source-only` checks your tools and disc and translates the game in a few minutes. If it passes, build
-the app and an IPA:
+`--source-only` checks your tools and disc and generates the base source. It stops before mods,
+training, compilation and packaging; it produces no app. If it passes, the **baseline** build is:
 
 ```sh
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
 ```
 
+The baseline measured about 27.5 FPS at the tested Outset scene on an iPad Pro M2. It does not
+include locally trained game counters. For that candidate, use the separate training command below.
+
 The baseline build measured 83 minutes on an M3 Max. Local optimization training adds another build
 and a training run; its complete time and performance are still being verified. Smaller Macs take
-longer, and the Mac stays busy. It resumes where it stopped if interrupted, and later builds only redo what
-changed.
+longer, and the Mac stays busy. Rerunning the same command reuses compatible compiled objects and
+completed matching profiles. Interrupted training playback starts again from an isolated card; it does
+not resume mid-sequence. Keep the same output directory and build options to reuse completed work.
 
 Generated game code and build outputs stay in `build/`; downloaded runtime and translator sources
 live in `ref/`. Nothing is uploaded.
@@ -54,14 +58,18 @@ scripts/builder/build.sh "/path/to/disc.iso" --train-pgo \
 ```
 
 This builds an instrumented Mac version, runs a training sequence from your disc, records execution
-counts, then uses them to compile the device version. It adds substantial first-build time. The
-terminal reports the stage and elapsed time; logs are under `build/device-trained/logs` and
+counts, then uses them to compile the device version. You do not need to play through it manually or
+supply a save. The HLE playback portion took
+18 minutes 24 seconds on the development M3 Max, in addition to the separate training compile and
+final iOS compile; this is not a complete-build time estimate. The terminal reports the stage and elapsed time; logs are under `build/device-trained/logs` and
 `build/device-trained/pgo-local/logs`. No full-speed result is promised yet: completing training is
 not the same as passing hardware performance tests.
 
-Training starts with a new private card by default. You can add `--training-save /path/to/GZLE01.card`
-to train with a copy of your own BlueWake memory card; your original is not modified. Generated
-profiles and training saves remain private under the build directory. Matching completed profiles
+Training starts with a new private card by default; that is the route validated so far. You can add
+`--training-save "/path/to/GZLE01.card"`
+to train with a copy of your own BlueWake memory card; your original is not modified. This requires
+a BlueWake `.card` container, not a Dolphin `.gci` or `.raw` file directly. Use quoted absolute paths.
+The optional saved-card route has not been validated in this pass. Generated profiles and training saves remain private under the build directory. Matching completed profiles
 are reused on later runs; changes to inputs invalidate them.
 
 ## 2. Install
@@ -96,8 +104,9 @@ git pull
 scripts/builder/build.sh "/path/to/disc.iso" --ipa build/BlueWake.ipa
 ```
 
-Only what changed is rebuilt. Install the new IPA **over** the existing app with the same tool you used
-before; your saves and settings stay. Never delete BlueWake to update it: deleting it deletes its saves.
+Compatible completed work is reused. Sign with the same Apple ID/team and app identifier, then install
+the new IPA **over** the existing app. If your installer requires removing BlueWake, stop and resolve
+the signing mismatch first. Never delete BlueWake to update it: deleting it deletes its saves.
 Back up first with **⋯ › Game Data & Saves › Back Up Saves…**.
 
 If you used local training, rerun your original command with `--train-pgo` and
@@ -120,6 +129,7 @@ With a custom `--out`, the patched disc is in that directory's `mods/betterww.is
 ## If something fails
 
 Each step writes a log under `build/device/logs`, and the error names it. Rerunning the same command
-resumes where it stopped. For help, ask on [Discord](https://discord.gg/xwHfUD2bxW) or
-[open an issue](https://github.com/chrissotraidis/bluewake/issues), with the failing log, but never
-attach the IPA, the disc or game files.
+reuses compatible completed work. For help, ask on [Discord](https://discord.gg/xwHfUD2bxW) or
+[open an issue](https://github.com/chrissotraidis/bluewake/issues), with the failing stage and relevant error excerpt.
+Review logs for personal paths, signing details and device identifiers before posting. Never attach the IPA, disc, patched disc, game files, saves,
+optimization profiles or signing/provisioning files, and do not upload the whole build directory.
