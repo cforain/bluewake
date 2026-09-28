@@ -137,6 +137,9 @@ PY_FLAGS
 }
 logs=$out/logs
 mkdir -p "$logs"
+source_commit=$(git rev-parse HEAD)
+source_modified=false
+[ -z "$(git status --porcelain)" ] || source_modified=true
 run() {  # run LOGNAME command...: periodic progress plus complete file log
     local log=$logs/$1.log; shift
     if ! python3 "$root/scripts/builder/run_stage.py" --log "$log" -- "$@"; then
@@ -233,8 +236,9 @@ if [ -n "$ipa" ]; then
 {
   "profile": "$PROFILE_NAME",
   "containsTranslatedGameCode": true,
-  "source_commit": "$(git rev-parse HEAD)",
-  "source_modified": $([ -z "$(git status --porcelain --untracked-files=no)" ] && echo false || echo true),
+  "source_commit": "$source_commit",
+  "packaging_commit": "$(git rev-parse HEAD)",
+  "source_modified": $([ "$source_modified" = false ] && [ "$source_commit" = "$(git rev-parse HEAD)" ] && [ -z "$(git status --porcelain)" ] && echo false || echo true),
   "composite_digest": "$(cat "$out/composite-src.digest" 2>/dev/null)",
   "mods": $([ "$mods" -eq 1 ] && echo true || echo false),
   "local_training": $([ "$train_pgo" -eq 1 ] && echo true || echo false),
