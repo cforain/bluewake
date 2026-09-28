@@ -218,8 +218,8 @@ run sign-verify codesign -v --strict "$app"
 
 step "9/9 package"
 if [ -n "$ipa" ]; then
-    stage=$out/ipa-stage
-    rm -rf "$stage" && mkdir -p "$stage/Payload"
+    stage=$(mktemp -d "$out/ipa-stage.XXXXXX")
+    mkdir -p "$stage/Payload"
     staged=$stage/Payload/$(basename "$app")
     ditto "$app" "$staged"
     # Unsigned: the sideloading tool signs it with the player's own Apple ID.
@@ -251,9 +251,10 @@ EOF
         -o -name embedded.mobileprovision -o -name _CodeSignature -o -name '*.p12' \) -print)
     [ -z "$bad" ] || die "refusing to package private files: $bad"
     [ -f "$staged/Frameworks/$PROFILE_MODULE" ] || die "the staged app has no $PROFILE_MODULE"
-    rm -f "$ipa"
-    (cd "$stage" && ditto -c -k --norsrc --keepParent Payload "$ipa")
-    unzip -l "$ipa" | grep -q "Payload/$(basename "$app")/Info.plist" || die "the IPA has no Info.plist"
+    pending_ipa=$(mktemp "${ipa}.pending.XXXXXX")
+    (cd "$stage" && ditto -c -k --norsrc --keepParent Payload "$pending_ipa")
+    unzip -l "$pending_ipa" | grep -q "Payload/$(basename "$app")/Info.plist" || die "the IPA has no Info.plist"
+    mv "$pending_ipa" "$ipa"
     rm -rf "$stage"
     echo "IPA: $ipa ($(du -h "$ipa" | awk '{print $1}'), unsigned)"
     echo "     It contains game code translated from your disc: keep it for yourself."
