@@ -6,7 +6,8 @@ build, so **the app you build is yours alone: never share or upload it.**
 
 ## What you need
 
-- A Mac with Apple silicon that runs the current Xcode, and about 12 GB of free disk space
+- A Mac with Apple silicon that runs the current Xcode, and at least 12 GB of free disk space
+  (more for local optimization training)
 - Xcode from the App Store. Open it once, and under **Settings › Components** install the iOS platform.
 - [Homebrew](https://brew.sh), then in Terminal:
   ```sh
@@ -31,17 +32,42 @@ the app and an IPA:
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
 ```
 
-The first build compiles the whole game for iOS: it takes about 1.5 hours on an M3 Max (longer on
-smaller Macs), and the Mac stays busy. It resumes where it stopped if interrupted, and later builds only redo what
+The baseline build measured 83 minutes on an M3 Max. Local optimization training adds another build
+and a training run; its complete time and performance are still being verified. Smaller Macs take
+longer, and the Mac stays busy. It resumes where it stopped if interrupted, and later builds only redo what
 changed.
 
-Everything the build makes stays in `build/` inside the checkout. Nothing is uploaded.
+Generated game code and build outputs stay in `build/`; downloaded runtime and translator sources
+live in `ref/`. Nothing is uploaded.
 Keep the IPA there or anywhere else that is not synced: iCloud Drive (including a synced Desktop or
 Documents folder), Dropbox and similar would upload it.
 
+## Experimental local optimization
+
+The developer build reaches about 30 FPS in the measured iPad scenes; the baseline player build
+measured about 27.5 FPS. To help validate a locally generated replacement for the private game
+optimization profile, use:
+
+```sh
+scripts/builder/build.sh "/path/to/disc.iso" --train-pgo \
+    --out build/device-trained --ipa build/BlueWake-trained.ipa
+```
+
+This builds an instrumented Mac version, runs a training sequence from your disc, records execution
+counts, then uses them to compile the device version. It adds substantial first-build time. The
+terminal reports the stage and elapsed time; logs are under `build/device-trained/logs` and
+`build/device-trained/pgo-local/logs`. No full-speed result is promised yet: completing training is
+not the same as passing hardware performance tests.
+
+Training starts with a new private card by default. You can add `--training-save /path/to/GZLE01.card`
+to train with a copy of your own BlueWake memory card; your original is not modified. Generated
+profiles and training saves remain private under the build directory. Matching completed profiles
+are reused on later runs; changes to inputs invalidate them.
+
 ## 2. Install
 
-The IPA is unsigned; your sideloading tool signs it with your Apple ID. Any of these works:
+The IPA is unsigned; it needs signing before installation. Common signing tools are listed below;
+BlueWake-specific end-to-end installation has not been verified with every tool.
 
 | Tool | Notes |
 | --- | --- |
@@ -57,9 +83,11 @@ trust your Apple ID under Settings › General › VPN & Device Management.
 ## 3. Copy the disc to the device
 
 The app reads the game's graphics, sound and world data from your disc. Copy the same `.iso` to the
-device: in Finder, select the device, open **Files** and drag it onto **BlueWake**, or save it anywhere in
-the Files app. Open BlueWake and pick it; the app checks it and prepares the game. After that you can
-remove the `.iso` with **⋯ › Game Data & Saves › Remove Disc Image…** if you need the space.
+device: in Finder, select the device, open **Files** and drag it onto **BlueWake**, or save it in
+local **On My iPad** or **On My iPhone** storage in Files. Open BlueWake and pick it; the app checks
+it and prepares the game. Keep the imported disc on the device: the game reads it while you play.
+**⋯ › Game Data & Saves › Remove Disc Image…** removes the imported disc and extracted game files,
+keeps your saves and settings, and requires importing the disc again before playing.
 
 ## Updating
 

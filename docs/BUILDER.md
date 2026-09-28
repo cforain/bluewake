@@ -3,10 +3,10 @@
 The Builder turns a player's own game disc into their own app, on their own Mac. Nothing it produces is
 published: the game code is translated from the player's disc during the build and stays on their Mac
 and device. This is how BlueWake is distributed. Players get the source and build their personal IPA
-themselves (docs/BUILD_YOUR_OWN.md).
+themselves ([Build your own BlueWake](BUILD_YOUR_OWN.md)).
 
 ```sh
-scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa ~/BlueWake.ipa
+scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
 ```
 
 `scripts/ios/build_device.sh` is the same command with the BlueWake profile preselected; it takes the same
@@ -35,6 +35,7 @@ The steps are:
 | 4 translate | `profile_translate` | Translate the game's code to C |
 | 5 generate | `profile_generate` | Assemble the source to compile; compare it with the verified digest |
 | 6 mods | `profile_mods` | Optional code mods (skipped with `--no-mods`) |
+| optional training | `profile_train` | `--train-pgo`: local instrumented Mac build and playback; records a private game profile |
 | 7 compile | `profile_compile` | Compile the game module (the long step); set `module` |
 | 8 app | `profile_build_app`, then pipeline | Build the app, set `app`; the pipeline embeds and signs |
 | 9 package | pipeline | `--ipa` and `--install` |
@@ -54,7 +55,8 @@ A profile is a shell file sourced by the pipeline. It sets:
 | `PROFILE_DEFAULT_OUT` | `build/device` (must be git-ignored) |
 | `PROFILE_HAS_MODS` | `1` or `0` |
 
-and defines the eight `profile_*` hooks in the table above. Hooks may use the pipeline's helpers
+and defines the required `profile_*` hooks in the table above. `profile_train` is optional, but must
+exist when a player selects `--train-pgo`. Hooks may use the pipeline's helpers
 (`run LOGNAME cmd...`, `die`, `pgo_flags FILE`) and variables (`root`, `out`, `logs`, `jobs`, `iso`,
 `opt_level`, `device_cpu`, `composite_pgo`, `host_pgo`, `accept_new`, `mods`). `profile_compile` must
 set `module` and `profile_build_app` must set `app`.
@@ -69,7 +71,12 @@ A port's profile has to answer three questions, which are also its safety checks
 
 A port whose app builds differently only changes its `profile_build_app`.
 
-## Build time
+## Progress and build time
+
+The terminal reports the active stage and elapsed time, with available compiler progress. A
+`logs/progress.jsonl` event stream under the output directory records stage state for future PadForge
+integration. Individual command logs remain under `logs/`; a failed stage reports its log path.
+There is no measured total-time estimate for the experimental training path yet.
 
 A fresh-clone run on 2026-09-28 (M3 Max, 16 jobs, default settings with mods) took 83 minutes, 80 of them
 compiling the game module at the default `-O2`; it needed about 10 GB in `build/` and wrote a 96 MB IPA.
@@ -85,12 +92,19 @@ hour and loses the game's frame rate.
 The game module and the app are compiled with LLVM profile-guided optimization (PGO) when profiles are
 available. The BlueWake profile bundles two in `scripts/builder/profiles/bluewake/`, both trained on the
 macOS host: `composite-rt.profdata` (the runtime's dispatch, memory and CPU helpers) and `host.profdata` (the
-app's host code: renderer glue, input, DSP). They name only BlueWake's own functions and contain counts,
-no code; both pass `release_gate.py`. `--no-pgo` skips them.
+app's host code: renderer glue, input, DSP). They contain profiling metadata for runtime and host
+functions, including third-party code, rather than executable instructions. Both pass the automated asset scan; that scan alone is not a
+provenance or licensing determination. `--no-pgo` skips them.
 
-A third profile, for the translated game code itself, is kept private: it names the game's functions by
-address and fails the release gate. Measured on 2026-09-28 on an iPad Pro (M2) at the Outset pier, same
-scripted route:
+The developer's third profile records translated game functions and stays private. The player
+build must generate a replacement locally from the player's disc. The experimental `--train-pgo`
+option implements this through a separate instrumented Mac build and headless playback. It requires
+reaching player control and executing translated functions before accepting a profile. The optional
+`--training-save FILE` uses a copy of the player's BlueWake memory card; the default creates a new one.
+The resulting `OUT/pgo-local/composite.profdata` stays local and is added to the device build. The
+bundled host profile remains in use because headless training does not cover the renderer.
+Full-speed equivalence has not yet been demonstrated. Measurements on 2026-09-28 used an iPad Pro
+(M2) at the Outset pier and the same scripted route:
 
 | Build | FPS | CPU |
 | --- | --- | --- |
@@ -98,9 +112,19 @@ scripted route:
 | The two bundled profiles | 27.5 | 99% |
 | All three (the developer's build) | 29.9 | 83% |
 
+## PadForge
+
+[PadForge](https://github.com/chrissotraidis/padforge) is the planned shared Mac builder for multiple
+ports. BlueWake currently uses the command-line pipeline above; a finished graphical PadForge app
+is not required by these instructions and is not available from this repository. Its shared interface
+should report stages, elapsed time, compiler progress and resumable failures, while each game profile
+owns disc validation, translation, mods and optimization training. Local profile generation and
+matched-device performance verification remain release requirements.
+
 ## What is public and what is not
 
-The repository and its source archives contain no game code, disc data, keys or saves;
-`scripts/release/check_public_assets.sh` checks every public asset and fails closed. The IPA the Builder
-writes contains the player's translated game module (`gGZLE01_recomp.dylib`): it is a personal build
+Public source must exclude translated or decompiled game code, disc data, signing keys and saves.
+`scripts/release/check_public_assets.sh` scans candidate public artifacts and fails closed; its
+heuristics supplement manual provenance review. Gameplay screenshots illustrate the documentation.
+The IPA the Builder writes contains the player's translated game module (`gGZLE01_recomp.dylib`): it is a personal build
 and is never uploaded, attached or shared (AGENTS.md).

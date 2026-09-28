@@ -21,6 +21,10 @@ game/
 __pycache__/
 *.sav
 *.gci
+*.card
+*.raw
+*.ipa
+*.profraw
 dolphin_*.bin
 *.provisionprofile
 *.p12

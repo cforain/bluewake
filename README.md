@@ -20,8 +20,9 @@
 
 > [!IMPORTANT]
 > **Bring your own disc.** BlueWake needs your own legally obtained copy of *The Wind Waker* for
-> GameCube, USA version (`GZLE01`, revision 0). This repository and the app contain no disc image,
-> game assets or saves.
+> GameCube, USA version (`GZLE01`, revision 0). This repository contains no disc image, playable game
+> assets or saves. Your personal app contains code translated from your disc; you also import the
+> disc on your device.
 >
 > **Source preview.** There is no download yet: you build BlueWake on a Mac from your disc and install
 > it on your own device. See [Getting started](#getting-started).
@@ -44,7 +45,7 @@ BlueWake is a static recompilation with a hardware compatibility layer, not an "
 
 ## What works
 
-- **The game, start to finish as far as tested:** the opening and prologue, Outset Island, sailing the
+- **Tested areas and features:** the opening and prologue, Outset Island, sailing the
   Great Sea, Windfall, a late-game Hyrule save, menus, and saving and reloading through the game's own
   memory card
 - **30 FPS at full speed** on an iPad Pro (M2), the game's native frame rate, with stereo audio
@@ -71,8 +72,9 @@ build you make with the Builder does not have it yet and is slower: at the Outse
 Pro (M2) it runs at about 27.5 FPS instead of 30. Closing that gap is the top item before the first
 release.
 
-The limit on slower chips is CPU time for the game's own code, not the GPU, so lowering the render
-resolution does not help much there. Performance on smaller devices is active work.
+In the measured slow scenes, the CPU is the main limit, so lowering render resolution alone has
+not recovered full speed. Other scenes and HD texture packs can have different limits. Performance
+on smaller devices is active work.
 
 <p align="center">
   <img alt="BlueWake on an iPhone 14, with the touch controls in the black bars beside the picture" src="docs/images/bluewake-iphone-title.jpg" width="720">
@@ -82,7 +84,8 @@ resolution does not help much there. Performance on smaller devices is active wo
 
 You need:
 
-- a Mac with Apple silicon, Xcode, CMake and Ninja, and about 5 GB of free disk space
+- a Mac with Apple silicon, Xcode, CMake and Ninja, and at least 12 GB of free disk space
+  (more for local optimization training)
 - your `GZLE01` revision 0 disc image
 - an A13 or newer iPhone or iPad on iOS/iPadOS 17 or later, with Developer Mode on
 - an Apple ID for signing (a free one works; its apps expire after seven days)
@@ -96,7 +99,8 @@ scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa
 It fetches the pinned runtime and translator, checks your disc, translates the game from it, compiles
 it for iOS and writes an unsigned IPA. Install that with Sideloadly, AltStore, SideStore or Xcode, then
 copy the same disc image to your device (Finder › your device › Files › BlueWake); BlueWake imports it on
-first launch. The first compile is long (about 1.5 hours on an M3 Max, longer on smaller Macs) and resumes if interrupted; run it with
+first launch. The baseline first build measured 83 minutes on an M3 Max; local optimization training adds work
+and its total time is not yet verified. Interrupted compilation can resume; run it with
 `--source-only` first to check your tools and disc in a few minutes.
 
 **The IPA you build contains code translated from your disc: it is yours alone. Never share or upload it.**
@@ -124,11 +128,12 @@ into the app. Details are in [docs/MODS.md](docs/MODS.md).
   keeps a copy of your current saves in a Backups folder first.
 - Install updates over the existing app. Deleting BlueWake deletes its saves, so back them up first.
 - **Remove Disc Image…** frees the space used by the disc and the files made from it. Saves, mods and
-  settings stay.
+  settings stay. You must import your disc again before playing.
 
 ## Known issues
 
-- **Loading hitches.** Changing areas costs a brief stall, the original game's own load work.
+- **Loading hitches.** Changing areas can briefly stall; remaining loading and rendering costs are
+  still being investigated.
 - **First visits to new areas.** A bundled cache covers the areas tested so far; elsewhere, some
   objects may take a moment to appear the first time.
 - **Busy scenes on iPhone** drop below 30 FPS on chips older than the M-series iPads.
@@ -165,8 +170,8 @@ card, timing) comes from a Dolphin-derived runtime.
 
 ### Why 30 FPS?
 
-That is the game's own frame rate on the GameCube. BlueWake runs it at full speed; it does not run
-faster.
+That is the game's own frame rate on the GameCube. BlueWake targets that frame rate at 100% game
+speed; raising the speed would make gameplay run faster too.
 
 ### Does it work on iPhone?
 

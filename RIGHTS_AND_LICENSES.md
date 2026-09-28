@@ -23,7 +23,8 @@ BlueWake is an independent, unofficial project, not affiliated with or endorsed 
 Legend of Zelda: The Wind Waker*, its code, data, characters, names and imagery, and the GameCube
 trademark remain the property of their owners. BlueWake cannot grant rights it does not hold.
 
-This repository contains no disc image, game assets, saves or code translated from the game. You
+This repository contains no disc image, playable game assets, saves or code translated from the game.
+Documentation screenshots depict the game and are not covered by BlueWake's software license. You
 supply your own legally obtained USA `GZLE01` revision 0 disc, and the app or IPA you build from it
 contains code translated from that disc (`Frameworks/gGZLE01_recomp.dylib`). That build is for your
 own use: do not share, upload or sell it. The software license does not grant any rights in
@@ -36,3 +37,15 @@ Better Wind Waker, the widescreen code from Dolphin's game settings and HD textu
 of their authors and keep their own terms. The repository carries only the widescreen code's text
 (`mods/widescreen/GZLE01.gecko`); the build fetches Better Wind Waker at a pinned commit and applies it
 to your disc on your Mac, and you add texture packs yourself.
+
+## Runtime metadata
+
+`apple/ios/resources/initial_pipeline_cache.db` contains Aurora rendering-pipeline descriptions
+recorded during testing: structural GPU state, configuration versions and usage order. It does not
+contain textures, models, game executables or compiled shaders. Aurora builds shaders from these
+descriptions using its own renderer. The cache reduces missing draws while first-use pipelines compile.
+
+The bundled `composite-rt.profdata` and `host.profdata` contain LLVM profiling metadata for the
+compatibility runtime and host. They contain function identifiers and execution counts, not machine
+code. The translated-game optimization profile used by the developer is not distributed; player
+builds must generate their own from their disc. See [Builder status](docs/BUILDER.md#optimization-profiles).

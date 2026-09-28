@@ -10,7 +10,8 @@ scripts/ios/build_device.sh "/path/to/The Legend Of Zelda The Wind Waker.iso"
 It is the Builder (`scripts/builder/build.sh`, [BUILDER.md](../BUILDER.md)) with the BlueWake profile,
 and takes the same options; `--ipa FILE` also writes an unsigned IPA for sideloading
 ([BUILD_YOUR_OWN.md](../BUILD_YOUR_OWN.md)). The mods are built in (`--no-mods` skips them). It needs no
-`build/`, `generated/` or `ref/` directory beforehand and no files from any other machine. Everything it makes stays under `build/device` (git ignores it), and nothing is uploaded.
+`build/`, `generated/` or `ref/` directory beforehand and no files from any other machine. Game-derived outputs stay under `build/` (git ignores it), downloaded dependencies also use `ref/`,
+and nothing is uploaded.
 
 ## What you need
 
@@ -19,7 +20,7 @@ and takes the same options; `--ipa FILE` also writes an unsigned IPA for sideloa
 - CMake 3.25 or newer and Ninja: `brew install cmake ninja` (verified with CMake 3.27.1, Ninja
   1.13.2). Python 3, git and curl come with macOS and Xcode; the mods' Python packages
   (PyYAML, Pillow) are installed into `build/python` when missing.
-- Network access to GitHub on the first run, and about 5 GB of free disk space (the build takes about 3.6 GB).
+- Network access to GitHub on the first run, and at least 12 GB of free disk space (more for local optimization training).
 - The disc image, GZLE01 USA revision 0. Other revisions and regions are refused.
 - To install: an Apple ID in Xcode, the iPad or iPhone (A13 or newer, iOS/iPadOS 17 or newer)
   with Developer Mode on, and a USB cable or the same network.
@@ -65,7 +66,9 @@ proves the build but will not install on a device.
    done
    ```
    With a paid account you can instead register the App ID and the iPad in the developer portal
-   and download an iOS App Development profile. Delete the placeholder app from the iPad afterwards.
+   and download an iOS App Development profile. If BlueWake is already installed, do not run a
+   placeholder app over it or delete it: back up its saves and obtain the provisioning profile without
+   replacing the installed app.
 4. **The device id.**
    ```bash
    xcrun devicectl list devices      # the Identifier column, or the device name
@@ -82,45 +85,28 @@ proves the build but will not install on a device.
    entitlements, verifies the signature and installs with `xcrun devicectl`. It refuses a profile
    made for another bundle id. With a free team, the first launch may say "Untrusted Developer":
    Settings > General > VPN & Device Management, trust your Apple ID, then launch again.
-6. **The disc on the iPad.** The app contains no game data. Copy the same disc image to the iPad:
-   in Finder, select the iPad, open the Files tab and drag the ISO onto BlueWake (or put it in
-   iCloud Drive or On My iPad with the Files app). On first launch BlueWake shows what is missing,
+6. **The disc on the iPad.** The app contains translated game code, but needs your disc for assets. Copy the same disc image to the iPad:
+   in Finder, select the iPad, open the Files tab and drag the ISO onto BlueWake (or use local **On My iPad** storage in the Files app). On first launch BlueWake shows what is missing,
    imports the disc through the document picker (a file named `GZLE01.iso` in BlueWake's folder is
    picked up too), checks that it is GZLE01 USA revision 0 and prepares `main.dol` and `rels/` on the
    device. Saves stay in the app's container.
 
 What to check on the iPad is listed in [IPAD_STATE_2026-09-24.md](IPAD_STATE_2026-09-24.md).
 
-## Optional profile-guided builds (faster)
+## Optimization and performance
 
-The build tested in the iPad simulator on 2026-09-24 used three LLVM profiles recorded from
-training runs of the game on the macOS host. They are optional: the script builds without them,
-and nothing in the repository refers to them. They are not committed because they are recorded
-from running the game (function names and counts of the translated code). Measured on the macOS
-host, the composite profiles cut game-thread cycles by about 20 percent and the host profile by
-6.5 percent ([CURRENT.md](CURRENT.md), 2026-09-23); on the iPad simulator the build without them took about 20 percent longer per retrace in the heaviest view (see Verified). The speeds in [IPAD_STATE_2026-09-24.md](IPAD_STATE_2026-09-24.md) were measured with all three.
+See [the Builder's current optimization status](../BUILDER.md#optimization-profiles) for the
+measured difference between baseline and developer builds. Runtime and host profiles are bundled;
+the developer's translated-game profile is private and is not an input players should obtain.
+The supported release workflow must generate the game profile on each player's Mac from their
+own disc, then verify the resulting performance on hardware. `--train-pgo` enables the experimental
+local workflow; `--training-save FILE` optionally supplies a copy of the player's own BlueWake card.
+See [the player guide](../BUILD_YOUR_OWN.md#experimental-local-optimization). This remains under validation.
 
-| Profile | Path on the development Mac | Size | Covers |
-| --- | --- | --- | --- |
-| Hot chunks | `build/composite-pgo/prof/merged.profdata` | 22.6 MB | the 100 DOL chunks carrying 95 percent of translated-code time |
-| Composite runtime | `build/composite-pgo-rt/prof/merged.profdata` | 26 KB | `cpu.c`, `dispatch_loop.c` and the other runtime files |
-| Host | `build/host-pgo-gen/prof/merged.profdata` | 689 KB | the app's host code (device services, renderer glue, DSP) |
-
-They still match this build: the 206 DOL chunks, the composite metadata and the runtime files are
-byte-identical to the tree they were trained on (only REL chunks differ, and REL code is about 4
-percent of the time). To use them, copy the three files to the other Mac (any path without spaces)
-and pass them; repeated `--composite-pgo` files are merged:
-
-```bash
-scripts/ios/build_device.sh "/path/to/disc.iso" \
-    --composite-pgo /path/to/composite-hot.profdata \
-    --composite-pgo /path/to/composite-rt.profdata \
-    --host-pgo /path/to/host.profdata \
-    --out build/device-pgo            # a separate directory: the flags change every object
-```
-
-Recording new profiles is a macOS research workflow (`scripts/pgo_composite_hot.py`,
-`scripts/pgo_host_train.sh`); it needs a macOS composite build and a training run of the game.
+The advanced `--composite-pgo FILE` (repeatable) and `--host-pgo FILE` options accept profiles you
+created locally; use a separate `--out build/device-pgo` directory when changing compiler flags.
+Older research scripts refer to private development saves and build directories and are not the
+player onboarding path.
 
 ## Where the sources come from
 
@@ -161,12 +147,15 @@ differ from that tree, which had been assembled by hand from two translator vers
 regenerated after DolRecomp patch 0018, its REL chunks still from before it); the fresh tree has
 every file from the same translator. The runtime checks below were run on the fresh tree.
 
-The script pins the digest of the generated tree
-(`python3 scripts/ios/composite_manifest.py DIR`, 753 files,
-`9e4a847d50eddfec953e91272234e4af767d158fb1f55347487cf1a46509df7c`) and stops if a disc or
+The script pins the digest of the generated base tree
+(`python3 scripts/ios/composite_manifest.py DIR`, 754 files,
+`54f54434c3f9c899d43a96373dc0b4c1aed0e50db8b820b9698dfa76571a770a`) and stops if a disc or
 translator produces anything else; `--accept-new-composite` overrides that for development.
 
-## Verified
+## Historical verification (2026-09-25)
+
+The measurements below describe the specified older commits and machines, not the current
+Builder's complete local-training workflow. Current build comparisons are in [BUILDER.md](../BUILDER.md).
 
 On 2026-09-25, on an M2 MacBook Air (Xcode 26.6, CMake 3.27.1), from fresh clones of this
 repository with no `ref/`, `build/` or `generated/`:

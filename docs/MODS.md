@@ -71,6 +71,9 @@ is drawn meanwhile), so a new area shows its HD textures a moment later instead 
 
 ## Measured on the iPad Pro (M2)
 
+These results use the developer's optimized build. They do not establish performance parity for a
+fresh player build; see [the current performance comparison](BUILDER.md#optimization-profiles).
+
 - Widescreen and the HD pack together, on the pier after loading slot 1: 30 FPS at 100% speed, no late
   frames over more than a minute, main thread about 82% busy (the same as without mods). 5,739 of
   the pack's textures registered; the first file-select frame with new textures took 83 ms.

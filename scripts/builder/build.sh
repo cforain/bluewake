@@ -26,6 +26,9 @@
 #   --profile FILE            provisioning profile for the app (with --identity)
 #   --install DEVICE          install with devicectl after signing (needs --identity)
 #   --no-pgo                  skip the profile's bundled optimization profiles
+#   --train-pgo               experimentally generate game optimization counts on
+#                             this Mac before compiling; performance under validation
+#   --training-save FILE      optional personal memory card for --train-pgo (copied)
 #   --composite-pgo FILE      LLVM .profdata for the game module (repeatable; replaces
 #                             the profile's bundled one)
 #   --host-pgo FILE           LLVM .profdata for the app's host code (replaces the bundled one)
@@ -44,6 +47,7 @@ cd "$root"
 iso="" game=bluewake out="" ipa=""
 jobs=$(sysctl -n hw.ncpu)
 identity="" profile="" install_device="" host_pgo=""
+train_pgo=0 training_save=""
 composite_pgo=()
 # -O2 always: -O1 compiled in 47 min instead of 80 but held only 26 FPS
 # on an iPad Pro (M2) at Outset (docs/BUILDER.md), so there is no quick option.
@@ -53,6 +57,10 @@ die() { echo "builder: $*" >&2; exit 1; }
 step() { echo; echo "==> $*"; }
 
 while [ $# -gt 0 ]; do
+    case "$1" in
+        --ipa|--out|--jobs|--game|--identity|--profile|--install|--composite-pgo|--host-pgo|--device-cpu|--training-save)
+            [ $# -ge 2 ] && [ -n "$2" ] && [[ "$2" != --* ]] || die "$1 needs a value" ;;
+    esac
     case "$1" in
         --ipa) ipa=$2; shift 2 ;;
         --no-mods) mods=0; shift ;;
@@ -65,6 +73,8 @@ while [ $# -gt 0 ]; do
         --composite-pgo) composite_pgo+=("$2"); shift 2 ;;
         --host-pgo) host_pgo=$2; shift 2 ;;
         --no-pgo) use_pgo=0; shift ;;
+        --train-pgo) train_pgo=1; shift ;;
+        --training-save) training_save=$2; shift 2 ;;
         --device-cpu) device_cpu=$2; shift 2 ;;
         --accept-new-composite) accept_new=1; shift ;;
         --source-only) source_only=1; shift ;;
@@ -74,6 +84,11 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+[[ "$game" =~ ^[a-z][a-z0-9_-]*$ ]] || die "invalid game profile name: $game"
+[[ "$jobs" =~ ^[1-9][0-9]*$ ]] || die "--jobs must be a positive integer"
+[[ "$device_cpu" =~ ^[a-zA-Z0-9_-]+$ ]] || die "invalid --device-cpu"
+[ "$train_pgo" -eq 0 ] || [ "$use_pgo" -eq 1 ] || die "--train-pgo conflicts with --no-pgo"
+[ -z "$training_save" ] || [ "$train_pgo" -eq 1 ] || die "--training-save needs --train-pgo"
 profile_file=$root/scripts/builder/profiles/$game.sh
 [ -f "$profile_file" ] || die "no profile $profile_file"
 # shellcheck source=profiles/bluewake.sh
@@ -99,7 +114,7 @@ out=$(cd "$out" && pwd)
 case "$out" in "$root"/build/*|"$root"/build) ;; *) echo "builder: note: $out is outside build/, which git ignores" ;; esac
 if [ -n "$identity" ] && [ -z "$profile" ]; then die "--identity needs --profile"; fi
 if [ -n "$install_device" ] && [ -z "$identity" ]; then die "--install needs --identity and --profile"; fi
-for f in ${composite_pgo[@]+"${composite_pgo[@]}"} "$host_pgo" "$profile"; do
+for f in ${composite_pgo[@]+"${composite_pgo[@]}"} "$host_pgo" "$profile" "$training_save"; do
     [ -z "$f" ] || [ -f "$f" ] || die "file not found: $f"
 done
 abspath() { echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"; }
@@ -118,10 +133,9 @@ pgo_flags() {
 }
 logs=$out/logs
 mkdir -p "$logs"
-run() {  # run LOGNAME command...: quiet unless it fails
+run() {  # run LOGNAME command...: periodic progress plus complete file log
     local log=$logs/$1.log; shift
-    if ! "$@" > "$log" 2>&1; then
-        tail -40 "$log" >&2
+    if ! python3 "$root/scripts/builder/run_stage.py" --log "$log" -- "$@"; then
         die "failed: $* (full log $log)"
     fi
 }
@@ -161,6 +175,12 @@ fi
 
 step "6/9 mods"
 if [ "$mods" -eq 1 ]; then profile_mods; else echo "skipped"; fi
+
+if [ "$train_pgo" -eq 1 ]; then
+    step "local optimization training (first run adds a separate Mac build)"
+    declare -F profile_train >/dev/null || die "$game does not support local training"
+    profile_train
+fi
 
 step "7/9 compile the game module (-O$opt_level, $device_cpu; this is the long step)"
 start=$(date +%s)
