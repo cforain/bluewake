@@ -75,7 +75,8 @@ def main():
                 os.killpg(process.pid, signal.SIGTERM)
             except ProcessLookupError:
                 pass
-            deadline = time.monotonic() + 10
+            # The training helper needs up to 10 seconds to reap its own group.
+            deadline = time.monotonic() + 15
             while True:
                 process.poll()  # reap the direct child; descendants may remain
                 try:
