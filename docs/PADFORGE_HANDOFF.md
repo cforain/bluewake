@@ -147,11 +147,11 @@ records from each player's disc on their Mac:
 6. Package the private IPA with provenance recording training and profile
    hashes. Cache the verified profile for compatible subsequent builds.
 
-The existing `scripts/pgo_host_train.sh` and `scripts/pgo_composite_hot.py` are
-development utilities, not a working first-run training experience. They refer
-to old build layouts and a private save, and the composite helper assumes a
-CMake Makefile link layout. Port the required behavior to the actual builder
-workspace and generator before using them in the public instructions.
+`scripts/builder/train_local_pgo.py` now provides the experimental local trainer;
+`scripts/pgo_host_train.sh` is its compatibility wrapper. The legacy
+`scripts/pgo_host.sh` and `scripts/pgo_composite_hot.py` remain advanced
+development utilities with old build-layout assumptions. The player flow uses
+the new trainer and does not depend on a maintainer save.
 
 Acceptance requires a fresh workspace with no developer profiles or saves,
 successful local training, then matched Outset and Windfall hardware tests.

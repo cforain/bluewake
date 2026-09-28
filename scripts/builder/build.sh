@@ -129,7 +129,11 @@ if [ -n "$ipa" ]; then
     esac
 fi
 pgo_flags() {
-    echo "-fprofile-instr-use=$1 -Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date -Wno-backend-plugin"
+    python3 - "$1" <<'PY_FLAGS'
+import shlex, sys
+print(shlex.quote('-fprofile-instr-use=' + sys.argv[1]),
+      '-Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date -Wno-backend-plugin')
+PY_FLAGS
 }
 logs=$out/logs
 mkdir -p "$logs"

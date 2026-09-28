@@ -25,6 +25,14 @@ def main():
     events = args.log.parent / "progress.jsonl"
     started = time.monotonic()
     stage = args.log.stem
+    cancel_signal = signal.SIGINT
+
+    def cancel(signum, _frame):
+        nonlocal cancel_signal
+        cancel_signal = signum
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, cancel)
 
     def report(state, **fields):
         names = {"running": "stage_progress", "complete": "stage_completed",
@@ -63,14 +71,17 @@ def main():
                                     unit="build steps") if counts else {}
                     report("running", detail=latest, **progress)
         except KeyboardInterrupt:
-            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
             try:
                 process.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait()
             report("interrupted")
-            return 130
+            return 128 + cancel_signal
     report("complete" if code == 0 else "failed", exit_code=code)
     elapsed = int(time.monotonic() - started)
     print(f"  {stage}: {'complete' if code == 0 else 'failed'} in {elapsed // 60}m {elapsed % 60:02}s", flush=True)
