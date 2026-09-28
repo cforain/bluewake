@@ -34,20 +34,43 @@ def run(command, log, *, env=None, timeout=7200):
                     break
                 except subprocess.TimeoutExpired:
                     elapsed = int(time.monotonic() - start)
-                    print(f"training: {log.stem}, elapsed {elapsed // 60}m {elapsed % 60}s", flush=True)
+                    # Report real compiler units/retraces when the child logs
+                    # them. Elapsed time stays useful when no total is known.
+                    with log.open("rb") as recent:
+                        recent.seek(max(0, log.stat().st_size - 32768))
+                        tail = recent.read().decode(errors="replace")
+                    units = re.findall(r"\[(\d+/\d+)\]", tail)
+                    retraces = re.findall(r"\bretraces?=(\d+)", tail)
+                    detail = (f", units {units[-1]}" if units else
+                              f", last logged retrace {retraces[-1]}" if retraces else "")
+                    print(f"training: {log.stem}, elapsed {elapsed // 60}m {elapsed % 60}s{detail}", flush=True)
                     if elapsed > timeout:
                         raise RuntimeError(f"{log.stem} exceeded {timeout // 60} minutes; see {log}")
             if status:
                 print(log.read_text(errors="replace")[-5000:], file=sys.stderr)
                 raise RuntimeError(f"{log.stem} failed ({status}); see {log}")
         finally:
-            if process.poll() is None:
+            # A direct child can exit before its descendants. Check the
+            # process group independently, including children ignoring TERM.
+            try:
                 os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            deadline = time.monotonic() + 10
+            while True:
+                process.poll()  # reap the direct child as soon as it exits
                 try:
-                    process.wait(timeout=10)
-                except subprocess.TimeoutExpired:
-                    os.killpg(process.pid, signal.SIGKILL)
-                    process.wait()
+                    os.killpg(process.pid, 0)
+                except ProcessLookupError:
+                    break
+                if time.monotonic() >= deadline:
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    break
+                time.sleep(0.1)
+            process.wait()
     print(f"training: {log.stem} complete in {int(time.monotonic() - start)}s", flush=True)
 
 
@@ -80,7 +103,7 @@ def main():
     parser.add_argument("--disc", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--jobs", type=int, default=8)
-    parser.add_argument("--save", type=Path, help="optional personal raw memory card; only a copy is used")
+    parser.add_argument("--save", type=Path, help="optional personal BlueWake .card container; only a copy is used")
     args = parser.parse_args()
     if platform.system() != "Darwin" or platform.machine() != "arm64":
         parser.error("local training currently requires an Apple Silicon Mac")
@@ -154,6 +177,7 @@ def main():
         "BLUEWAKE_DSP_COEF": str(donor / "Data/Sys/GC/dsp_coef.bin"),
         "BLUEWAKE_MAX_BLOCKS": "100000000000", "BLUEWAKE_MAX_RETRACES": "23000",
         "BLUEWAKE_CYCLE_CAP": "16384", "BLUEWAKE_PLAYER_PROBE": "1",
+        "BLUEWAKE_DSP_MODE": "hle",
         "BLUEWAKE_PAD_BUTTONS": "0x0100", "BLUEWAKE_PAD_PULSE_ON_TITLE_READY": "1",
         "BLUEWAKE_PAD_PULSE_LENGTH": "2", "BLUEWAKE_PAD_CONFIRM_EVENT": "any",
         "BLUEWAKE_PAD_SCRIPT": ",".join(f"{n}:0x0100:2" for n in range(17800, 22001, 150)),
@@ -176,6 +200,8 @@ def main():
     shutil.copy2(outputs[0], outputs[1])
     receipt.write_text(json.dumps({"fingerprint": key, "compiler": compiler,
         "route": "local boot through player-control, 23000 retraces", "performance_verified": False,
+        "dsp_mode": "hle", "renderer": "headless",
+        "executed_translated_functions": sum(int(count) > 0 for count in executed),
         "profiles": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in outputs}}, indent=2) + "\n")
     print("training: local game counters generated; optimized device performance still requires testing", flush=True)
 

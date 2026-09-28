@@ -38,11 +38,24 @@ check remains unverified.
 
 - The private repository was renamed and its local checkout preserved.
 - The new checkout began with the same source tree and one initial commit.
-- Local profile generation and its performance acceptance are in progress.
+- A fresh-card Mac training run reached player control and produced valid game
+  counters: 262 translated functions executed, including all 100 covered by
+  the developer's retained profile. That first run used LLE audio. Validation
+  with the shipping HLE backend and optimized device performance is in progress.
+- Fresh extraction, translation and all mod variants reproduced the same
+  805-file source digest as the training input. The iOS host app also compiled.
+- Stage cancellation (including a TERM-resistant descendant), profile changes
+  forcing recompilation, paths with spaces and mod-cache invalidation passed
+  focused checks. The source archive passed the publication scan and manual
+  metadata/patch review.
+- GitHub Actions could not start because of an account billing/spending-limit
+  error; its repository audit and dependency checks passed locally.
 - Earlier matched Outset tests measured about 26 FPS without PGO, 27.5 FPS
   with runtime/host profiles, and 29.9 FPS with the developer's full profile.
   These measurements do not yet prove the new local-training path.
 - Public distribution remains paused pending the checks above. Personal IPAs
   contain translated game code and remain on the builder's machine.
+- The iPad is unavailable during this pass. All ongoing work is Mac-only;
+  hardware acceptance is deferred until the owner makes it available.
 
 See [PadForge handoff](PADFORGE_HANDOFF.md) for the shared-builder contract.
