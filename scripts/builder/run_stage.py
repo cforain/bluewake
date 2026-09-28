@@ -75,11 +75,21 @@ def main():
                 os.killpg(process.pid, signal.SIGTERM)
             except ProcessLookupError:
                 pass
-            try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGKILL)
-                process.wait()
+            deadline = time.monotonic() + 10
+            while True:
+                process.poll()  # reap the direct child; descendants may remain
+                try:
+                    os.killpg(process.pid, 0)
+                except ProcessLookupError:
+                    break
+                if time.monotonic() >= deadline:
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    break
+                time.sleep(0.1)
+            process.wait()
             report("interrupted")
             return 128 + cancel_signal
     report("complete" if code == 0 else "failed", exit_code=code)
