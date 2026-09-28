@@ -232,10 +232,13 @@ if [ -n "$ipa" ]; then
     cat > "$staged/BuilderProvenance.json" <<EOF
 {
   "profile": "$PROFILE_NAME",
+  "containsTranslatedGameCode": true,
   "source_commit": "$(git rev-parse HEAD)",
   "source_modified": $([ -z "$(git status --porcelain --untracked-files=no)" ] && echo false || echo true),
   "composite_digest": "$(cat "$out/composite-src.digest" 2>/dev/null)",
   "mods": $([ "$mods" -eq 1 ] && echo true || echo false),
+  "local_training": $([ "$train_pgo" -eq 1 ] && echo true || echo false),
+  "composite_profile_sha256": "$([ ${#composite_pgo[@]} -eq 0 ] || shasum -a 256 "$out/composite.profdata" | awk '{print $1}')",
   "module_sha256": "$(shasum -a 256 "$staged/Frameworks/$PROFILE_MODULE" | awk '{print $1}')",
   "built": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
