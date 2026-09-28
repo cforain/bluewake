@@ -46,7 +46,16 @@ check remains unverified.
   retained developer profile. A sampled function's profile hash matched across
   Mac O0 training and iOS O2 compilation. Hardware performance remains unverified.
 - The complete builder verified and reused those local profiles for a freshly
-  regenerated source tree. The optimized iOS compilation is in progress.
+  regenerated source tree. The optimized iOS compilation completed in 78m42s
+  on an M3 Max with 16 jobs. The personal IPA passed package integrity,
+  provenance, module-identity and private-data exclusion checks; the local
+  app's signature also verified. These checks do not establish device performance.
+- A four-run Mac comparison (developer/player/player/developer) loaded the same
+  copied save, accepted scripted movement and produced identical route digests
+  and player-state records. Over retraces 1,500–3,900, the locally trained module
+  averaged 13.26 ms per retrace versus 13.62 ms for the developer module.
+  This short headless test uses an instrumented host; it does not measure iPad
+  FPS, rendering, audible output or mod behavior.
 - PadForge's real source-only BlueWake integration passed: expected source
   digest, seven stage start/completion pairs, and a clean unchanged checkout.
 - Fresh extraction, translation and all mod variants reproduced the same

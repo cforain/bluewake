@@ -79,6 +79,13 @@ The terminal reports the active stage and elapsed time, with available compiler 
 integration. Individual command logs remain under `logs/`; a failed stage reports its log path.
 There is no measured total-time estimate for the experimental training path yet.
 
+Its optimized iOS module compilation completed in 78m42s on an M3 Max with
+16 jobs on 2026-09-28, after reusing a verified local profile. The profile's
+training playback took 18m24s separately; these timings exclude the training
+build and other setup, so their sum is not a complete first-build estimate.
+The resulting personal IPA passed package and provenance validation. Matched
+iPad performance testing of this locally trained build remains pending.
+
 A fresh-clone run on 2026-09-28 (M3 Max, 16 jobs, default settings with mods) took 83 minutes, 80 of them
 compiling the game module at the default `-O2`; it needed about 10 GB in `build/` and wrote a 96 MB IPA.
 Smaller Macs take longer.
