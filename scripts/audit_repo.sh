@@ -7,20 +7,28 @@ tracked=$(git ls-files)
 
 echo "=== BlueWake repository audit ==="
 
-for pattern in "*.iso" "*.gcm" "*.rvz" "*.nfs" "*.wbfs" "*.wia" "*.ciso" "*.gcz" "*.dol" "*.rel"; do
-  matches=$(echo "$tracked" | grep -i "$pattern" || true)
-  if [ -n "$matches" ]; then echo "FAIL: tracked file matching $pattern: $matches"; fail=1; fi
-done
-
-for dir in "ref/" "local-research/" "generated/" "build"; do
-  matches=$(echo "$tracked" | grep "^${dir}" || true)
-  if [ -n "$matches" ]; then echo "FAIL: tracked files under ${dir}: $matches"; fail=1; fi
-done
-
-for pattern in "*.sav" "*.gci" "*.p12" "*.mobileprovision" "*.provisionprofile" "dolphin_*.bin"; do
-  matches=$(echo "$tracked" | grep -i "$pattern" || true)
-  if [ -n "$matches" ]; then echo "FAIL: tracked sensitive file matching $pattern: $matches"; fail=1; fi
-done
+if ! python3 - <<'PY_AUDIT'
+import fnmatch
+import subprocess
+import sys
+paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+patterns = ('*.iso', '*.gcm', '*.rvz', '*.nfs', '*.wbfs', '*.wia', '*.ciso',
+            '*.gcz', '*.dol', '*.rel', '*.sav', '*.gci', '*.card', '*.raw',
+            '*.p12', '*.mobileprovision', '*.provisionprofile', 'dolphin_*.bin',
+            '*.ipa', '*.profraw', '*.profdata', '*.dylib')
+reviewed_profiles = {'scripts/builder/profiles/bluewake/composite-rt.profdata',
+                     'scripts/builder/profiles/bluewake/host.profdata'}
+forbidden_dirs = ('ref/', 'local-research/', 'generated/', 'build/', 'route_b/', 'patches/tww/')
+bad = [p for p in paths if p and (p.startswith(forbidden_dirs) or
+       (p not in reviewed_profiles and
+        any(fnmatch.fnmatch(p.lower().rsplit('/', 1)[-1], pattern) for pattern in patterns)))]
+for path in bad:
+    print('FAIL: tracked private/generated file:', path)
+sys.exit(bool(bad))
+PY_AUDIT
+then
+  fail=1
+fi
 
 if [ ! -f config/dependencies.lock.json ]; then
   echo "FAIL: config/dependencies.lock.json missing"; fail=1

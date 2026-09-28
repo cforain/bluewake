@@ -146,34 +146,71 @@ profile_generate() {
     else
         die "composite source digest $digest differs from the verified $COMPOSITE_DIGEST (wrong disc revision or translator?); --accept-new-composite overrides"
     fi
-    # Keep the existing tree when it was generated from the same base, so an
-    # interrupted compile resumes (mods add files to it, so compare the record).
-    if [ -d "$out/composite-src" ] && [ "$(cat "$out/composite-src.digest" 2>/dev/null)" = "$digest" ]; then
+    # Reuse only a verified tree made by the same generators and mod selection.
+    # Checking the base digest alone used to retain mod variants after --no-mods.
+    local inputs current saved
+    inputs=$( { printf '%s\n' "$digest" "$mods"; shasum -a 256 \
+        "$root/scripts/mods/"*.py "$root/scripts/mods/"*.sh \
+        "$root/mods/widescreen/GZLE01.gecko"; } | shasum -a 256 | awk '{print $1}')
+    current=""
+    if [ -d "$out/composite-src" ]; then
+        current=$(python3 scripts/ios/composite_manifest.py "$out/composite-src" | awk '{print $1}')
+    fi
+    saved=$(cat "$out/composite-final.digest" 2>/dev/null || true)
+    if [ -n "$current" ] && [ "$current" = "$saved" ] && \
+       [ "$(cat "$out/composite-inputs.digest" 2>/dev/null || true)" = "$inputs" ]; then
         rm -rf "$out/composite-src.new"
     else
-        rm -rf "$out/composite-src" && mv "$out/composite-src.new" "$out/composite-src"
+        if [ -d "$out/composite-src" ]; then
+            local previous
+            previous=$(mktemp -d "$out/composite-previous.XXXXXX")
+            mv "$out/composite-src" "$previous/source"
+            echo "previous generated source preserved at $previous/source"
+        fi
+        mv "$out/composite-src.new" "$out/composite-src"
         echo "$digest" > "$out/composite-src.digest"
-        rm -f "$out/mods.done"
+        echo "$inputs" > "$out/composite-inputs.digest"
+        echo "$digest" > "$out/composite-final.digest"
+        printf '%s\n' pending > "$out/mods.done"
     fi
 }
 
 profile_mods() {
     # Widescreen, Better Wind Waker and both together, as variants compiled
     # into the same module (docs/MODS.md). Done once per composite source.
-    if [ -f "$out/mods.done" ]; then
+    if [ "$(cat "$out/mods.done" 2>/dev/null || true)" = complete ] && \
+       [ -f "$out/mods/betterww.iso" ]; then
         echo "mods already in $out/composite-src"
         return
     fi
     run mods scripts/mods/build_mods.sh "$out" "$iso"
-    touch "$out/mods.done"
+    python3 scripts/ios/composite_manifest.py "$out/composite-src" | awk '{print $1}' > "$out/composite-final.digest"
+    printf '%s\n' complete > "$out/mods.done"
     echo "widescreen and Better Wind Waker variants added; the patched disc for the device is $out/mods/betterww.iso"
+}
+
+profile_train() {
+    local args=(--disc "$iso" --out "$out" --jobs "$jobs")
+    [ -z "$training_save" ] || args+=(--save "$training_save")
+    run local-training python3 "$root/scripts/builder/train_local_pgo.py" "${args[@]}"
+    [ -s "$out/pgo-local/composite.profdata" ] || die "local training produced no game profile"
+    composite_pgo+=("$out/pgo-local/composite.profdata")
+    # Headless boot training does not exercise the renderer; retain the
+    # existing host profile until rendered local training is validated.
 }
 
 profile_compile() {
     local flags="-mcpu=$device_cpu"
     if [ ${#composite_pgo[@]} -gt 0 ]; then
         run composite-pgo-merge xcrun llvm-profdata merge -o "$out/composite.profdata" "${composite_pgo[@]}"
-        flags="$flags $(pgo_flags "$out/composite.profdata")"
+        # The profile is a compiler input but not a C header dependency. Put
+        # its hash in the flag so Ninja recompiles when the counters change.
+        local profile_hash profile_path
+        profile_hash=$(shasum -a 256 "$out/composite.profdata" | awk '{print $1}')
+        mkdir -p "$out/profiles"
+        profile_path=$out/profiles/composite-$profile_hash.profdata
+        cp "$out/composite.profdata" "$profile_path"
+        flags="$flags $(pgo_flags "$profile_path")"
         echo "with the composite profile(s): ${composite_pgo[*]}"
     fi
     run composite-configure cmake -S cmake/composite -B "$out/composite-ios" -G Ninja \
@@ -189,7 +226,12 @@ profile_compile() {
 profile_build_app() {
     local host_flags=""
     if [ -n "$host_pgo" ]; then
-        host_flags=$(pgo_flags "$host_pgo")
+        local profile_hash profile_path
+        profile_hash=$(shasum -a 256 "$host_pgo" | awk '{print $1}')
+        mkdir -p "$out/profiles"
+        profile_path=$out/profiles/host-$profile_hash.profdata
+        cp "$host_pgo" "$profile_path"
+        host_flags=$(pgo_flags "$profile_path")
         echo "with the host profile $host_pgo"
     fi
     run app-configure cmake -S apple/ios -B "$out/app" -G Ninja \

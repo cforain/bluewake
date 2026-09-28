@@ -26,6 +26,9 @@
 #   --profile FILE            provisioning profile for the app (with --identity)
 #   --install DEVICE          install with devicectl after signing (needs --identity)
 #   --no-pgo                  skip the profile's bundled optimization profiles
+#   --train-pgo               experimentally generate game optimization counts on
+#                             this Mac before compiling; performance under validation
+#   --training-save FILE      optional personal memory card for --train-pgo (copied)
 #   --composite-pgo FILE      LLVM .profdata for the game module (repeatable; replaces
 #                             the profile's bundled one)
 #   --host-pgo FILE           LLVM .profdata for the app's host code (replaces the bundled one)
@@ -44,6 +47,7 @@ cd "$root"
 iso="" game=bluewake out="" ipa=""
 jobs=$(sysctl -n hw.ncpu)
 identity="" profile="" install_device="" host_pgo=""
+train_pgo=0 training_save=""
 composite_pgo=()
 # -O2 always: -O1 compiled in 47 min instead of 80 but held only 26 FPS
 # on an iPad Pro (M2) at Outset (docs/BUILDER.md), so there is no quick option.
@@ -53,6 +57,10 @@ die() { echo "builder: $*" >&2; exit 1; }
 step() { echo; echo "==> $*"; }
 
 while [ $# -gt 0 ]; do
+    case "$1" in
+        --ipa|--out|--jobs|--game|--identity|--profile|--install|--composite-pgo|--host-pgo|--device-cpu|--training-save)
+            [ $# -ge 2 ] && [ -n "$2" ] && [[ "$2" != --* ]] || die "$1 needs a value" ;;
+    esac
     case "$1" in
         --ipa) ipa=$2; shift 2 ;;
         --no-mods) mods=0; shift ;;
@@ -65,6 +73,8 @@ while [ $# -gt 0 ]; do
         --composite-pgo) composite_pgo+=("$2"); shift 2 ;;
         --host-pgo) host_pgo=$2; shift 2 ;;
         --no-pgo) use_pgo=0; shift ;;
+        --train-pgo) train_pgo=1; shift ;;
+        --training-save) training_save=$2; shift 2 ;;
         --device-cpu) device_cpu=$2; shift 2 ;;
         --accept-new-composite) accept_new=1; shift ;;
         --source-only) source_only=1; shift ;;
@@ -74,6 +84,11 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+[[ "$game" =~ ^[a-z][a-z0-9_-]*$ ]] || die "invalid game profile name: $game"
+[[ "$jobs" =~ ^[1-9][0-9]*$ ]] || die "--jobs must be a positive integer"
+[[ "$device_cpu" =~ ^[a-zA-Z0-9_-]+$ ]] || die "invalid --device-cpu"
+[ "$train_pgo" -eq 0 ] || [ "$use_pgo" -eq 1 ] || die "--train-pgo conflicts with --no-pgo"
+[ -z "$training_save" ] || [ "$train_pgo" -eq 1 ] || die "--training-save needs --train-pgo"
 profile_file=$root/scripts/builder/profiles/$game.sh
 [ -f "$profile_file" ] || die "no profile $profile_file"
 # shellcheck source=profiles/bluewake.sh
@@ -96,10 +111,14 @@ iso=$(cd "$(dirname "$iso")" && pwd)/$(basename "$iso")
 out=${out:-$root/$PROFILE_DEFAULT_OUT}
 mkdir -p "$out"
 out=$(cd "$out" && pwd)
-case "$out" in "$root"/build/*|"$root"/build) ;; *) echo "builder: note: $out is outside build/, which git ignores" ;; esac
+case "$out" in
+    "$root") die "--out must not be the source checkout itself; use build/device" ;;
+    "$root"/*) git check-ignore -q "$out/" || die "--out inside this checkout must be git-ignored; use build/device" ;;
+    *) echo "builder: using external private build directory $out" ;;
+esac
 if [ -n "$identity" ] && [ -z "$profile" ]; then die "--identity needs --profile"; fi
 if [ -n "$install_device" ] && [ -z "$identity" ]; then die "--install needs --identity and --profile"; fi
-for f in ${composite_pgo[@]+"${composite_pgo[@]}"} "$host_pgo" "$profile"; do
+for f in ${composite_pgo[@]+"${composite_pgo[@]}"} "$host_pgo" "$profile" "$training_save"; do
     [ -z "$f" ] || [ -f "$f" ] || die "file not found: $f"
 done
 abspath() { echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"; }
@@ -114,14 +133,20 @@ if [ -n "$ipa" ]; then
     esac
 fi
 pgo_flags() {
-    echo "-fprofile-instr-use=$1 -Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date -Wno-backend-plugin"
+    python3 - "$1" <<'PY_FLAGS'
+import shlex, sys
+print(shlex.quote('-fprofile-instr-use=' + sys.argv[1]),
+      '-Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date -Wno-backend-plugin')
+PY_FLAGS
 }
 logs=$out/logs
 mkdir -p "$logs"
-run() {  # run LOGNAME command...: quiet unless it fails
+source_commit=$(git rev-parse HEAD)
+source_modified=false
+[ -z "$(git status --porcelain)" ] || source_modified=true
+run() {  # run LOGNAME command...: periodic progress plus complete file log
     local log=$logs/$1.log; shift
-    if ! "$@" > "$log" 2>&1; then
-        tail -40 "$log" >&2
+    if ! python3 "$root/scripts/builder/run_stage.py" --log "$log" -- "$@"; then
         die "failed: $* (full log $log)"
     fi
 }
@@ -162,6 +187,12 @@ fi
 step "6/9 mods"
 if [ "$mods" -eq 1 ]; then profile_mods; else echo "skipped"; fi
 
+if [ "$train_pgo" -eq 1 ]; then
+    step "local optimization training (first run adds a separate Mac build)"
+    declare -F profile_train >/dev/null || die "$game does not support local training"
+    profile_train
+fi
+
 step "7/9 compile the game module (-O$opt_level, $device_cpu; this is the long step)"
 start=$(date +%s)
 module=""
@@ -194,8 +225,8 @@ run sign-verify codesign -v --strict "$app"
 
 step "9/9 package"
 if [ -n "$ipa" ]; then
-    stage=$out/ipa-stage
-    rm -rf "$stage" && mkdir -p "$stage/Payload"
+    stage=$(mktemp -d "$out/ipa-stage.XXXXXX")
+    mkdir -p "$stage/Payload"
     staged=$stage/Payload/$(basename "$app")
     ditto "$app" "$staged"
     # Unsigned: the sideloading tool signs it with the player's own Apple ID.
@@ -208,10 +239,14 @@ if [ -n "$ipa" ]; then
     cat > "$staged/BuilderProvenance.json" <<EOF
 {
   "profile": "$PROFILE_NAME",
-  "source_commit": "$(git rev-parse HEAD)",
-  "source_modified": $([ -z "$(git status --porcelain --untracked-files=no)" ] && echo false || echo true),
+  "containsTranslatedGameCode": true,
+  "source_commit": "$source_commit",
+  "packaging_commit": "$(git rev-parse HEAD)",
+  "source_modified": $([ "$source_modified" = false ] && [ "$source_commit" = "$(git rev-parse HEAD)" ] && [ -z "$(git status --porcelain)" ] && echo false || echo true),
   "composite_digest": "$(cat "$out/composite-src.digest" 2>/dev/null)",
   "mods": $([ "$mods" -eq 1 ] && echo true || echo false),
+  "local_training": $([ "$train_pgo" -eq 1 ] && echo true || echo false),
+  "composite_profile_sha256": "$([ ${#composite_pgo[@]} -eq 0 ] || shasum -a 256 "$out/composite.profdata" | awk '{print $1}')",
   "module_sha256": "$(shasum -a 256 "$staged/Frameworks/$PROFILE_MODULE" | awk '{print $1}')",
   "built": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
@@ -224,9 +259,10 @@ EOF
         -o -name embedded.mobileprovision -o -name _CodeSignature -o -name '*.p12' \) -print)
     [ -z "$bad" ] || die "refusing to package private files: $bad"
     [ -f "$staged/Frameworks/$PROFILE_MODULE" ] || die "the staged app has no $PROFILE_MODULE"
-    rm -f "$ipa"
-    (cd "$stage" && ditto -c -k --norsrc --keepParent Payload "$ipa")
-    unzip -l "$ipa" | grep -q "Payload/$(basename "$app")/Info.plist" || die "the IPA has no Info.plist"
+    pending_ipa=$(mktemp "${ipa}.pending.XXXXXX")
+    (cd "$stage" && ditto -c -k --norsrc --keepParent Payload "$pending_ipa")
+    unzip -l "$pending_ipa" | grep -q "Payload/$(basename "$app")/Info.plist" || die "the IPA has no Info.plist"
+    mv "$pending_ipa" "$ipa"
     rm -rf "$stage"
     echo "IPA: $ipa ($(du -h "$ipa" | awk '{print $1}'), unsigned)"
     echo "     It contains game code translated from your disc: keep it for yourself."

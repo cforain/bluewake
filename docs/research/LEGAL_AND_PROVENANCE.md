@@ -1,5 +1,7 @@
 # Legal & Provenance Audit (engineering audit — NOT legal advice)
 
+> Historical research, superseded for publication: use [Rights and licenses](../../RIGHTS_AND_LICENSES.md) and the current source-only release policy.
+
 Scope: what code/data each candidate component contains, where it came from,
 what may be publicly hosted vs. must be user-generated, and what BlueWake
 must never commit or redistribute.
