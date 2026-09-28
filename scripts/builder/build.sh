@@ -164,14 +164,14 @@ for tool in xcrun cmake ninja python3 git curl shasum clang codesign ditto; do
     command -v "$tool" >/dev/null || die "missing $tool (Xcode, CMake 3.25+ and Ninja are required; brew install cmake ninja)"
 done
 xcrun --sdk iphoneos --show-sdk-path >/dev/null 2>&1 || die "the iOS SDK is missing: install Xcode and run sudo xcode-select -s /Applications/Xcode.app"
-cmake_version=$(cmake --version | head -1 | awk '{print $3}')
+cmake_version=$(cmake --version | awk 'NR == 1 { print $3 }')
 python3 - "$cmake_version" <<'EOF' || die "CMake 3.25 or newer is required"
 import sys
 v = tuple(int(x) for x in sys.argv[1].split('.')[:2])
 sys.exit(0 if v >= (3, 25) else 1)
 EOF
 profile_check_tools
-echo "xcode $(xcodebuild -version | head -1 | awk '{print $2}'), cmake $cmake_version, $jobs jobs"
+echo "xcode $(xcodebuild -version | awk 'NR == 1 { print $2 }'), cmake $cmake_version, $jobs jobs"
 
 step "2/9 dependencies"
 profile_dependencies
@@ -242,7 +242,7 @@ if [ -n "$ipa" ]; then
     rm -f "$staged/embedded.mobileprovision"
     find "$staged" -name _CodeSignature -type d -prune -exec rm -rf {} +
     while IFS= read -r -d '' f; do
-        if file -b "$f" | grep -q 'Mach-O'; then codesign --remove-signature "$f"; fi
+        case "$(file -b "$f")" in *Mach-O*) codesign --remove-signature "$f" ;; esac
     done < <(find "$staged" -type f -print0)
     # Provenance, for bug reports: what this build was made from.
     cat > "$staged/BuilderProvenance.json" <<EOF
@@ -270,7 +270,9 @@ EOF
     [ -f "$staged/Frameworks/$PROFILE_MODULE" ] || die "the staged app has no $PROFILE_MODULE"
     pending_ipa=$(mktemp "${ipa}.pending.XXXXXX")
     (cd "$stage" && ditto -c -k --norsrc --keepParent Payload "$pending_ipa")
-    unzip -l "$pending_ipa" | grep -q "Payload/$(basename "$app")/Info.plist" || die "the IPA has no Info.plist"
+    # No "| grep -q" here: under pipefail, grep exiting early can kill unzip
+    # with SIGPIPE and fail a good IPA. unzip itself fails if the member is missing.
+    unzip -l "$pending_ipa" "Payload/$(basename "$app")/Info.plist" >/dev/null 2>&1 || die "the IPA has no Info.plist"
     mv "$pending_ipa" "$ipa"
     rm -rf "$stage"
     echo "IPA: $ipa ($(du -h "$ipa" | awk '{print $1}'), unsigned)"
