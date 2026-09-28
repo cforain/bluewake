@@ -15,10 +15,13 @@ paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
 patterns = ('*.iso', '*.gcm', '*.rvz', '*.nfs', '*.wbfs', '*.wia', '*.ciso',
             '*.gcz', '*.dol', '*.rel', '*.sav', '*.gci', '*.card', '*.raw',
             '*.p12', '*.mobileprovision', '*.provisionprofile', 'dolphin_*.bin',
-            '*.ipa', '*.profraw', '*.dylib')
+            '*.ipa', '*.profraw', '*.profdata', '*.dylib')
+reviewed_profiles = {'scripts/builder/profiles/bluewake/composite-rt.profdata',
+                     'scripts/builder/profiles/bluewake/host.profdata'}
 forbidden_dirs = ('ref/', 'local-research/', 'generated/', 'build/', 'route_b/', 'patches/tww/')
 bad = [p for p in paths if p and (p.startswith(forbidden_dirs) or
-       any(fnmatch.fnmatch(p.lower().rsplit('/', 1)[-1], pattern) for pattern in patterns))]
+       (p not in reviewed_profiles and
+        any(fnmatch.fnmatch(p.lower().rsplit('/', 1)[-1], pattern) for pattern in patterns)))]
 for path in bad:
     print('FAIL: tracked private/generated file:', path)
 sys.exit(bool(bad))

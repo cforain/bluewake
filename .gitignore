@@ -25,6 +25,7 @@ __pycache__/
 *.raw
 *.ipa
 *.profraw
+*.profdata
 dolphin_*.bin
 *.provisionprofile
 *.p12
