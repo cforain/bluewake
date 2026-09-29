@@ -24,8 +24,9 @@
 > assets or saves. Your personal app contains code translated from your disc; you also import the
 > disc on your device.
 >
-> **Source preview.** No prebuilt IPA is provided. You build BlueWake on a Mac from your disc and
-> install it on your own device. The builder tunes the game on your Mac as part of the build; the
+> **Get it with PadForge.** Each release has the BlueWake app without any game code. On an Apple
+> silicon Mac, [PadForge](https://github.com/chrissotraidis/padforge/releases/latest) builds your game
+> module from your own disc and adds it to that app. The build tunes the game on your Mac; the
 > developer build tuned this way reaches 30 FPS on an iPad Pro (M2). See [Getting started](#getting-started).
 >
 > **AI disclosure:** BlueWake is developed with substantial AI assistance for code, testing,
@@ -159,8 +160,10 @@ into the app. Details are in [docs/MODS.md](docs/MODS.md).
 
 ### Can I download it?
 
-The source is available; a prebuilt app is not provided. The app runs code translated from the game,
-so everyone builds their own from their own disc, on a Mac, with one command: see [Build your own BlueWake](docs/BUILD_YOUR_OWN.md).
+The app is on the [latest release](https://github.com/chrissotraidis/bluewake/releases/latest), without
+the game code. The game code is translated from the game, so everyone makes their own from their own
+disc: PadForge does it on an Apple silicon Mac and adds it to the released app (see
+[Getting started](#getting-started)). Without it, the app opens and shows "Translated game code: Missing".
 
 ### Why does it need my disc?
 
