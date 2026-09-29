@@ -2,6 +2,7 @@
 # BlueWake Builder: turn your own game disc into your own app, on your Mac.
 #
 #   scripts/builder/build.sh DISC.iso [--ipa OUT.ipa] [options]
+#   scripts/builder/build.sh --app-only --ipa OUT.ipa   (the published app, no game code)
 #
 # The pipeline is generic; everything game-specific (disc checks, translator
 # settings, the app target, mods) lives in a profile, scripts/builder/profiles/
@@ -14,6 +15,10 @@
 #   8 build the app, embed the game module, sign, 9 optional IPA and install
 #
 # Options:
+#   --app FILE.ipa            add the game module to this published app (made with
+#                             --app-only) instead of building the app here
+#   --app-only                build only the app, with no disc and no game code: the
+#                             IPA a release publishes; players add the module
 #   --ipa FILE                also write an unsigned IPA for sideloading (AltStore,
 #                             SideStore, Sideloadly, Xcode). It contains the game
 #                             code translated from YOUR disc: it is for you only,
@@ -46,7 +51,7 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root"
 
-iso="" game=bluewake out="" ipa=""
+iso="" game=bluewake out="" ipa="" published_app="" app_only=0
 jobs=$(sysctl -n hw.ncpu)
 identity="" profile="" install_device="" host_pgo=""
 train_pgo=auto training_save=""
@@ -60,10 +65,12 @@ step() { echo; echo "==> $*"; }
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --ipa|--out|--jobs|--game|--identity|--profile|--install|--composite-pgo|--host-pgo|--device-cpu|--training-save)
+        --app|--ipa|--out|--jobs|--game|--identity|--profile|--install|--composite-pgo|--host-pgo|--device-cpu|--training-save)
             [ $# -ge 2 ] && [ -n "$2" ] && [[ "$2" != --* ]] || die "$1 needs a value" ;;
     esac
     case "$1" in
+        --app) published_app=$2; shift 2 ;;
+        --app-only) app_only=1; shift ;;
         --ipa) ipa=$2; shift 2 ;;
         --no-mods) mods=0; shift ;;
         --out) out=$2; shift 2 ;;
@@ -111,9 +118,15 @@ if [ "$use_pgo" -eq 1 ]; then
     fi
 fi
 
-[ -n "$iso" ] || die "usage: scripts/builder/build.sh DISC.iso [--ipa OUT.ipa] [options] (--help)"
-[ -f "$iso" ] || die "disc image not found: $iso"
-iso=$(cd "$(dirname "$iso")" && pwd)/$(basename "$iso")
+if [ "$app_only" -eq 1 ]; then
+    [ -z "$iso" ] && [ -z "$published_app" ] || die "--app-only takes no disc and no --app"
+    [ -n "$ipa" ] || die "--app-only needs --ipa OUT.ipa"
+    [ -z "$identity" ] || die "--app-only makes the unsigned published IPA; remove --identity"
+else
+    [ -n "$iso" ] || die "usage: scripts/builder/build.sh DISC.iso [--ipa OUT.ipa] [options] (--help)"
+    [ -f "$iso" ] || die "disc image not found: $iso"
+    iso=$(cd "$(dirname "$iso")" && pwd)/$(basename "$iso")
+fi
 out=${out:-$root/$PROFILE_DEFAULT_OUT}
 mkdir -p "$out"
 out=$(cd "$out" && pwd)
@@ -124,11 +137,12 @@ case "$out" in
 esac
 if [ -n "$identity" ] && [ -z "$profile" ]; then die "--identity needs --profile"; fi
 if [ -n "$install_device" ] && [ -z "$identity" ]; then die "--install needs --identity and --profile"; fi
-for f in ${composite_pgo[@]+"${composite_pgo[@]}"} "$host_pgo" "$profile" "$training_save"; do
+for f in ${composite_pgo[@]+"${composite_pgo[@]}"} "$host_pgo" "$profile" "$training_save" "$published_app"; do
     [ -z "$f" ] || [ -f "$f" ] || die "file not found: $f"
 done
 abspath() { echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"; }
 [ -z "$host_pgo" ] || host_pgo=$(abspath "$host_pgo")
+[ -z "$published_app" ] || published_app=$(abspath "$published_app")
 if [ -n "$ipa" ]; then
     case "$ipa" in *.ipa) ;; *) die "--ipa needs a file name ending in .ipa" ;; esac
     mkdir -p "$(dirname "$ipa")"
@@ -157,7 +171,11 @@ run() {  # run LOGNAME command...: periodic progress plus complete file log
     fi
 }
 
-echo "Building $PROFILE_TITLE from $iso"
+if [ "$app_only" -eq 1 ]; then
+    echo "Building the $PROFILE_APP_NAME app without game code"
+else
+    echo "Building $PROFILE_TITLE from $iso"
+fi
 
 step "1/9 tools"
 for tool in xcrun cmake ninja python3 git curl shasum clang codesign ditto; do
@@ -176,6 +194,14 @@ echo "xcode $(xcodebuild -version | awk 'NR == 1 { print $2 }'), cmake $cmake_ve
 step "2/9 dependencies"
 profile_dependencies
 
+if [ "$app_only" -eq 1 ]; then
+step "app only: build $PROFILE_APP_NAME without game code (steps 3 to 8 need a disc)"
+app=""
+profile_build_app
+[ -d "$app" ] || die "the app was not produced"
+[ ! -e "$app/Frameworks/$PROFILE_MODULE" ] || die "the published app must not contain $PROFILE_MODULE"
+signed="later by the player's sideloading tool"
+else
 step "3/9 extract the game from the disc"
 profile_extract
 
@@ -211,7 +237,18 @@ echo "game module built in $(( ($(date +%s) - start) / 60 )) min: $module"
 
 step "8/9 build, embed and sign the app"
 app=""
-profile_build_app
+if [ -n "$published_app" ]; then
+    # The release's app, unchanged: only the player's game module is added.
+    rm -rf "$out/published-app"
+    mkdir -p "$out/published-app"
+    ditto -x -k "$published_app" "$out/published-app"
+    app=$(find "$out/published-app/Payload" -maxdepth 1 -name '*.app' -type d | head -1)
+    [ -n "$app" ] || die "no app inside $published_app"
+    [ ! -e "$app/Frameworks/$PROFILE_MODULE" ] || die "$published_app already contains a game module"
+    echo "using the published app $published_app"
+else
+    profile_build_app
+fi
 [ -d "$app" ] || die "the app was not produced"
 mkdir -p "$app/Frameworks"
 cp "$module" "$app/Frameworks/$PROFILE_MODULE"
@@ -231,6 +268,7 @@ else
     signed="ad hoc"
 fi
 run sign-verify codesign -v --strict "$app"
+fi
 
 step "9/9 package"
 if [ -n "$ipa" ]; then
@@ -248,15 +286,15 @@ if [ -n "$ipa" ]; then
     cat > "$staged/BuilderProvenance.json" <<EOF
 {
   "profile": "$PROFILE_NAME",
-  "containsTranslatedGameCode": true,
+  "containsTranslatedGameCode": $([ "$app_only" -eq 1 ] && echo false || echo true),
   "source_commit": "$source_commit",
   "packaging_commit": "$(git rev-parse HEAD)",
   "source_modified": $([ "$source_modified" = false ] && [ "$source_commit" = "$(git rev-parse HEAD)" ] && [ -z "$(git status --porcelain)" ] && echo false || echo true),
   "composite_digest": "$(cat "$out/composite-src.digest" 2>/dev/null)",
-  "mods": $([ "$mods" -eq 1 ] && echo true || echo false),
-  "local_training": $([ "$train_pgo" -eq 1 ] && echo true || echo false),
-  "composite_profile_sha256": "$([ ${#composite_pgo[@]} -eq 0 ] || shasum -a 256 "$out/composite.profdata" | awk '{print $1}')",
-  "module_sha256": "$(shasum -a 256 "$staged/Frameworks/$PROFILE_MODULE" | awk '{print $1}')",
+  "mods": $([ "$mods" -eq 1 ] && [ "$app_only" -eq 0 ] && echo true || echo false),
+  "local_training": $([ "$train_pgo" -eq 1 ] && [ "$app_only" -eq 0 ] && echo true || echo false),
+  "composite_profile_sha256": "$([ ${#composite_pgo[@]} -eq 0 ] || [ "$app_only" -eq 1 ] || shasum -a 256 "$out/composite.profdata" | awk '{print $1}')",
+  "module_sha256": "$([ "$app_only" -eq 1 ] || shasum -a 256 "$staged/Frameworks/$PROFILE_MODULE" | awk '{print $1}')",
   "built": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 EOF
@@ -267,7 +305,11 @@ EOF
         -o -iname '*.rel' -o -iname '*.card' -o -iname '*.gci' -o -iname '*.sav' -o -iname '*.raw' \
         -o -name embedded.mobileprovision -o -name _CodeSignature -o -name '*.p12' \) -print)
     [ -z "$bad" ] || die "refusing to package private files: $bad"
-    [ -f "$staged/Frameworks/$PROFILE_MODULE" ] || die "the staged app has no $PROFILE_MODULE"
+    if [ "$app_only" -eq 1 ]; then
+        [ ! -e "$staged/Frameworks/$PROFILE_MODULE" ] || die "the published app must not contain $PROFILE_MODULE"
+    else
+        [ -f "$staged/Frameworks/$PROFILE_MODULE" ] || die "the staged app has no $PROFILE_MODULE"
+    fi
     pending_ipa=$(mktemp "${ipa}.pending.XXXXXX")
     (cd "$stage" && ditto -c -k --norsrc --keepParent Payload "$pending_ipa")
     # No "| grep -q" here: under pipefail, grep exiting early can kill unzip
@@ -276,7 +318,11 @@ EOF
     mv "$pending_ipa" "$ipa"
     rm -rf "$stage"
     echo "IPA: $ipa ($(du -h "$ipa" | awk '{print $1}'), unsigned)"
-    echo "     It contains game code translated from your disc: keep it for yourself."
+    if [ "$app_only" -eq 1 ]; then
+        echo "     The app without game code: players add their own module with --app."
+    else
+        echo "     It contains game code translated from your disc: keep it for yourself."
+    fi
 else
     echo "no IPA requested (--ipa FILE)"
 fi
@@ -287,5 +333,7 @@ fi
 
 echo
 echo "$PROFILE_APP_NAME.app: $app ($(du -sh "$app" | awk '{print $1}'), signed $signed)"
-echo "game module: $(shasum -a 256 "$app/Frameworks/$PROFILE_MODULE" | awk '{print $1}')"
-echo "On first launch the app asks for the disc image; copy it to the device with Finder or the Files app."
+if [ "$app_only" -eq 0 ]; then
+    echo "game module: $(shasum -a 256 "$app/Frameworks/$PROFILE_MODULE" | awk '{print $1}')"
+    echo "On first launch the app asks for the disc image; copy it to the device with Finder or the Files app."
+fi

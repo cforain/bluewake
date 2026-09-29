@@ -184,17 +184,26 @@ static UIButton* BWButton(NSString* title, BOOL prominent) {
     // Above the labels' compression resistance, so long lines wrap instead
     // of widening the column.
     preferredWidth.priority = UILayoutPriorityRequired - 1;
+    // The content is at least one screen tall (so a short column stays
+    // centred) and grows with the column, so short screens such as a phone in
+    // landscape scroll instead of squeezing the rows together.
+    UILayoutGuide* content = scroll.contentLayoutGuide;
+    NSLayoutConstraint* screenTall = [content.heightAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.heightAnchor];
+    screenTall.priority = UILayoutPriorityDefaultLow;
     [NSLayoutConstraint activateConstraints:@[
         [scroll.topAnchor constraintEqualToAnchor:safe.topAnchor],
         [scroll.bottomAnchor constraintEqualToAnchor:safe.bottomAnchor],
         [scroll.leadingAnchor constraintEqualToAnchor:safe.leadingAnchor],
         [scroll.trailingAnchor constraintEqualToAnchor:safe.trailingAnchor],
+        [content.widthAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.widthAnchor],
+        [content.heightAnchor constraintGreaterThanOrEqualToAnchor:scroll.frameLayoutGuide.heightAnchor],
+        screenTall,
         [stack.centerXAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.centerXAnchor],
         [stack.widthAnchor constraintLessThanOrEqualToAnchor:scroll.frameLayoutGuide.widthAnchor constant:-48],
         preferredWidth,
-        [stack.topAnchor constraintGreaterThanOrEqualToAnchor:scroll.contentLayoutGuide.topAnchor constant:32],
-        [stack.bottomAnchor constraintLessThanOrEqualToAnchor:scroll.contentLayoutGuide.bottomAnchor constant:-32],
-        [stack.centerYAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.centerYAnchor],
+        [stack.topAnchor constraintGreaterThanOrEqualToAnchor:content.topAnchor constant:32],
+        [stack.bottomAnchor constraintLessThanOrEqualToAnchor:content.bottomAnchor constant:-32],
+        [stack.centerYAnchor constraintEqualToAnchor:content.centerYAnchor],
     ]];
     [self refresh];
 }
@@ -228,8 +237,8 @@ static void BWRow(BWRowView* row, BWItemState state, NSString* name, NSString* d
     const BOOL code = [self hasComposite], disc = [self hasDisc], files = [self hasPreparedFiles];
     BWRow(_codeRow, code ? BWItemReady : BWItemMissing, @"Translated game code",
         code ? @"Built into this copy of BlueWake."
-             : @"Missing. It is compiled on a Mac from your disc and built into the app; "
-               "see the README, then install BlueWake again.");
+             : @"Missing. PadForge makes it on a Mac from your disc and adds it to BlueWake; "
+               "install the BlueWake it makes (github.com/chrissotraidis/padforge).");
     BWRow(_discRow, disc ? BWItemReady : (_importing ? BWItemBusy : BWItemMissing),
         @"Disc image (GZLE01, USA)",
         disc ? @"Imported."
