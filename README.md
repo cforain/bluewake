@@ -94,7 +94,13 @@ You need:
 - an A13 or newer iPhone or iPad on iOS/iPadOS 17 or later, with Developer Mode on
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
-One command builds your own app from a fresh checkout:
+**The easy way:** download [PadForge](https://github.com/chrissotraidis/padforge/releases/latest),
+unzip it, double-click `PadForge.command`, choose BlueWake and drag in your disc image. PadForge gets
+the tools it needs and the app from the [latest release](https://github.com/chrissotraidis/bluewake/releases/latest)
+(which contains no game code), builds your game module from your disc and adds it, and saves your
+BlueWake IPA in the folder you choose.
+
+**From this repository,** one command builds your own app from a fresh checkout:
 
 ~~~bash
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
