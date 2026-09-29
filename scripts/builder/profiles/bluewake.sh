@@ -105,6 +105,19 @@ profile_dependencies() {
         tar xzf "$dawn_tar" -C "$deps/dawn-ios"
     fi
     echo "Dawn iOS package $DAWN_SHA256"
+    if [ "$platform" = tvos ]; then
+        local dawn_tvos=$deps/dawn-tvos
+        if [ ! -f "$dawn_tvos/lib/cmake/Dawn/DawnConfig.cmake" ] ||
+           [ "$(cat "$dawn_tvos/retagged-from" 2>/dev/null || true)" != "$DAWN_SHA256" ]; then
+            rm -rf "$dawn_tvos"
+            ditto "$deps/dawn-ios" "$dawn_tvos"
+            python3 "$root/scripts/ios/retag_macho_platform.py" --platform tvos \
+                "$dawn_tvos/lib/libwebgpu_dawn.a" "$dawn_tvos/lib/libwebgpu_dawn.a"
+            ranlib "$dawn_tvos/lib/libwebgpu_dawn.a"
+            printf '%s\n' "$DAWN_SHA256" > "$dawn_tvos/retagged-from"
+        fi
+        echo "Dawn arm64 archive prepared for tvOS from the pinned iOS package"
+    fi
 }
 
 profile_extract() {
@@ -200,6 +213,10 @@ profile_train() {
 }
 
 profile_compile() {
+    local cmake_system=iOS sdk=iphoneos build_dir="$out/composite-ios"
+    if [ "$platform" = tvos ]; then
+        cmake_system=tvOS sdk=appletvos build_dir="$out/composite-tvos"
+    fi
     local flags="-mcpu=$device_cpu"
     if [ ${#composite_pgo[@]} -gt 0 ]; then
         run composite-pgo-merge xcrun llvm-profdata merge -o "$out/composite.profdata" "${composite_pgo[@]}"
@@ -213,17 +230,24 @@ profile_compile() {
         flags="$flags $(pgo_flags "$profile_path")"
         echo "with the composite profile(s): ${composite_pgo[*]}"
     fi
-    run composite-configure cmake -S cmake/composite -B "$out/composite-ios" -G Ninja \
-        -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 \
+    run "composite-configure-$platform" cmake -S cmake/composite -B "$build_dir" -G Ninja \
+        "-DCMAKE_SYSTEM_NAME=$cmake_system" "-DCMAKE_OSX_SYSROOT=$sdk" -DCMAKE_OSX_ARCHITECTURES=arm64 \
         -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0 -DCMAKE_BUILD_TYPE=Release "-DCMAKE_C_FLAGS=$flags" \
         -DCOMPOSITE_OPTIMIZATION_LEVEL="$opt_level" \
         -DCOMPOSITE_DIR="$out/composite-src" -DGXRUNTIME_DIR="$recompcore/GXRuntime" \
         -DABI_DIR="$recompcore/Source/Core/Core/PowerPC/StaticRecomp"
-    run composite-build cmake --build "$out/composite-ios" -j "$jobs"
-    module=$out/composite-ios/$PROFILE_MODULE
+    run "composite-build-$platform" cmake --build "$build_dir" -j "$jobs"
+    module=$build_dir/$PROFILE_MODULE
 }
 
 profile_build_app() {
+    local cmake_system=iOS sdk=iphoneos app_build="$out/app" dawn_dir="$deps/dawn-ios"
+    local tvos_flag=OFF
+    if [ "$platform" = tvos ]; then
+        cmake_system=tvOS sdk=appletvos app_build="$out/app-tvos"
+        dawn_dir="$deps/dawn-tvos"
+        tvos_flag=ON
+    fi
     local host_flags=""
     if [ -n "$host_pgo" ]; then
         local profile_hash profile_path
@@ -234,14 +258,15 @@ profile_build_app() {
         host_flags=$(pgo_flags "$profile_path")
         echo "with the host profile $host_pgo"
     fi
-    run app-configure cmake -S apple/ios -B "$out/app" -G Ninja \
-        -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos \
+    run "app-configure-$platform" cmake -S apple/ios -B "$app_build" -G Ninja \
+        "-DCMAKE_SYSTEM_NAME=$cmake_system" "-DCMAKE_OSX_SYSROOT=$sdk" \
         -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0 \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=OFF -DPNG_SHARED=OFF \
-        -DAURORA_DAWN_PROVIDER=system -DDawn_DIR="$deps/dawn-ios/lib/cmake/Dawn" \
+        "-DBLUEWAKE_TVOS=$tvos_flag" \
+        -DAURORA_DAWN_PROVIDER=system -DDawn_DIR="$dawn_dir/lib/cmake/Dawn" \
         -DAURORA_SDL3_PROVIDER=vendor -DAURORA_SDL3_LINKAGE=static -DAURORA_DAWN_LINKAGE=static \
         "-DCMAKE_C_FLAGS=$host_flags" "-DCMAKE_CXX_FLAGS=$host_flags" \
         '-DCMAKE_IGNORE_PREFIX_PATH=/opt/homebrew;/usr/local' -DCMAKE_DISABLE_FIND_PACKAGE_PkgConfig=ON
-    run app-build cmake --build "$out/app" --target BlueWake -j "$jobs"
-    app=$out/app/BlueWake.app
+    run "app-build-$platform" cmake --build "$app_build" --target BlueWake -j "$jobs"
+    app=$app_build/BlueWake.app
 }

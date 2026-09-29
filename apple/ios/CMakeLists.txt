@@ -4,7 +4,7 @@
 # shim that sets default paths inside the app container and hands control to
 # the host's main() under SDL's UIKit application lifecycle.
 cmake_minimum_required(VERSION 3.25)
-project(bluewake_ios LANGUAGES C CXX OBJC OBJCXX)
+project(bluewake_apple LANGUAGES C CXX OBJC OBJCXX)
 
 set(BLUEWAKE_REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 set(GXRUNTIME_DIR ${BLUEWAKE_REPO_ROOT}/ref/recompcore/GXRuntime)
@@ -17,6 +17,7 @@ add_compile_options("-ffile-prefix-map=${BLUEWAKE_REPO_ROOT_ABS}/=")
 
 option(BLUEWAKE_IOS_ENABLE_DSP "Link the donor DSP adapter (required: JAS waits on the DSP at boot)" ON)
 option(BLUEWAKE_IOS_DEVELOPER_TRACING "Compile BLUEWAKE_TRACE_* probes into the host" OFF)
+option(BLUEWAKE_TVOS "Build the controller-first Apple TV app" OFF)
 set(BLUEWAKE_IOS_DSP_COMMON_SOURCES "" CACHE INTERNAL "")
 
 find_package(Threads REQUIRED)
@@ -43,15 +44,28 @@ set(BLUEWAKE_HOST_SOURCES
     ${BLUEWAKE_HOST_SRC}/rel_scratch_allocator.c
     ${BLUEWAKE_HOST_SRC}/scheduler_contract.c)
 
+if(BLUEWAKE_TVOS)
+    set(BLUEWAKE_PLATFORM_SOURCES src/tvos_first_run.m)
+    set(BLUEWAKE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.tvOS.plist.in")
+    set(BLUEWAKE_DEVICE_FAMILY "3")
+    set(BLUEWAKE_PLATFORM_DEFINITIONS BLUEWAKE_IOS=0 BLUEWAKE_TVOS=1)
+else()
+    set(BLUEWAKE_PLATFORM_SOURCES
+        src/first_run.m
+        src/dolphin_save_import.c
+        src/BWGameOverlay.mm
+        src/controller_settings.mm
+        src/controller_apply.cpp
+        src/touch_controls.cpp)
+    set(BLUEWAKE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in")
+    set(BLUEWAKE_DEVICE_FAMILY "1,2")
+    set(BLUEWAKE_PLATFORM_DEFINITIONS BLUEWAKE_IOS=1 BLUEWAKE_TVOS=0)
+endif()
+
 add_executable(BlueWake MACOSX_BUNDLE
     src/ios_entry.m
-    src/first_run.m
     src/disc_import.c
-    src/dolphin_save_import.c
-    src/BWGameOverlay.mm
-    src/controller_settings.mm
-    src/controller_apply.cpp
-    src/touch_controls.cpp
+    ${BLUEWAKE_PLATFORM_SOURCES}
     ${BLUEWAKE_HOST_SOURCES})
 # The unchanged host keeps its own entry point under another name; the shim
 # owns main() so SDL can start UIApplicationMain first.
@@ -61,12 +75,12 @@ target_link_libraries(BlueWake PRIVATE gxruntime GXRuntime::aurora)
 set_target_properties(BlueWake PROPERTIES
     LINKER_LANGUAGE CXX
     OUTPUT_NAME BlueWake
-    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    MACOSX_BUNDLE_INFO_PLIST ${BLUEWAKE_INFO_PLIST}
     MACOSX_BUNDLE_GUI_IDENTIFIER dev.bluewake.BlueWake
     MACOSX_BUNDLE_BUNDLE_NAME BlueWake
     MACOSX_BUNDLE_SHORT_VERSION_STRING 0.1
     MACOSX_BUNDLE_BUNDLE_VERSION 1
-    XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
+    XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "${BLUEWAKE_DEVICE_FAMILY}")
 target_include_directories(BlueWake PRIVATE
     ${GXRUNTIME_DIR}/include
     ${BLUEWAKE_REPO_ROOT}/ref/recompcore/Source/Core/Core/PowerPC/StaticRecomp)
@@ -74,11 +88,14 @@ target_compile_definitions(BlueWake PRIVATE
     DOLRECOMP_CPU_HEADER="core/cpu.h"
     BLUEWAKE_ENABLE_DEVELOPER_TRACING=$<BOOL:${BLUEWAKE_IOS_DEVELOPER_TRACING}>
     BLUEWAKE_EDGE_CENSUS=0
-    BLUEWAKE_IOS=1)
+    ${BLUEWAKE_PLATFORM_DEFINITIONS})
 target_compile_options(BlueWake PRIVATE -fobjc-arc)
 target_link_libraries(BlueWake PRIVATE
     "-framework Foundation" "-framework UIKit" "-framework GameController"
-    "-framework QuartzCore" "-framework UniformTypeIdentifiers" "-framework AVFoundation")
+    "-framework QuartzCore" "-framework AVFoundation")
+if(NOT BLUEWAKE_TVOS)
+    target_link_libraries(BlueWake PRIVATE "-framework UniformTypeIdentifiers")
+endif()
 
 if(BLUEWAKE_IOS_ENABLE_DSP)
     # The donor DSP (Dolphin's DSP LLE interpreter from RecompCore) compiled
