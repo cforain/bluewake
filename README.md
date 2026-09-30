@@ -121,8 +121,9 @@ Signing with your own identity and other options: [docs/status/DEVICE_BUILD.md](
 
 ### Windows
 
-BlueWake also builds as a native Windows x86-64 program (Direct3D 12), from the same disc and the same verified
-game source. With Visual Studio's C++ workload and its Clang component, Python, Git, CMake and Ninja:
+An experimental native Windows x86-64 source port targets Direct3D 12, using the same disc and verified
+game source. Windows end-to-end build/play validation is still pending for this integration. To try it
+with Visual Studio's C++ workload and its Clang component, Python, Git, CMake and Ninja:
 
 ~~~bash
 python scripts/windows/build.py "D:\Games\The Legend of Zelda - The Wind Waker (USA).rvz"

@@ -27,6 +27,8 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include <dlfcn.h>
+#include <CommonCrypto/CommonDigest.h>
 
 #include "first_run.h"
 #include "controller_settings.h"
@@ -38,6 +40,54 @@ static void bw_default(const char* name, NSString* value) {
     const char* existing = getenv(name);
     if (existing != NULL && existing[0] != '\0') return;
     setenv(name, value.fileSystemRepresentation, 1);
+}
+
+// SHA-1 of the executable inside a GameCube disc image (its offset is at 0x420
+// of the disc header; the DOL's size is the end of its furthest section), or
+// nil if the file is missing or not a disc. Only for the legacy mod format.
+static NSString* bw_iso_dol_sha1(NSString* path) {
+    NSFileHandle* f = [NSFileHandle fileHandleForReadingAtPath:path];
+    if (f == nil)
+        return nil;
+    NSString* result = nil;
+    @try {
+        [f seekToFileOffset:0x420];
+        NSData* off = [f readDataOfLength:4];
+        if (off.length == 4) {
+            const uint8_t* o = off.bytes;
+            const uint64_t dol = ((uint32_t)o[0] << 24) | ((uint32_t)o[1] << 16) | ((uint32_t)o[2] << 8) | o[3];
+            [f seekToFileOffset:dol];
+            NSData* hdr = [f readDataOfLength:0x100];
+            if (hdr.length == 0x100) {
+                const uint8_t* h = hdr.bytes;
+                uint64_t size = 0x100;
+                for (int i = 0; i < 18; i++) {
+                    const uint8_t* p = h + i * 4;
+                    const uint8_t* q = h + 0x90 + i * 4;
+                    const uint32_t so = ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) | ((uint32_t)p[2] << 8) | p[3];
+                    const uint32_t ss = ((uint32_t)q[0] << 24) | ((uint32_t)q[1] << 16) | ((uint32_t)q[2] << 8) | q[3];
+                    if (ss != 0 && (uint64_t)so + ss > size)
+                        size = (uint64_t)so + ss;
+                }
+                if (size < (16u << 20)) {
+                    [f seekToFileOffset:dol];
+                    NSData* bytes = [f readDataOfLength:size];
+                    if (bytes.length == size) {
+                        uint8_t digest[CC_SHA1_DIGEST_LENGTH];
+                        CC_SHA1(bytes.bytes, (CC_LONG)bytes.length, digest);
+                        NSMutableString* hex = [NSMutableString string];
+                        for (int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++)
+                            [hex appendFormat:@"%02x", digest[i]];
+                        result = hex;
+                    }
+                }
+            }
+        }
+    } @catch (NSException* e) {
+        result = nil;
+    }
+    [f closeFile];
+    return result;
 }
 
 static void bw_default_if_exists(const char* name, NSString* path) {
@@ -154,6 +204,16 @@ int main(int argc, char** argv) {
         // 0 keeps the original 4:3 picture, 1 fills the screen.
         if ([[NSUserDefaults standardUserDefaults] integerForKey:@"BlueWake.AspectMode"] == 1)
             bw_default("DOL_AURORA_ASPECT_FIT", @"0");
+        const char* root = getenv("BLUEWAKE_ROOT");
+        const char* composite_env = getenv("BLUEWAKE_COMPOSITE");
+        NSString* composite = composite_env != NULL && composite_env[0] != '\0'
+            ? [NSString stringWithUTF8String:composite_env] : nil;
+        if (composite == nil && (root == NULL || root[0] == '\0')) {
+            NSString* inData = [data stringByAppendingPathComponent:@"gGZLE01_recomp.dylib"];
+            NSString* inBundle = [[[NSBundle mainBundle] privateFrameworksPath]
+                stringByAppendingPathComponent:@"gGZLE01_recomp.dylib"];
+            composite = [[NSFileManager defaultManager] fileExistsAtPath:inBundle] ? inBundle : inData;
+        }
         // Mods (the Mods menu in BWGameOverlay.mm), applied at launch. The
         // widescreen code renders anamorphic 16:9 (or 16:10), so the picture
         // is letterboxed to that shape whatever the aspect setting.
@@ -186,7 +246,23 @@ int main(int argc, char** argv) {
             // their code, and each setting the player changed from its default
             // in Mods > Better Wind Waker Settings is passed as name or -name.
             if ([d boolForKey:@"BlueWake.Mod.BetterWW"]) {
-                [mods addObject:@"betterww"];
+                // Keep previous personal modules usable during an app-only upgrade.
+                // They need their exact patched disc; new option modules do not.
+                void* lib = composite != nil ? dlopen(composite.fileSystemRepresentation, RTLD_LAZY) : NULL;
+                typedef uint32_t (*CountFn)(void);
+                CountFn count = lib != NULL ? (CountFn)dlsym(lib, "bluewake_composite_option_count") : NULL;
+                const BOOL builtIn = count != NULL && count() > 0;
+                if (lib != NULL) dlclose(lib);
+                NSString* legacy = [data stringByAppendingPathComponent:@"Mods/betterww.iso"];
+                if (builtIn) {
+                    [mods addObject:@"betterww"];
+                } else if ([bw_iso_dol_sha1(legacy) isEqualToString:@"e884a349a28ca534e272cf4c17737db587245cdd"]) {
+                    [mods addObject:@"betterww"];
+                    setenv("BLUEWAKE_DISC", legacy.fileSystemRepresentation, 1);
+                    fprintf(stderr, "[mods] legacy Better Wind Waker disc; rebuild the personal module for individual options\n");
+                } else {
+                    fprintf(stderr, "[mods] Better Wind Waker not enabled: rebuild the personal module or restore its matching legacy disc\n");
+                }
                 NSMutableArray<NSString*>* options = [NSMutableArray array];
                 for (NSString* key in [[d dictionaryRepresentation] allKeys]) {
                     if (![key hasPrefix:@BW_OPTION_KEY_PREFIX])
@@ -201,21 +277,7 @@ int main(int argc, char** argv) {
                 bw_default("BLUEWAKE_MODS", [mods componentsJoinedByString:@","]);
         }
 
-        const char* root = getenv("BLUEWAKE_ROOT");
-        NSString* composite = nil;
-        const char* composite_env = getenv("BLUEWAKE_COMPOSITE");
-        if (composite_env != NULL && composite_env[0] != '\0') {
-            composite = [NSString stringWithUTF8String:composite_env];
-        }
         if (root == NULL || root[0] == '\0') {
-            if (composite == nil) {
-                NSString* inData =
-                    [data stringByAppendingPathComponent:@"gGZLE01_recomp.dylib"];
-                NSString* inBundle = [[[NSBundle mainBundle] privateFrameworksPath]
-                    stringByAppendingPathComponent:@"gGZLE01_recomp.dylib"];
-                composite = [[NSFileManager defaultManager] fileExistsAtPath:inBundle]
-                                ? inBundle : inData;
-            }
             if (bluewake_first_run_needed(data.fileSystemRepresentation,
                                           composite.fileSystemRepresentation))
                 bluewake_first_run_present(data.fileSystemRepresentation,

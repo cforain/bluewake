@@ -28,8 +28,9 @@ the translator's remote before updating it.
 RecompCore is pinned at `68929476fcc6be8539007583aa62a89c08fa63d0` and DolRecomp at
 `b8b534591cba8ca7cd43943a655ee6e2591cf5de`. These are the fork's changes over BlueWake's previous
 `2d60636` and `5c91d6e`. Base translation must still satisfy the existing composite digest.
-New Better Wind Waker options and 16:10 require rebuilding the personal module. App-only validation
-does not establish that module generation, training and gameplay with every option have passed.
+New Better Wind Waker options and 16:10 require rebuilding the personal module. App-only upgrades
+keep the previous Better Wind Waker disc path when its DOL matches the old module's known format;
+otherwise that mod is safely skipped with a rebuild message, without changing the saved preference.
 
 ## Checks performed here
 
@@ -39,23 +40,52 @@ does not establish that module generation, training and gameplay with every opti
 - Actor-search equivalence also passes with undefined-behavior sanitization.
 - The composite generator's 18 synthetic fixtures pass. The separate CPU ABI script needs the
   absent `generated/full/composite-lib` developer fixture; it was not counted as a pass.
+- A fresh translation from the personal GZLE01 disc matches the existing `54f54434...` digest.
+  Building the mod source produces 22 variant chunks for each widescreen shape, 15 Better Wind
+  Waker variant chunks, 15 options and 40 option writes. Full optimized module compilation/training
+  and gameplay with each new option remain unverified.
 - Repository audit and public-assets check on the app-only IPA pass. This does not authorize a release.
 
 The broader CTest discovery includes donor tests that were not built and placeholder tests named
 `*_NOT_BUILT`; those were reported as not run, separate from the 21 passing BlueWake tests.
-Imported Mac performance figures in the status ledger are the author's measurements, not new iPad
-or iPhone performance evidence. Full device movement/door acceptance and thermal comparisons remain.
+Imported Mac performance figures in the status ledger are the author's measurements.
+
+## Physical iPad check (October 1)
+
+The updated signed app was installed in place on the connected M2 iPad Pro, retaining the existing
+personal module. Save and preferences were backed up through `afcclient` after CoreDevice copies
+timed out; readback after installation and gameplay matched both original files byte for byte.
+Wired QuickTime snapshots showed gameplay on Outset, including the new Jump and Run controls.
+Scripted touch events passed through the real overlay: Jump invoked the guest jump procedure,
+and Run changed the speed cap from 17 to 25.5 and restored 17 on release. The log also showed
+fast-forward ending before the fade returned to the visible scene.
+
+The short test reported about 60 displayed frames / 30 game frames and full speed, thermal state 0.
+This is a specific scene check, not a performance comparison, 120 Hz acceptance, a long-session
+thermal test, controller acceptance, physical door test, or independent speaker-audio evaluation.
+A second launch with the original saved settings reached gameplay. New gameplay options remain off
+by default; the launch-only test overrides did not change the stored preferences.
 
 ## Desktop work
 
 The native Mac host now contains the fork's desktop controls and options menu. The fork's public
 Mac packaging scripts bundle translated game code; that packaging model is not imported.
-Windows has a separate source branch, `windows-release`, with additional code-generation changes
-and experimental 60 Hz simulation. Windows integration and validation are tracked separately; neither
-its ready-made releases nor their game modules are inputs to this work. Parallels remains off at the
-user's request. Cross-compilation can check Windows source without claiming Direct3D/gameplay proof.
+The Windows foundation port (`4b01c6b`) and settings overlay (`4fbcc7f`) are integrated. BlueWake adds
+the new shared feature sources and opt-in gameplay settings, keeps Windows' own options menu, and
+uses portable C thread-local declarations. A macOS-hosted LLVM-MinGW check passes for all 27 shared
+C host sources, two disc-tool sources, the entry shim, settings overlay and Win32 compatibility layer.
+The production MSVC/Dawn link and Direct3D/gameplay gates remain open. The fork's later Windows
+code-generator changes and experimental 60 Hz simulation are not included. No ready-made donor app
+or game module was downloaded. Parallels remains off at the user's request.
 
 ## Contribution path
+
+The October 1 GitHub check found no open BlueWake issues. Open BlueWake PRs include Smooth Motion
+(#5, covered by this integration), the Apple TV work (#3/#6) and a larger pipeline seed (#8).
+Apple TV and pipeline-seed work remain separate; this branch does not silently merge those changes.
+The donor's open issues concern intro music, Switch Pro A/B mapping, Linux support and a Wii U HD-style
+UI. They are follow-up reports/requests, not verified fixes in this branch. Existing BlueWake controller
+remapping is retained; donor controller and intro-audio reports still need targeted reproduction.
 
 The source integration gives elliotttate credit through Git authorship and the project notices.
 Future changes can be contributed as ordinary pull requests against BlueWake. A source import does

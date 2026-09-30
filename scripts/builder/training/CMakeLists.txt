@@ -6,6 +6,7 @@ get_filename_component(BLUEWAKE_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.."
 set(BLUEWAKE_HOST_SRC "${BLUEWAKE_REPO_ROOT}/runtime/host/src")
 set(BLUEWAKE_ENABLE_DSP_ADAPTER OFF CACHE BOOL "" FORCE)
 option(BUILD_TESTING "Register host tests alongside the training host" OFF)
+include(CTest)
 add_subdirectory("${BLUEWAKE_REPO_ROOT}/runtime/host" host)
 set(_donor ${BLUEWAKE_REPO_ROOT}/ref/recompcore)
 set(_dsp ${_donor}/Source/Core/Core/DSP)

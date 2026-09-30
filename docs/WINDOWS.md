@@ -11,26 +11,18 @@ point in place of the iOS app shell.
 
 ## Status
 
-Verified on 2026-09-28 on one PC (Intel i9-13900KF, 64 GB, NVIDIA RTX 5090, Windows 11), Visual Studio 2026's
-clang 22, from a Redump-verified `.rvz`, at commit 79b7e16 plus the Windows port:
+Experimental in BlueWake. The source port and settings overlay come from elliotttate's
+`windows-release` commits `4b01c6b` and `4fbcc7f`; the original Git author is retained for the port.
+The fork's initial PC measurements are recorded in its
+[Windows port documentation](https://github.com/elliotttate/Wind-Waker-Recomp/blob/4b01c6bfd7e80e6c44880052d808c6e6b0ab7b39/docs/WINDOWS.md).
+They are the contributor's results, not independent Windows gameplay evidence for this integration.
 
-- The builder runs end to end from the `.rvz`: the generated game source has the verified digest (`54f54434`,
-  the same as the macOS builder's), and the mods match the Mac's counts (widescreen 22 chunks, Better Wind
-  Waker's options 15, 40 with 16:10 and the options together).
-- Boot to control on Outset through the title, file creation and the opening, headless and in the window
-  (Direct3D 12), with the scripted route the Mac builder trains on; saves are written to the memory card.
-- The keyboard reaches the game through SDL (key messages posted to the window read as A at the title).
-- Widescreen 16:9 renders 1280x720 with the HUD at the edges; Better Wind Waker's options load (instant text
-  patched 4,411 messages, as on the Mac); Smooth Motion draws the in-between frames.
-- Speed, with the game paced in real time: full speed throughout the title and prologue (227 seconds, none
-  below), the game thread 11 percent busy at the median.
-  The opening on Outset (Link waking, the lookout) is the heaviest stretch measured: median full speed, but
-  the game thread is 94 to 99 percent busy and 32 of 128 seconds dipped below full speed (lowest 79 percent).
-  The builds that reach 30 FPS on the iPad use optimization profiles (docs/BUILDER.md), which this port does
-  not have yet.
+On October 1, the Win32 compatibility layer, entry shim, settings overlay and shared C host sources
+were checked with a native macOS LLVM-MinGW cross-compiler. This is source validation, not a full
+MSVC/Dawn link, Direct3D test or controller/audio acceptance. Parallels is not needed for these checks.
 
-Not yet tried on Windows: a game controller, audio on other output devices, the HD texture packs, the later
-game, and other PCs (AMD CPUs and GPUs, Vulkan).
+The fork's later Windows-only code-generator optimizations and experimental 60 Hz simulation are
+not imported here. Local Windows PGO training and full Windows gameplay remain follow-up gates.
 
 ## What you need
 
@@ -86,6 +78,8 @@ Run `build\windows\BlueWake\BlueWake.exe`.
 | L, R, Z | E, R, Q |
 | START | Return |
 | Camera | Click the game, then move the mouse (Esc releases it) |
+| Settings | F1 or Esc after releasing the mouse |
+| Jump / Run | Space / Shift; enable them in settings |
 | Fullscreen | F11 |
 | Smooth Motion | F10 |
 | Frame rate | F9 |
@@ -168,6 +162,6 @@ clang (GNU driver, MSVC ABI) from Visual Studio.
 - **Profiling.** `BLUEWAKE_HOST_PROFILE=FILE` samples the game thread every millisecond and writes where it
   was, by module and offset, charging time in system code to the BlueWake function that called it.
 
-Not done on Windows: the local optimization training and the bundled PGO profiles (both are built and measured
-on Apple Silicon), and the iOS overlay menus (touch controls, controller remapping, the in-game mods and
-save-management screens). Mods are chosen with command-line options instead.
+The Windows overlay saves display, camera, mod and audio choices in `settings.ini`; mods and audio mode
+apply after restart. Touch-layout editing and save-management screens remain iOS-specific.
+Windows optimization training and full end-to-end build/play verification remain pending.
