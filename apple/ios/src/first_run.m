@@ -237,8 +237,8 @@ static void BWRow(BWRowView* row, BWItemState state, NSString* name, NSString* d
     const BOOL code = [self hasComposite], disc = [self hasDisc], files = [self hasPreparedFiles];
     BWRow(_codeRow, code ? BWItemReady : BWItemMissing, @"Translated game code",
         code ? @"Built into this copy of BlueWake."
-             : @"Missing. PadForge makes it on a Mac from your disc and adds it to BlueWake; "
-               "install the BlueWake it makes (github.com/chrissotraidis/padforge).");
+             : @"Missing. PadMint makes it on a Mac from your disc and adds it to BlueWake; "
+               "install the BlueWake it makes (github.com/chrissotraidis/padmint).");
     BWRow(_discRow, disc ? BWItemReady : (_importing ? BWItemBusy : BWItemMissing),
         @"Disc image (GZLE01, USA)",
         disc ? @"Imported."

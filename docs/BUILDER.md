@@ -75,7 +75,7 @@ A port whose app builds differently only changes its `profile_build_app`.
 ## Progress and build time
 
 The terminal reports the active stage and elapsed time, with available compiler progress. A
-`logs/progress.jsonl` event stream under the output directory records stage state for future PadForge
+`logs/progress.jsonl` event stream under the output directory records stage state for future PadMint
 integration. Individual command logs remain under `logs/`; a failed stage reports its log path.
 Measured on an M3 Max with 16 jobs on 2026-09-28, from a fresh clone of the public repository, the
 whole default build took 104 minutes: about 2 minutes for tools, dependencies, disc checks,
@@ -121,16 +121,16 @@ runs of the same saved-game route (developer, local, local, developer) produced 
 records, and the local module averaged 13.26 ms per frame against the developer module's 13.62 ms.
 That is CPU evidence from a headless test, not an iPad frame rate.
 
-## PadForge
+## PadMint
 
-[PadForge](https://github.com/chrissotraidis/padforge) is the shared Mac builder being developed for
+[PadMint](https://github.com/chrissotraidis/padmint) is the shared Mac builder being developed for
 multiple ports. Its experimental Python CLI wraps the existing BlueWake and KartPad backends, with
 source revision checks, progress, cancellation and local build records. A real BlueWake source-only
 run has passed; complete packaging and device acceptance are separate checks. A graphical Mac app
 remains future work and is not required by the direct builder instructions above.
 
 Each game backend owns disc validation, translation, mods and optimization training. See the
-[PadForge handoff](PADFORGE_HANDOFF.md) for the interface and validation status. Local profile
+[PadMint handoff](PADMINT_HANDOFF.md) for the interface and validation status. Local profile
 generation and matched-device performance verification remain release requirements.
 
 ## What is public and what is not
