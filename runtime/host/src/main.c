@@ -644,6 +644,15 @@ static u64 perf_now_us(clockid_t clock) {
    the same thread that advances them. */
 unsigned long long bluewake_host_retrace_count(void) { return g_host_retrace_count; }
 
+/* For the iOS shell's frame tick, which runs on the emulation thread: one
+   guest word from MEM1 (0 elsewhere, so no hardware register is touched). */
+static CPUState* g_host_cpu;
+unsigned bluewake_host_read32(unsigned address) {
+    if (g_host_cpu == NULL || address < 0x80000000u || address > 0x817FFFFCu)
+        return 0u;
+    return mem_read32(g_host_cpu, address);
+}
+
 /* BLUEWAKE_WALL_PACE: hold each guest retrace to its wall-clock time (NTSC,
    1001/60000 s apart). Without it the only brake on the emulation was the
    audio queue: the guest ran ahead until 250 ms of sound was queued, then the
@@ -5882,6 +5891,7 @@ int main(int argc, char** argv) {
 
     CPUState cpu;
     if (!cpu_init(&cpu)) { fprintf(stderr, "cpu_init failed\n"); return 1; }
+    g_host_cpu = &cpu;
     DolViClock vi_clock;
     dol_vi_clock_init(&vi_clock);
     dol_vi_clock_configure(&vi_clock, GUEST_CPU_CYCLES_PER_VI_RETRACE,

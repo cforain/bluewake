@@ -18,6 +18,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <mutex>
 
 #include "gxruntime/aurora_backend.h"
@@ -26,6 +27,7 @@
 
 extern "C" unsigned long long bluewake_host_retrace_count(void);  // runtime/host/src/main.c
 extern "C" unsigned long long bluewake_host_thread_cpu_us(void);
+extern "C" unsigned bluewake_host_read32(unsigned address);  // runtime/host/src/main.c
 extern "C" int bluewake_thermal_state(void);  // controller_settings.mm: 0 nominal .. 3 critical
 
 namespace {
@@ -57,6 +59,28 @@ std::atomic<float> g_fps_speed{0.f};
 std::atomic<float> g_fps_worst_ms{0.f};
 
 void fps_tick() {
+    // BLUEWAKE_FADE_LOG: the game's screen fader on every change (GZLE01:
+    // mDoGph_gInf_c::mFader, a JUTFader*, status at +4, colour at +0xC;
+    // mFade and mFadeRate beside it), for designing Skip Black Screens.
+    static const bool fade_log = [] {
+        const char* env = std::getenv("BLUEWAKE_FADE_LOG");
+        return env != nullptr && env[0] != '\0' && env[0] != '0';
+    }();
+    if (fade_log) {
+        static unsigned last[4] = {~0u, ~0u, ~0u, ~0u};
+        const unsigned fader = bluewake_host_read32(0x803F6898u);
+        const unsigned now[4] = {fader, fader ? bluewake_host_read32(fader + 4u) : 0u,
+                                 fader ? bluewake_host_read32(fader + 0xCu) : 0u,
+                                 bluewake_host_read32(0x803F68A8u)};  // flags incl. mFade at +3
+        if (now[1] != last[1] || now[2] != last[2] || ((now[3] ^ last[3]) & 0xFFu) != 0u || now[0] != last[0]) {
+            const unsigned rate_bits = bluewake_host_read32(0x803F68ACu);
+            float rate;
+            std::memcpy(&rate, &rate_bits, sizeof rate);
+            std::fprintf(stderr, "[fade] retrace=%llu fader=%08x status=%d rgba=%08x mFade=%u rate=%.2f\n",
+                         bluewake_host_retrace_count(), now[0], (int)now[1], now[2], now[3] & 0xFFu, rate);
+            std::memcpy(last, now, sizeof last);
+        }
+    }
     static bool log_enabled = [] {
         const char* env = std::getenv("BLUEWAKE_PERF_LOG");
         return env != nullptr && env[0] != '\0' && env[0] != '0';
