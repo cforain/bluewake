@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.25)
 project(bluewake_apple LANGUAGES C CXX OBJC OBJCXX)
 
 set(BLUEWAKE_REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
-# One version for the app, its release and PadForge (version.json).
+# One version for the app, its release and PadMint (version.json).
 file(READ ${BLUEWAKE_REPO_ROOT}/version.json BLUEWAKE_VERSION_JSON)
 string(JSON BLUEWAKE_VERSION GET "${BLUEWAKE_VERSION_JSON}" version)
 string(JSON BLUEWAKE_BUILD GET "${BLUEWAKE_VERSION_JSON}" build)
