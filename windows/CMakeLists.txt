@@ -24,7 +24,7 @@ option(BLUEWAKE_WINDOWS_DEVELOPER_TRACING "Compile BLUEWAKE_TRACE_* probes into 
 # Source paths compiled into the app (assert and log messages) are written
 # relative to the checkout, so a build does not carry the builder's home folder.
 add_compile_options("-ffile-prefix-map=${BLUEWAKE_REPO_ROOT}/=")
-add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE _USE_MATH_DEFINES)
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE _USE_MATH_DEFINES _WIN32_WINNT=0x0A00)
 
 add_subdirectory(${GXRUNTIME_DIR} gxruntime_build EXCLUDE_FROM_ALL)
 
@@ -61,6 +61,12 @@ set(BLUEWAKE_HOST_SOURCES
     ${BLUEWAKE_HOST_SRC}/pad_wire.c
     ${BLUEWAKE_HOST_SRC}/rel_scratch_allocator.c
     ${BLUEWAKE_HOST_SRC}/scheduler_contract.c
+    ${BLUEWAKE_HOST_SRC}/fast_load.c
+    ${BLUEWAKE_HOST_SRC}/jump_button.c
+    ${BLUEWAKE_HOST_SRC}/sprint.c
+    ${BLUEWAKE_HOST_SRC}/quick_doors.c
+    ${BLUEWAKE_HOST_SRC}/draw_tags.c
+    ${BLUEWAKE_HOST_SRC}/fps_watch.c
     ${BLUEWAKE_HOST_SRC}/game_options.c
     ${BLUEWAKE_HOST_SRC}/mouse_camera.c)
 
@@ -68,6 +74,7 @@ set(BLUEWAKE_HOST_SOURCES
 # one the linker embeds.
 add_executable(BlueWake
     src/win_entry.c
+    src/win_settings.cpp
     src/bluewake.rc
     resources/BlueWake.manifest
     ${BLUEWAKE_HOST_SOURCES})
@@ -76,6 +83,9 @@ add_executable(BlueWake
 set_source_files_properties(${BLUEWAKE_HOST_SRC}/main.c PROPERTIES
     COMPILE_DEFINITIONS "main=bluewake_host_main")
 target_link_libraries(BlueWake PRIVATE gxruntime GXRuntime::aurora bluewake_posix_compat winmm)
+if(TARGET imgui)
+    target_link_libraries(BlueWake PRIVATE imgui)
+endif()
 set_target_properties(BlueWake PROPERTIES LINKER_LANGUAGE CXX OUTPUT_NAME BlueWake)
 target_include_directories(BlueWake PRIVATE
     ${BLUEWAKE_COMPAT_INCLUDES}

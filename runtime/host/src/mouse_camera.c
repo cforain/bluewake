@@ -104,6 +104,7 @@ static const double kZoomStep = 1.12, kZoomMin = 0.5, kZoomMax = 2.0;
 static const double kScopeZoomPerNotch = 0.125;
 
 static bool g_enabled;
+static bool g_blocked;
 static bool g_captured;
 static bool g_click; // left button held while the mouse is the camera: A
 static SDL_WindowID g_window;
@@ -219,6 +220,8 @@ static void observe(const void* sdl_event, void* user) {
     // is open it has the keyboard, mouse and controller to itself.
     if (bluewake_settings_menu_event(sdl_event))
         return;
+    if (g_blocked)
+        return;
     bluewake_jump_button_event(sdl_event);
     if (!g_enabled)
         return;
@@ -279,6 +282,21 @@ void bluewake_mouse_camera_install(void) {
 }
 
 bool bluewake_mouse_camera_captured(void) { return g_captured; }
+
+void bluewake_mouse_camera_configure(bool enabled, double sensitivity, bool invert_y) {
+    g_enabled = enabled;
+    if (sensitivity > 0.0)
+        g_sensitivity = sensitivity;
+    g_invert_y = invert_y ? -1.0 : 1.0;
+    if (!enabled)
+        set_captured(false);
+}
+
+void bluewake_mouse_camera_block(bool blocked) {
+    g_blocked = blocked;
+    if (blocked)
+        set_captured(false);
+}
 
 bool bluewake_mouse_camera_scripted(void) { return g_stick_test_count > 0u; }
 

@@ -75,5 +75,8 @@ void bluewake_mouse_camera_release(void);
 // Reads BLUEWAKE_MOUSE_CAMERA, _SENSITIVITY and _INVERT_Y, and the
 // BLUEWAKE_STICK_CAMERA settings, again (the options menu).
 void bluewake_mouse_camera_reload(void);
+// The Windows options overlay applies these directly and blocks gameplay input.
+void bluewake_mouse_camera_configure(bool enabled, double sensitivity, bool invert_y);
+void bluewake_mouse_camera_block(bool blocked);
 
 #endif

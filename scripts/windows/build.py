@@ -320,7 +320,7 @@ int main(void) {
             print(f"fetching RecompCore {sha}")
             subprocess.run(["git", "remote", "remove", "bluewake"], cwd=rc, capture_output=True)
             subprocess.check_call(["git", "remote", "add", "bluewake", url], cwd=rc)
-            self.run("recompcore-fetch", ["git", "-C", rc, "fetch", "--depth", "1", "bluewake", sha], env=os.environ)
+            self.run("recompcore-fetch", ["git", "-C", rc, "fetch", "--recurse-submodules=no", "--depth", "1", "bluewake", sha], env=os.environ)
             subprocess.check_call(["git", "checkout", "-q", "--detach", "FETCH_HEAD"], cwd=rc)
         if self.git("rev-parse", "HEAD", cwd=rc) != sha:
             die(f"{rc} is not at {sha}")

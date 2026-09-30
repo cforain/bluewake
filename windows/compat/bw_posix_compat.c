@@ -143,7 +143,7 @@ int bw_nanosleep(const struct timespec* request, struct timespec* remaining) {
     if (ns <= 0)
         return 0;
     /* One high-resolution timer per thread, reused. */
-    static __declspec(thread) HANDLE timer;
+    static _Thread_local HANDLE timer;
     if (timer == NULL)
         timer = CreateWaitableTimerExW(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
                                        TIMER_ALL_ACCESS);
@@ -231,8 +231,8 @@ int closedir(DIR* dir) {
 }
 
 /* dlfcn */
-static __declspec(thread) char g_dl_error[512];
-static __declspec(thread) int g_dl_error_set;
+static _Thread_local char g_dl_error[512];
+static _Thread_local int g_dl_error_set;
 
 static void dl_set_error(const char* what, const char* name) {
     DWORD code = GetLastError();
