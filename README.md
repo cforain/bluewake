@@ -84,8 +84,10 @@ on smaller devices is active work.
 **Smooth Motion** (⋯ › Display, off by default) draws in-between frames from the game's own 30, so the
 picture moves at 60 FPS, or 120 FPS on a ProMotion screen, while the game itself keeps its normal
 speed. It costs one extra half frame of display latency and backs off on its own when the device falls
-behind. On the iPad Pro (M2) it held a steady 60 and 120 FPS at full speed through the opening and
-title scenes; gameplay areas and iPhones are still to be measured.
+behind. On the iPad Pro (M2) it held a steady 60 and 120 FPS at full speed through the title scenes
+and Outset Island play, with the game thread near its limit outdoors. On the iPhone 14, which is
+already below full speed in the busiest Outset views, it costs a few more points of game speed, so
+leave it off there.
 
 <p align="center">
   <img alt="BlueWake on an iPhone 14, with the touch controls in the black bars beside the picture" src="docs/images/bluewake-iphone-title.jpg" width="720">
