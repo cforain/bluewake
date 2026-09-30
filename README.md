@@ -93,6 +93,7 @@ You need:
   (25 GB recommended)
 - your `GZLE01` revision 0 disc image
 - an A13 or newer iPhone or iPad on iOS/iPadOS 17 or later, with Developer Mode on
+- Or an Apple TV on tvOS 17 or later, with Developer Mode on ([Apple TV build guide](docs/status/TVOS_BUILD.md))
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
 **The easy way:** download [PadForge](https://github.com/chrissotraidis/padforge/releases/latest),
@@ -118,6 +119,7 @@ the same command. Run it with `--source-only` first to check your tools and disc
 
 Step by step, with updating and troubleshooting: [Build your own BlueWake](docs/BUILD_YOUR_OWN.md).
 Signing with your own identity and other options: [docs/status/DEVICE_BUILD.md](docs/status/DEVICE_BUILD.md).
+For Apple TV, use [the tvOS build guide](docs/status/TVOS_BUILD.md); it builds and installs directly with `devicectl`.
 
 ## Mods
 
@@ -211,6 +213,7 @@ and the BlueWake slot to put it in; your current saves are backed up first. USA 
 
 - [Current status](docs/status/CURRENT.md): the engineering log, newest first
 - [Build your own BlueWake](docs/BUILD_YOUR_OWN.md): the player's guide
+- [Apple TV build](docs/status/TVOS_BUILD.md): build and install the controller-first tvOS app
 - [The Builder](docs/BUILDER.md): how the build works, and reusing it for other ports
 - [Device build](docs/status/DEVICE_BUILD.md): signing, installing and build options
 - [Mods](docs/MODS.md): the three mods and how code mods are built

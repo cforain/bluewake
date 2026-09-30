@@ -27,6 +27,7 @@
 #   --out DIR                 build directory (default build/device)
 #   --jobs N                  parallel compile jobs (default: all cores)
 #   --game NAME               profile to use (default bluewake)
+#   --platform ios|tvos       Apple device target (default ios)
 #   --identity NAME           codesign identity, e.g. "Apple Development: You (TEAMID)"
 #   --profile FILE            provisioning profile for the app (with --identity)
 #   --install DEVICE          install with devicectl after signing (needs --identity)
@@ -51,7 +52,7 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root"
 
-iso="" game=bluewake out="" ipa="" published_app="" app_only=0
+iso="" game=bluewake platform=ios out="" ipa="" published_app="" app_only=0
 jobs=$(sysctl -n hw.ncpu)
 identity="" profile="" install_device="" host_pgo=""
 train_pgo=auto training_save=""
@@ -65,7 +66,7 @@ step() { echo; echo "==> $*"; }
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --app|--ipa|--out|--jobs|--game|--identity|--profile|--install|--composite-pgo|--host-pgo|--device-cpu|--training-save)
+        --app|--ipa|--out|--jobs|--game|--platform|--identity|--profile|--install|--composite-pgo|--host-pgo|--device-cpu|--training-save)
             [ $# -ge 2 ] && [ -n "$2" ] && [[ "$2" != --* ]] || die "$1 needs a value" ;;
     esac
     case "$1" in
@@ -76,6 +77,7 @@ while [ $# -gt 0 ]; do
         --out) out=$2; shift 2 ;;
         --jobs) jobs=$2; shift 2 ;;
         --game) game=$2; shift 2 ;;
+        --platform) platform=$2; shift 2 ;;
         --identity) identity=$2; shift 2 ;;
         --profile) profile=$2; shift 2 ;;
         --install) install_device=$2; shift 2 ;;
@@ -95,6 +97,7 @@ while [ $# -gt 0 ]; do
 done
 
 [[ "$game" =~ ^[a-z][a-z0-9_-]*$ ]] || die "invalid game profile name: $game"
+[[ "$platform" = ios || "$platform" = tvos ]] || die "--platform must be ios or tvos"
 [[ "$jobs" =~ ^[1-9][0-9]*$ ]] || die "--jobs must be a positive integer"
 [[ "$device_cpu" =~ ^[a-zA-Z0-9_-]+$ ]] || die "invalid --device-cpu"
 [ "$train_pgo" != 1 ] || [ "$use_pgo" -eq 1 ] || die "--train-pgo conflicts with --no-pgo"
@@ -181,7 +184,8 @@ step "1/9 tools"
 for tool in xcrun cmake ninja python3 git curl shasum clang codesign ditto; do
     command -v "$tool" >/dev/null || die "missing $tool (Xcode, CMake 3.25+ and Ninja are required; brew install cmake ninja)"
 done
-xcrun --sdk iphoneos --show-sdk-path >/dev/null 2>&1 || die "the iOS SDK is missing: install Xcode and run sudo xcode-select -s /Applications/Xcode.app"
+if [ "$platform" = tvos ]; then sdk=appletvos; else sdk=iphoneos; fi
+xcrun --sdk "$sdk" --show-sdk-path >/dev/null 2>&1 || die "the $sdk SDK is missing: install Xcode and run sudo xcode-select -s /Applications/Xcode.app"
 cmake_version=$(cmake --version | awk 'NR == 1 { print $3 }')
 python3 - "$cmake_version" <<'EOF' || die "CMake 3.25 or newer is required"
 import sys
@@ -189,7 +193,7 @@ v = tuple(int(x) for x in sys.argv[1].split('.')[:2])
 sys.exit(0 if v >= (3, 25) else 1)
 EOF
 profile_check_tools
-echo "xcode $(xcodebuild -version | awk 'NR == 1 { print $2 }'), cmake $cmake_version, $jobs jobs"
+echo "xcode $(xcodebuild -version | awk 'NR == 1 { print $2 }'), $sdk SDK, cmake $cmake_version, $jobs jobs"
 
 step "2/9 dependencies"
 profile_dependencies
@@ -256,10 +260,45 @@ if [ -n "$identity" ]; then
     cp "$profile" "$app/embedded.mobileprovision"
     security cms -D -i "$profile" > "$out/profile.plist"
     /usr/libexec/PlistBuddy -x -c 'Print :Entitlements' "$out/profile.plist" > "$out/entitlements.plist"
-    app_id=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$out/profile.plist")
-    case "$app_id" in *".$PROFILE_BUNDLE_ID"|*".*") ;; *) die "the profile is for $app_id, not $PROFILE_BUNDLE_ID" ;; esac
+    if ! python3 - "$out/profile.plist" "$out/entitlements.plist" "$PROFILE_BUNDLE_ID" "$platform" <<'PY'
+import fnmatch
+import plistlib
+import sys
+
+profile_path, entitlements_path, bundle_id, platform = sys.argv[1:]
+with open(profile_path, "rb") as f:
+    profile = plistlib.load(f)
+entitlements = profile["Entitlements"]
+prefixes = profile.get("ApplicationIdentifierPrefix", [])
+if not prefixes:
+    sys.exit("the provisioning profile has no application identifier prefix")
+prefix = prefixes[0]
+profile_app_id = entitlements.get("application-identifier", "")
+expected_app_id = f"{prefix}.{bundle_id}"
+profile_bundle_pattern = profile_app_id.removeprefix(prefix + ".")
+if not profile_app_id.startswith(prefix + ".") or not fnmatch.fnmatchcase(bundle_id, profile_bundle_pattern):
+    sys.exit(f"the profile is for {profile_app_id}, not {expected_app_id}")
+
+# tvOS: a provisioning profile may authorize a wildcard App ID, but the app
+# itself must claim its concrete application identifier in its sandbox. iOS
+# keeps the profile's own entitlements: an app installed with a wildcard
+# identifier refuses an in-place upgrade that claims another one, and deleting
+# the app to get past that deletes the player's saves.
+if platform == "tvos":
+    entitlements["application-identifier"] = expected_app_id
+    groups = entitlements.get("keychain-access-groups", [])
+    entitlements["keychain-access-groups"] = [
+        expected_app_id if group == f"{prefix}.*" else group for group in groups
+    ]
+with open(entitlements_path, "wb") as f:
+    plistlib.dump(entitlements, f, sort_keys=True)
+PY
+    then
+        die "the provisioning profile does not authorize $PROFILE_BUNDLE_ID"
+    fi
     run sign-module codesign -f -s "$identity" "$app/Frameworks/$PROFILE_MODULE"
-    run sign-app codesign -f -s "$identity" --entitlements "$out/entitlements.plist" "$app"
+    run sign-app codesign -f -s "$identity" --entitlements "$out/entitlements.plist" \
+        --generate-entitlement-der "$app"
     signed="with $identity"
 else
     rm -f "$app/embedded.mobileprovision"
@@ -329,11 +368,26 @@ fi
 if [ -n "$install_device" ]; then
     run install xcrun devicectl device install app --device "$install_device" "$app"
     echo "installed on $install_device"
+    if [ "$platform" = tvos ]; then
+        run tvos-disc-transfer xcrun devicectl device copy to --device "$install_device" \
+            --domain-type appDataContainer --domain-identifier "$PROFILE_BUNDLE_ID" \
+            --source "$iso" --destination "Library/Caches/BlueWake/GZLE01.iso"
+        echo "disc image copied into $PROFILE_BUNDLE_ID/Library/Caches/BlueWake/GZLE01.iso"
+        run tvos-first-launch xcrun devicectl device process launch --device "$install_device" "$PROFILE_BUNDLE_ID"
+    fi
 fi
 
 echo
 echo "$PROFILE_APP_NAME.app: $app ($(du -sh "$app" | awk '{print $1}'), signed $signed)"
 if [ "$app_only" -eq 0 ]; then
     echo "game module: $(shasum -a 256 "$app/Frameworks/$PROFILE_MODULE" | awk '{print $1}')"
-    echo "On first launch the app asks for the disc image; copy it to the device with Finder or the Files app."
+    if [ "$platform" = tvos ]; then
+        if [ -n "$install_device" ]; then
+            echo "The app prepares the copied disc image automatically."
+        else
+            echo "Copy GZLE01.iso into Library/Caches/BlueWake with devicectl; the app prepares it automatically."
+        fi
+    else
+        echo "On first launch the app asks for the disc image; copy it to the device with Finder or the Files app."
+    fi
 fi
