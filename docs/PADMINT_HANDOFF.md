@@ -1,7 +1,7 @@
-# PadForge handoff
+# PadMint handoff
 
-PadForge is the shared local builder for the Pad projects. BlueWake supplies a
-game-specific adapter; PadForge should own the interactive build experience.
+PadMint is the shared local builder for the Pad projects. BlueWake supplies a
+game-specific adapter; PadMint should own the interactive build experience.
 The first supported workflow is an Apple Silicon Mac producing a personal iOS
 IPA from a supported disc. Additional games and platforms can use the same
 stage interface after their own validation.
@@ -16,7 +16,7 @@ the slower unprofiled build as the recommended release path.
 The initial design was reviewed on 2026-09-28 against these source snapshots;
 implementation evidence follows below:
 
-- [PadForge](https://github.com/chrissotraidis/padforge) at
+- [PadMint](https://github.com/chrissotraidis/padmint) at
   `96611e4f1d582e2fbd0bbb72c158f08abae27509`: README and project rules; no executable
   builder yet.
 - [KartPad](https://github.com/chrissotraidis/kartpad) at
@@ -27,25 +27,25 @@ implementation evidence follows below:
   a shell [profile](../scripts/builder/profiles/bluewake.sh), from disc validation
   through translation, mods, compilation, signing, and local packaging.
 
-A private PadForge implementation now wraps both backends through a Python CLI
-([PadForge PR #1](https://github.com/chrissotraidis/padforge/pull/1)). It checks the
+A private PadMint implementation now wraps both backends through a Python CLI
+([PadMint PR #1](https://github.com/chrissotraidis/padmint/pull/1)). It checks the
 reviewed source revision and clean checkout, hashes the disc, locks the checkout,
 relays progress, cancels nested processes, and writes a local build record.
 It validates IPA structure and provenance before reporting packaging success.
 
 A real BlueWake source-only integration passed at revision `36b8488`: seven
 stage start/completion pairs, the expected generated-source digest, and a clean
-unchanged checkout afterward. Twenty-six synthetic PadForge tests passed. Source preflight and full builds
+unchanged checkout afterward. Twenty-six synthetic PadMint tests passed. Source preflight and full builds
 reuse the same workspace, including when the job count changes. Different
 backend commits still use separate workspaces, so those builds can require a
 full rebuild; cross-revision cache reuse is future work.
 This establishes source generation through the shared runner. Full-build,
 packaging and hardware acceptance are separate checks; it does not yet prove
-the complete PadForge-to-iPad workflow. The CLI is the current interface; a Mac
+the complete PadMint-to-iPad workflow. The CLI is the current interface; a Mac
 GUI remains future work.
 
 Reuse these implementations through adapters. Do not rewrite KartPad's working
-pipeline or move game-specific translation into PadForge merely to make the
+pipeline or move game-specific translation into PadMint merely to make the
 two projects look alike. Confirm upstream licensing before copying code and
 retain required notices. KartPad's release policy is separate; it does not
 override BlueWake's source-only publication policy.
@@ -59,7 +59,7 @@ can consume the same event stream. No network service, remote compilation,
 automatic artifact upload, plugin marketplace, or bespoke build scheduler is
 needed.
 
-PadForge owns argument validation, process execution, progress, cancellation,
+PadMint owns argument validation, process execution, progress, cancellation,
 build records, and the selected adapter. Each adapter owns disc validation,
 dependency pins, translation, patches, training, compilation, and output checks.
 Invoke an adapter as a subprocess with an argument array; do not interpolate
@@ -213,7 +213,7 @@ files as CI artifacts or telemetry.
 
 1. BlueWake: complete and validate local PGO; add honest progress to its existing
    pipeline and fix configuration-sensitive cache reuse.
-2. PadForge: implement one command-line runner and progress reader around the
+2. PadMint: implement one command-line runner and progress reader around the
    BlueWake adapter. Reuse suitable KartPad cache/provenance/packaging helpers
    only after license and interface review.
 3. KartPad: adapt its existing Python builder to the same event/result contract;
@@ -227,5 +227,5 @@ files as CI artifacts or telemetry.
 
 The immediate blockers are the local training route and measured optimized
 performance, not the future graphical interface. Preserve the existing public
-entrypoint `scripts/ios/build_device.sh` as a compatibility wrapper when PadForge
+entrypoint `scripts/ios/build_device.sh` as a compatibility wrapper when PadMint
 becomes the shared runner.

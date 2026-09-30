@@ -26,7 +26,7 @@ successful compile alone does not establish that result.
 6. Compare the player and developer builds on the same iPad, settings, scenes
    and thermal conditions. Check Outset and a second demanding area. Preserve
    save data and record actual gameplay evidence.
-7. Transfer the proven stages and their progress/cache contract to PadForge;
+7. Transfer the proven stages and their progress/cache contract to PadMint;
    keep one shared builder with game-specific adapters.
 8. Recheck the exact source archive and Git history, review player instructions,
    update the private audit record, then publish only cleared source/tooling.
@@ -56,7 +56,7 @@ check remains unverified.
   averaged 13.26 ms per retrace versus 13.62 ms for the developer module.
   This short headless test uses an instrumented host; it does not measure iPad
   FPS, rendering, audible output or mod behavior.
-- PadForge's real source-only BlueWake integration passed: expected source
+- PadMint's real source-only BlueWake integration passed: expected source
   digest, seven stage start/completion pairs, and a clean unchanged checkout.
 - Fresh extraction, translation and all mod variants reproduced the same
   805-file source digest as the training input. The iOS host app also compiled.
@@ -81,4 +81,4 @@ check remains unverified.
 - The iPad is unavailable during this pass. All ongoing work is Mac-only;
   hardware acceptance is deferred until the owner makes it available.
 
-See [PadForge handoff](PADFORGE_HANDOFF.md) for the shared-builder contract.
+See [PadMint handoff](PADMINT_HANDOFF.md) for the shared-builder contract.
