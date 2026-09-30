@@ -23,6 +23,8 @@ enum {
     BLUEWAKE_TOUCH_X = 1 << 10,
     BLUEWAKE_TOUCH_Y = 1 << 11,
     BLUEWAKE_TOUCH_START = 1 << 12,
+    BLUEWAKE_TOUCH_JUMP = 1 << 13,
+    BLUEWAKE_TOUCH_SPRINT = 1 << 14,
 };
 
 // Why the guest is held. It runs only while the set is empty.

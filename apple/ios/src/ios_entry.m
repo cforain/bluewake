@@ -159,6 +159,13 @@ int main(int argc, char** argv) {
         // is letterboxed to that shape whatever the aspect setting.
         {
             NSUserDefaults* d = [NSUserDefaults standardUserDefaults];
+            const BOOL movement = [d boolForKey:@"BlueWake.MovementExtras"];
+            bw_default("BLUEWAKE_JUMP_BUTTON", movement ? @"1" : @"0");
+            bw_default("BLUEWAKE_SPRINT_SPEED", movement ? @"1.5" : @"1");
+            const BOOL fast = [d boolForKey:@"BlueWake.FastTransitions"];
+            bw_default("BLUEWAKE_FADE_FRAMES", fast ? @"6" : @"0");
+            bw_default("BLUEWAKE_FAST_FORWARD", fast ? @"1" : @"0");
+            bw_default("BLUEWAKE_QUICK_DOORS", [d boolForKey:@"BlueWake.QuickDoors"] ? @"1" : @"0");
             NSMutableArray<NSString*>* mods = [NSMutableArray array];
             if ([d boolForKey:@"BlueWake.Mod.Widescreen1610"]) {
                 [mods addObject:@"widescreen1610"];

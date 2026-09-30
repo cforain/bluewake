@@ -156,7 +156,8 @@ pgo_flags() {
     python3 - "$1" <<'PY_FLAGS'
 import shlex, sys
 print(shlex.quote('-fprofile-instr-use=' + sys.argv[1]),
-      '-Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date -Wno-backend-plugin')
+      '-Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date -Wno-backend-plugin '
+      '-mllvm -enable-machine-outliner=never')
 PY_FLAGS
 }
 logs=$out/logs

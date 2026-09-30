@@ -126,11 +126,25 @@ Open **⋯ › Mods**. Each mod applies the next time BlueWake starts and never 
 | Mod | What it does | How to add it |
 | --- | --- | --- |
 | **Widescreen 16:9** | A wider view with the HUD placed for 16:9 | Built in; turn it on |
+| **Widescreen 16:10** | A wider view sized for 16:10 displays | Built in; select it instead of 16:9 |
 | **HD Texture Pack** | Replaces the game's textures, for example with Hypatia's HD pack | **Install Texture Pack…** and pick the pack's folder in Files |
-| **Better Wind Waker** | Wind Waker HD's quality-of-life changes: Swift Sail, instant text and more | Patch your disc on a Mac, then **Install Better Wind Waker…** |
+| **Better Wind Waker** | Swift Sail, instant text, faster animations and other individual settings | Built into new personal modules; enable it and open **Better Wind Waker Settings** |
 
 Code mods cannot be applied to a statically recompiled game at runtime, so they are translated and built
 into the app. Details are in [docs/MODS.md](docs/MODS.md).
+
+**⋯ › Display › Smooth Motion** draws in-between frames at 60 FPS, or 120 FPS on a ProMotion
+screen. The game keeps its original 30 updates per second. Off is the default; use it if a busy
+scene slows down. **⋯ › Gameplay** adds optional Jump & Sprint, Fast Transitions and Quick Doors.
+These apply at the next launch and start off. Jump and Run appear as editable touch buttons when
+movement extras are enabled; keyboards use Space and Shift, and controllers use the left bumper
+and left-stick click. Jump uses the game's ledge jump and respects its movement restrictions.
+
+The rendering, camera, movement, transition and game-option additions come from
+[elliotttate's source fork](https://github.com/elliotttate/Wind-Waker-Recomp), with original commit
+authorship retained. [Integration status](docs/FORK_INTEGRATION.md) distinguishes BlueWake's checks
+from the fork's reported measurements. Rebuild your personal game module for the new Better Wind
+Waker settings and 16:10 variants; an older module does not gain those variants from an app update.
 
 ## Your saves and game data
 

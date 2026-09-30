@@ -4,6 +4,7 @@
 #include <SDL3/SDL_keyboard.h>
 
 #include <stdio.h>
+#include <stdatomic.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,6 +30,11 @@ enum {
 };
 
 static CPUState* g_cpu;
+static atomic_bool g_touch_down;
+
+void bluewake_sprint_touch(bool down) {
+    atomic_store_explicit(&g_touch_down, down, memory_order_relaxed);
+}
 static double g_factor = 1.5; // BLUEWAKE_SPRINT_SPEED; 1 or less: off
 static bool g_sprinting;
 static bool g_trace;
@@ -85,6 +91,8 @@ void bluewake_sprint_attach(CPUState* cpu) {
 }
 
 static bool shift_held(void) {
+    if (atomic_load_explicit(&g_touch_down, memory_order_relaxed))
+        return true;
     if (g_retrace >= g_test_start && g_retrace < g_test_start + g_test_length)
         return true;
     int count = 0;

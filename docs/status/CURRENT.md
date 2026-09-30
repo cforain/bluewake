@@ -1,3 +1,9 @@
+## 2026-10-01 BlueWake source-fork integration
+
+See [FORK_INTEGRATION.md](../FORK_INTEGRATION.md) for the current integration and validation status.
+The September 28–30 entries imported below are elliotttate's engineering records and reported
+measurements, retained for provenance. They are not independent BlueWake device measurements.
+
 ## 2026-09-30 A fast right-stick camera and aiming, and a camera kept out of the ground (Mac-tested)
 
 **The right stick as the camera** (`runtime/host/src/mouse_camera.c`, on by default on the Mac,

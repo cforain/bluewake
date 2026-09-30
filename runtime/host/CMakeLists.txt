@@ -112,6 +112,11 @@ add_executable(bluewake_actor_search_budget_test ../../tests/actor_search_budget
 target_include_directories(bluewake_actor_search_budget_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_test(NAME bluewake_actor_search_budget_test COMMAND bluewake_actor_search_budget_test)
 
+add_executable(bluewake_fast_load_test ../../tests/fast_load_test.c src/fast_load.c)
+target_link_libraries(bluewake_fast_load_test PRIVATE gxruntime)
+target_include_directories(bluewake_fast_load_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_test(NAME bluewake_fast_load_test COMMAND bluewake_fast_load_test)
+
 add_executable(bluewake_interrupt_sources_test
     ../../tests/interrupt_sources_test.c
     src/cycle_domain.c

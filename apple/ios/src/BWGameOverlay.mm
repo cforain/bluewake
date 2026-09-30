@@ -51,6 +51,7 @@ static NSString* const kSizeKey = @"BlueWake.ControlSize";
 static NSString* const kHideOnControllerKey = @"BlueWake.HideOnController";
 static NSString* const kShowTouchKey = @"BlueWake.ShowTouchControls";
 static NSString* const kShowFPSKey = @"BlueWake.ShowFPS";
+static NSString* const kMovementExtrasKey = @"BlueWake.MovementExtras";
 NSString* const BWAspectModeKey = @"BlueWake.AspectMode";  // read at launch
 
 static BOOL BWIsPhone(UIView* view) {
@@ -487,20 +488,24 @@ static void BWDumpMenu(UIMenuElement* element, int depth) {
         [weakSelf refreshMenu];
     }];
     showFPS.state = BWBoolDefault(kShowFPSKey, NO) ? UIMenuElementStateOn : UIMenuElementStateOff;
-    // Smooth motion: the renderer draws an in-between frame for each of the
-    // game's 30, so the display shows 60 (applies at once; the game's own
-    // speed and logic are unchanged).
-    UIAction* smoothMotion = [UIAction actionWithTitle:@"Smooth Motion (60 FPS)"
-                                                 image:[UIImage systemImageNamed:@"wind"]
-                                            identifier:nil handler:^(__kindof UIAction* a) {
-        (void)a;
-        NSUserDefaults* d = [NSUserDefaults standardUserDefaults];
-        [d setBool:![d boolForKey:@BW_FRAME_INTERP_KEY] forKey:@BW_FRAME_INTERP_KEY];
-        bluewake_settings_changed();
-        [weakSelf refreshMenu];
-    }];
-    smoothMotion.subtitle = @"Experimental: draws a frame between each of the game's";
-    smoothMotion.state = [defaults boolForKey:@BW_FRAME_INTERP_KEY] ? UIMenuElementStateOn : UIMenuElementStateOff;
+    bluewake_settings_changed();
+    const int smooth = g_bw_settings.smooth_motion;
+    UIAction* (^smoothAction)(NSString*, NSInteger) = ^UIAction*(NSString* title, NSInteger value) {
+        UIAction* action = [UIAction actionWithTitle:title image:nil identifier:nil handler:^(__kindof UIAction* a) {
+            (void)a;
+            [NSUserDefaults.standardUserDefaults setInteger:value forKey:@BW_SMOOTH_MOTION_KEY];
+            bluewake_settings_changed();
+            [weakSelf refreshMenu];
+        }];
+        action.state = smooth == value ? UIMenuElementStateOn : UIMenuElementStateOff;
+        return action;
+    };
+    NSMutableArray<UIMenuElement*>* smoothChoices = [NSMutableArray arrayWithObjects:
+        smoothAction(@"Off (Original 30 FPS)", 0), smoothAction(@"60 FPS", 1), nil];
+    if (self.window.windowScene.screen.maximumFramesPerSecond >= 120 || smooth == 3)
+        [smoothChoices addObject:smoothAction(@"120 FPS (ProMotion)", 3)];
+    UIMenu* smoothMotion = [UIMenu menuWithTitle:@"Smooth Motion" image:[UIImage systemImageNamed:@"wind"]
+                                    identifier:nil options:0 children:smoothChoices];
     UIMenu* displayMenu = [UIMenu menuWithTitle:@"Display" image:[UIImage systemImageNamed:@"display"]
                                      identifier:nil options:0
                                        children:@[ showFPS, smoothMotion, resolutionMenu, filteringMenu, aspectMenu ]];
@@ -590,8 +595,27 @@ static void BWDumpMenu(UIMenuElement* element, int depth) {
         }],
     ]];
 
+    // These guest changes apply at the next launch, like the code mods.
+    UIAction* (^gameplayAction)(NSString*, NSString*) = ^UIAction*(NSString* title, NSString* key) {
+        UIAction* action = [UIAction actionWithTitle:title image:nil identifier:nil handler:^(__kindof UIAction* a) {
+            (void)a;
+            [NSUserDefaults.standardUserDefaults setBool:!BWBoolDefault(key, NO) forKey:key];
+            [weakSelf clearTouchInput];
+            [weakSelf setNeedsLayout];
+            [weakSelf refreshMenu];
+        }];
+        action.subtitle = @"Applies when BlueWake restarts";
+        action.state = BWBoolDefault(key, NO) ? UIMenuElementStateOn : UIMenuElementStateOff;
+        return action;
+    };
+    UIMenu* gameplayMenu = [UIMenu menuWithTitle:@"Gameplay" children:@[
+        gameplayAction(@"Jump & Sprint", kMovementExtrasKey),
+        gameplayAction(@"Fast Transitions", @"BlueWake.FastTransitions"),
+        gameplayAction(@"Quick Doors", @"BlueWake.QuickDoors"),
+    ]];
     UIMenu* root = [UIMenu menuWithTitle:@"BlueWake" children:@[
         displayMenu,
+        gameplayMenu,
         [self modsMenu],
         controllerMenu,
         touchMenu,
@@ -1265,7 +1289,7 @@ static NSString* BWQuestLogSummary(const BWQuestLog& log) {
                           "buttons remapped: %d\n",
                          [d objectForKey:@BW_RENDER_SCALE_KEY] ?: @"3 (default)",
                          (long)MAX((NSInteger)1, [d integerForKey:@BW_ANISOTROPY_KEY]),
-                         [d boolForKey:@BW_FRAME_INTERP_KEY], (long)[d integerForKey:BWAspectModeKey],
+                         g_bw_settings.smooth_motion, (long)[d integerForKey:BWAspectModeKey],
                          [d boolForKey:@BW_INVERT_CAMERA_X_KEY], [d boolForKey:@BW_INVERT_CAMERA_Y_KEY],
                          [d dictionaryForKey:@BW_BUTTON_MAP_KEY] != nil];
     [report appendFormat:@"Thermal state: %ld, Low Power Mode: %d\n",
@@ -1342,6 +1366,9 @@ static NSString* BWQuestLogSummary(const BWQuestLog& log) {
     [self addButton:@"START" mask:BLUEWAKE_TOUCH_START identifier:@"Start"];
     [self addButton:@"L" mask:BLUEWAKE_TOUCH_L identifier:@"L"];
     [self addButton:@"R" mask:BLUEWAKE_TOUCH_R identifier:@"R"];
+    [self addButton:@"Jump" mask:BLUEWAKE_TOUCH_JUMP identifier:@"Jump"];
+    [self addButton:@"Run" mask:BLUEWAKE_TOUCH_SPRINT identifier:@"Sprint"];
+    [self buttonWithMask:BLUEWAKE_TOUCH_SPRINT].accessibilityLabel = @"Sprint (hold)";
     [self addButton:@"▲" mask:BLUEWAKE_TOUCH_DPAD_UP identifier:@"D_U"];
     [self addButton:@"▼" mask:BLUEWAKE_TOUCH_DPAD_DOWN identifier:@"D_D"];
     [self addButton:@"◀" mask:BLUEWAKE_TOUCH_DPAD_LEFT identifier:@"D_L"];
@@ -1570,6 +1597,10 @@ static NSString* BWQuestLogSummary(const BWQuestLog& log) {
               : CGRectMake(CGRectGetMidX(safe) - startWidth * 0.5, CGRectGetMinY(safe) + margin, startWidth, small)];
 
     const CGFloat d = (pad ? 48.0 : 36.0 * base) * size;
+    [self place:[self buttonWithMask:BLUEWAKE_TOUCH_JUMP] identifier:@"Jump" defaultFrame:
+        BWFrameAtNormalizedCenter(safe, 0.73, 0.78, medium, small)];
+    [self place:[self buttonWithMask:BLUEWAKE_TOUCH_SPRINT] identifier:@"Sprint" defaultFrame:
+        BWFrameAtNormalizedCenter(safe, 0.25, 0.60, medium, small)];
     const CGRect dpadDefault =
         phone ? BWFrameAtNormalizedCenter(safe, 0.0812777778, 0.4677364865, 3.0 * d, 3.0 * d)
         : pad ? BWFrameAtNormalizedCenter(safe, 0.2686676428, 0.7947259566, 3.0 * d, 3.0 * d)
@@ -1696,8 +1727,14 @@ static NSString* BWQuestLogSummary(const BWQuestLog& log) {
     const BOOL hidden = (_controllerHidden || !BWBoolDefault(kShowTouchKey, YES)) && !_editing;
     const CGFloat alpha = _editing ? 1.0 : BWDefault(kOpacityKey, 0.8);
     for (UIView* control in [self gameplayControls]) {
-        control.hidden = hidden;
-        control.userInteractionEnabled = !hidden;
+        BOOL extraHidden = NO;
+        if ([control isKindOfClass:BWGameButton.class]) {
+            const uint16_t mask = ((BWGameButton*)control).inputMask;
+            extraHidden = (mask == BLUEWAKE_TOUCH_JUMP || mask == BLUEWAKE_TOUCH_SPRINT)
+                && !BWBoolDefault(kMovementExtrasKey, NO) && !_editing;
+        }
+        control.hidden = hidden || extraHidden;
+        control.userInteractionEnabled = !control.hidden;
         control.alpha = alpha;
         UIColor* border = [UIColor colorWithWhite:1.0 alpha:0.68];
         CGFloat width = 2.0;

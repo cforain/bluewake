@@ -5,6 +5,10 @@
 
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Jump button: Space, or a controller's left bumper, makes Link jump when he
 // stands, walks or runs on the ground under the player's control. It is the game's own jump,
 // the one Link makes running off a ledge (daPy_lk_c::procAutoJump_init), so
@@ -27,6 +31,8 @@ void bluewake_jump_button_attach(CPUState* cpu);
 void bluewake_jump_button_event(const void* sdl_event);
 // Once per retrace.
 void bluewake_jump_button_retrace(void);
+// Touch input is separate from the GameCube button bits.
+void bluewake_jump_button_touch(bool down);
 // Reads BLUEWAKE_JUMP_BUTTON again (the options menu).
 void bluewake_jump_button_reload(void);
 
@@ -41,5 +47,9 @@ bool bluewake_jump_button_enter(CPUState* cpu, u32 address);
 static inline bool bluewake_jump_button_dispatch(CPUState* cpu, u32 address) {
     return __builtin_expect(bluewake_jump_button_armed, 0) && bluewake_jump_button_enter(cpu, address);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

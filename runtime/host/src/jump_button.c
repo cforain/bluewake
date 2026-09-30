@@ -105,6 +105,12 @@ static bool g_enabled = true;
 static bool g_trace;
 static CPUState* g_cpu;
 static atomic_uint g_presses; // Space presses, from the event thread
+static atomic_bool g_touch_down;
+static bool g_touch_was_down;
+
+void bluewake_jump_button_touch(bool down) {
+    atomic_store_explicit(&g_touch_down, down, memory_order_relaxed);
+}
 static unsigned g_presses_seen;
 static unsigned long long g_retrace, g_deadline;
 static unsigned g_follow; // retraces to trace after a jump
@@ -218,13 +224,9 @@ bool bluewake_jump_button_enter(CPUState* cpu, u32 address) {
 }
 
 void bluewake_jump_button_event(const void* sdl_event) {
-#if defined(__APPLE__) && TARGET_OS_IPHONE
-    (void)sdl_event;
-#else
     const SDL_Event* event = (const SDL_Event*)sdl_event;
     if (event->type == SDL_EVENT_KEY_DOWN && !event->key.repeat && event->key.scancode == SDL_SCANCODE_SPACE)
         atomic_fetch_add_explicit(&g_presses, 1u, memory_order_relaxed);
-#endif
 }
 
 void bluewake_jump_button_reload(void) {
@@ -300,6 +302,10 @@ void bluewake_jump_button_retrace(void) {
         g_presses_seen = presses;
         pressed = true;
     }
+    const bool touch = atomic_load_explicit(&g_touch_down, memory_order_relaxed);
+    if (touch && !g_touch_was_down)
+        pressed = true;
+    g_touch_was_down = touch;
     if (g_enabled && bumper_pressed())
         pressed = true;
     for (unsigned i = 0; i < g_test_count; ++i)

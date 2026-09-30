@@ -71,9 +71,9 @@ profile_dependencies() {
         git -C "$recompcore" remote remove bluewake >/dev/null 2>&1 || true
         git -C "$recompcore" remote add bluewake "$RECOMPCORE_URL"
         if [ "$fresh_clone" -eq 1 ]; then
-            run recompcore-fetch git -C "$recompcore" fetch --depth 1 bluewake "$RECOMPCORE_SHA"
+            run recompcore-fetch git -C "$recompcore" fetch --recurse-submodules=no --depth 1 bluewake "$RECOMPCORE_SHA"
         else
-            run recompcore-fetch git -C "$recompcore" fetch bluewake "$RECOMPCORE_SHA"
+            run recompcore-fetch git -C "$recompcore" fetch --recurse-submodules=no bluewake "$RECOMPCORE_SHA"
         fi
         git -C "$recompcore" checkout -q --detach FETCH_HEAD
     fi

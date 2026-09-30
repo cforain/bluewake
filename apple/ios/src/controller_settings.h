@@ -13,7 +13,7 @@ extern "C" {
 // Keys in NSUserDefaults.
 #define BW_RENDER_SCALE_KEY "BlueWake.RenderScale"        // 0 native, 1-4 x 640x480; default 3
 #define BW_ANISOTROPY_KEY "BlueWake.Anisotropy"           // 1 game default, 4/8/16 forced; default 1
-#define BW_FRAME_INTERP_KEY "BlueWake.FrameInterpolation" // bool: 60 FPS in-between frames; default off
+#define BW_SMOOTH_MOTION_KEY "BlueWake.SmoothMotion" // 0 off, 1 (60 FPS), 3 (120 FPS)
 #define BW_INVERT_CAMERA_X_KEY "BlueWake.InvertCameraX"   // bool
 #define BW_INVERT_CAMERA_Y_KEY "BlueWake.InvertCameraY"   // bool
 #define BW_BUTTON_MAP_KEY "BlueWake.ButtonMap"            // {"A": nativeButton, ...}
@@ -45,7 +45,7 @@ typedef struct BWSettingsSnapshot {
     bool invert_x, invert_y;
     unsigned native[BW_REMAP_COUNT];
     bool remapped;
-    bool frame_interp;  // 60 FPS: in-between frames drawn by the renderer
+    int smooth_motion;
 } BWSettingsSnapshot;
 extern BWSettingsSnapshot g_bw_settings;
 

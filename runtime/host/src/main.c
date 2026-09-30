@@ -14,6 +14,7 @@
 #include "gxruntime/aram.h"
 #include "core/cpu.h"
 #include "StaticRecompABI.h"
+#include <stdatomic.h>
 #include "aram_dma.h"
 #include "actor_search_budget.h"
 #include "audio_capture.h"
@@ -126,7 +127,7 @@ static u32 g_rel_data_count;
 static pthread_mutex_t g_guest_alias_lock = PTHREAD_MUTEX_INITIALIZER;
 // Counts the registry's changes (under the lock): a graphics resolution made
 // under one count holds until the next (host_graphics_guest_resolve's cache).
-static volatile u32 g_guest_alias_changes;
+static atomic_uint g_guest_alias_changes;
 
 static bool host_add_shared_guest_alias(u32 linked_start, u32 size,
                                         const u8* initial_bytes) {
@@ -4537,7 +4538,7 @@ static bool host_graphics_guest_resolve(
         u32 available;
     } GraphicsResolveEntry;
     static _Thread_local GraphicsResolveEntry resolved[256];
-    const u32 changes = g_guest_alias_changes;
+    const u32 changes = atomic_load_explicit(&g_guest_alias_changes, memory_order_acquire);
     GraphicsResolveEntry* const entry = &resolved[((address >> 5) ^ (address >> 13)) & 255u];
     if (entry->data != NULL && entry->address == address && entry->space == (u32)space &&
         entry->changes == changes && (entry->size == 0u || entry->size == size)) {
