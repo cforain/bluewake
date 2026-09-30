@@ -99,7 +99,7 @@ You need:
 unzip it, double-click `PadMint.command`, choose BlueWake and drag in your disc image. PadMint gets
 the tools it needs and the app from the [latest release](https://github.com/chrissotraidis/bluewake/releases/latest)
 (which contains no game code), builds your game module from your disc and adds it, and saves your
-BlueWake IPA in the folder you choose.
+BlueWake IPA in your Downloads folder.
 
 **From this repository,** one command builds your own app from a fresh checkout:
 
