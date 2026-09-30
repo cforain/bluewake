@@ -24,8 +24,8 @@
 > assets or saves. Your personal app contains code translated from your disc; you also import the
 > disc on your device.
 >
-> **Get it with PadForge.** Each release has the BlueWake app without any game code. On an Apple
-> silicon Mac, [PadForge](https://github.com/chrissotraidis/padforge/releases/latest) builds your game
+> **Get it with PadMint.** Each release has the BlueWake app without any game code. On an Apple
+> silicon Mac, [PadMint](https://github.com/chrissotraidis/padmint/releases/latest) builds your game
 > module from your own disc and adds it to that app. The build tunes the game on your Mac; the
 > developer build tuned this way reaches 30 FPS on an iPad Pro (M2). See [Getting started](#getting-started).
 >
@@ -95,8 +95,8 @@ You need:
 - an A13 or newer iPhone or iPad on iOS/iPadOS 17 or later, with Developer Mode on
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
-**The easy way:** download [PadForge](https://github.com/chrissotraidis/padforge/releases/latest),
-unzip it, double-click `PadForge.command`, choose BlueWake and drag in your disc image. PadForge gets
+**The easy way:** download [PadMint](https://github.com/chrissotraidis/padmint/releases/latest),
+unzip it, double-click `PadMint.command`, choose BlueWake and drag in your disc image. PadMint gets
 the tools it needs and the app from the [latest release](https://github.com/chrissotraidis/bluewake/releases/latest)
 (which contains no game code), builds your game module from your disc and adds it, and saves your
 BlueWake IPA in the folder you choose.
@@ -162,7 +162,7 @@ into the app. Details are in [docs/MODS.md](docs/MODS.md).
 
 The app is on the [latest release](https://github.com/chrissotraidis/bluewake/releases/latest), without
 the game code. The game code is translated from the game, so everyone makes their own from their own
-disc: PadForge does it on an Apple silicon Mac and adds it to the released app (see
+disc: PadMint does it on an Apple silicon Mac and adds it to the released app (see
 [Getting started](#getting-started)). Without it, the app opens and shows "Translated game code: Missing".
 
 ### Why does it need my disc?
