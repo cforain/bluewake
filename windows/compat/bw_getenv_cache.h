@@ -20,17 +20,33 @@
 #include <string.h>
 
 #define BW_GETENV_UNSET ((char*)(~(uintptr_t)0))
-#define getenv(name)                                    \
-    (__extension__({                                    \
-        static char* volatile bw_getenv_value_ = BW_GETENV_UNSET; \
-        char* bw_getenv_result_ = bw_getenv_value_;     \
-        if (bw_getenv_result_ == BW_GETENV_UNSET) {     \
-            bw_getenv_result_ = (getenv)(name);         \
-            if (bw_getenv_result_ != NULL)              \
-                bw_getenv_result_ = _strdup(bw_getenv_result_); \
-            bw_getenv_value_ = bw_getenv_result_;       \
-        }                                               \
-        bw_getenv_result_;                              \
+/* Clang's atomics work in both the C runtime and translated C sources. A
+ * volatile pointer was not sufficient: concurrent first reads could publish
+ * different allocations (and race with readers). Release/acquire publishes
+ * the copied string, with one cached answer and no CRT lock after first use.
+ */
+#define getenv(name)                                                        \
+    (__extension__({                                                        \
+        static char* bw_getenv_value_ = BW_GETENV_UNSET;                     \
+        char* bw_getenv_result_ =                                           \
+            __atomic_load_n(&bw_getenv_value_, __ATOMIC_ACQUIRE);            \
+        if (bw_getenv_result_ == BW_GETENV_UNSET) {                          \
+            const char* bw_getenv_source_ = (getenv)(name);                  \
+            bw_getenv_result_ = bw_getenv_source_ == NULL                    \
+                ? NULL : _strdup(bw_getenv_source_);                         \
+            /* Do not permanently cache an allocation failure as unset. */ \
+            if (bw_getenv_source_ == NULL || bw_getenv_result_ != NULL) {    \
+                char* bw_getenv_expected_ = BW_GETENV_UNSET;                 \
+                if (!__atomic_compare_exchange_n(                          \
+                        &bw_getenv_value_, &bw_getenv_expected_,            \
+                        bw_getenv_result_, 0,                              \
+                        __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {              \
+                    free(bw_getenv_result_);                                \
+                    bw_getenv_result_ = bw_getenv_expected_;                \
+                }                                                          \
+            }                                                              \
+        }                                                                  \
+        bw_getenv_result_;                                                  \
     }))
 #endif
 

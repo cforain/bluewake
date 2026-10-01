@@ -44,4 +44,8 @@ jobs:
           if ($LASTEXITCODE) { throw 'Windows host build failed' }
           if (-not (Test-Path build/windows-host/BlueWake.exe)) { throw 'Windows host missing' }
           if (Get-ChildItem build/windows-host -Recurse -Filter 'gGZLE01_recomp*') { throw 'Unexpected personal game module' }
+          clang -std=c11 -O2 -Wall -Wextra -Werror tests/windows_getenv_cache_test.c -o build/windows-host/windows_getenv_cache_test.exe
+          if ($LASTEXITCODE) { throw 'Windows getenv cache test build failed' }
+          & build/windows-host/windows_getenv_cache_test.exe
+          if ($LASTEXITCODE) { throw 'Windows getenv cache regression failed' }
           # No artifacts are uploaded and no release is created.

@@ -35,7 +35,7 @@ otherwise that mod is safely skipped with a rebuild message, without changing th
 ## Checks performed here
 
 - iOS app-only build and native Apple Silicon Mac host build pass.
-- All 22 registered BlueWake host tests pass, including a new fast-transition test covering black
+- All 23 registered BlueWake host tests pass, including a new fast-transition test covering black
   menus, fade ordering, return to rendering, timeout, and disabled settings.
 - Save-state container tests cover roundtrip, malformed/truncated fields without partial writes,
   unsupported versions, missing END, duplicate chunks and trailing bytes. Address/undefined-behavior
@@ -52,7 +52,7 @@ otherwise that mod is safely skipped with a rebuild message, without changing th
 - Repository audit and public-assets check on the app-only IPA pass. This does not authorize a release.
 
 The broader CTest discovery includes donor tests that were not built and placeholder tests named
-`*_NOT_BUILT`; those were reported as not run, separate from the 21 passing BlueWake tests.
+`*_NOT_BUILT`; those were reported as not run, separate from the registered BlueWake tests.
 Imported Mac performance figures in the status ledger are the author's measurements.
 
 ## Physical iPad check (October 1)
@@ -146,6 +146,9 @@ The donor's open issues concern intro music, Switch Pro A/B mapping, Linux suppo
 UI. They are follow-up reports/requests, not verified fixes in this branch. Existing BlueWake controller
 remapping is retained on iOS; desktop and Apple TV remapping still need their own implementation
 and hardware checks. Intro-audio reports need targeted reproduction before changing DSP behavior.
+The focused stability loop now checks fresh-save intro PCM in HLE/LLE and original/fast transitions,
+profiles rendered Outset, and fixes a concurrent first-read race in Windows' environment cache.
+See the [October 1 stability ledger](status/STABILITY_2026-10-01.md) for evidence and remaining gates.
 
 Next priorities from that review:
 
