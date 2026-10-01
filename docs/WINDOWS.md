@@ -29,9 +29,11 @@ regression at `60be199` in [CI run 36805880425](https://github.com/chrissotraidi
 The source-only workflow opts into `BLUEWAKE_WINDOWS_REGRESSION_TESTS`; native app linking and both
 the cache and shared FPS classifier/worker-counter checks pass at `830bf7d` in
 [CI run 36808815002](https://github.com/chrissotraidis/bluewake/actions/runs/36808815002).
-The workflow now also builds the pinned runtime's existing interpolation matching/blending/pacing
-regression suite. That newly registered target passes on Mac but needs its own native Windows CI
-result. These checks do not imply Windows gameplay or audio acceptance.
+The pinned runtime's existing interpolation matching/blending/pacing suite also passes natively,
+with the full app link and the other two tests, at `ec6e797` in
+[CI run 36810248709](https://github.com/chrissotraidis/bluewake/actions/runs/36810248709).
+A subsequent monotonic-clock initialization fix adds a fourth native regression; its execution is
+pending separately. These checks do not imply Windows gameplay or audio acceptance.
 
 The fork's later Windows-only code-generator optimizations and experimental 60 Hz simulation are
 not imported here. Local Windows PGO training and full Windows gameplay remain follow-up gates.

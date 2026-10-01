@@ -57,6 +57,15 @@ through speakers or rule out a platform/settings-specific report. The stream pro
 of ordinary builds; the final native Mac build has tracing OFF. No track, capture, disc or state
 is committed or uploaded.
 
+A subsequent rendered native Metal/HLE run with a fresh card/SRAM, no stored settings and wall
+pacing reaches the same narrated-intro milestone at retrace 806 and exits normally at 2,400
+retraces. Its guest PCM also matches the expected track at 0.999999 sample correlation in the
+30-32 second window. SDL reports successful playback start at its 40 ms prebuffer and remains
+playing with nonzero buffers during the intro, without output-open/start/queue errors in the log.
+There are 498 low-queue pushes out of 159,873, so this is not a clean audio-stutter acceptance run;
+other project simulators remain active. Successful queueing/resume still does not prove audible
+speaker output, the affected reporter's build, Windows or physical-device playback.
+
 ## Windows cache race fixed
 
 The Windows per-call-site environment cache formerly read and published a `volatile` pointer.
@@ -91,7 +100,8 @@ did not register. BlueWake now builds and runs that existing suite against the l
 Mac and in the opt-in Windows regression configuration. It covers camera-cut rejection, frame
 matching, blended transforms, pacing/drop recovery and mode changes, including 120-to-60 recovery.
 The suite passes locally, bringing the registered BlueWake host checks to **25 passing CTests**.
-The new Windows target needs its own native CI result; the `830bf7d` pass predates it.
+The new Windows target also **passes natively at `ec6e797`**, along with the full app link and the
+other two tests: [CI run 36810248709](https://github.com/chrissotraidis/bluewake/actions/runs/36810248709).
 
 Five existing graphics/frontend/trace tests and five render-worker ordering, backpressure, sync,
 shutdown and frame-slot tests also pass. They need no personal game input or GPU. They are useful
@@ -113,6 +123,22 @@ not established causes. The capture is not accepted as a faithful optimization b
 comparison was not relaxed. A seeded/from-boot capture and a current-renderer-equivalent comparison
 are needed before drawing performance conclusions from replay. Live cache verification above is
 independent of this failed capture.
+
+## Windows monotonic-clock initialization
+
+The Windows timing shim also had unsynchronized first-read access to its static performance-counter
+frequency. It now caches the scalar with relaxed atomic loads/stores; concurrent first callers may
+query the same boot-fixed frequency, but the steady-state path remains one atomic load with no
+mutex or repeated frequency query. This relies on the documented
+[Windows QPF contract](https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancefrequency).
+It rejects failed counter reads and unsupported clock IDs rather than dividing by zero or silently
+returning wall-clock time for an unknown ID.
+
+A new native Windows regression releases 16 readers together, checks 160,000 monotonic reads,
+nanosecond normalization and bounds against direct QPC samples, and checks realtime/CPU clocks,
+null output and unsupported-ID errors. The source and test cross-compile/link with LLVM-MinGW on
+Mac; execution under native clang/MSVC CI is a separate pending gate. This test is not a Windows
+ThreadSanitizer run or a measured FPS improvement.
 
 ## Gameplay profiling, not an FPS claim
 

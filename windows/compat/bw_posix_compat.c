@@ -102,14 +102,29 @@ int bw_clock_gettime(clockid_t clock, struct timespec* ts) {
         return -1;
     }
     if (clock == CLOCK_MONOTONIC) {
-        static LARGE_INTEGER frequency;
+        /* QPF is fixed at boot and identical across processors. Concurrent
+         * first readers may query it, but all cache accesses must be atomic;
+         * the hot path needs neither a mutex nor another QPF call. There is no
+         * other state to publish, so relaxed ordering is sufficient. */
+        static long long cached_frequency;
+        long long frequency = __atomic_load_n(&cached_frequency, __ATOMIC_RELAXED);
+        if (frequency == 0) {
+            LARGE_INTEGER measured;
+            if (!QueryPerformanceFrequency(&measured) || measured.QuadPart <= 0) {
+                errno = EINVAL;
+                return -1;
+            }
+            frequency = measured.QuadPart;
+            __atomic_store_n(&cached_frequency, frequency, __ATOMIC_RELAXED);
+        }
         LARGE_INTEGER now;
-        if (frequency.QuadPart == 0)
-            QueryPerformanceFrequency(&frequency);
-        QueryPerformanceCounter(&now);
-        ts->tv_sec = (time_t)(now.QuadPart / frequency.QuadPart);
-        ts->tv_nsec = (long)(((now.QuadPart % frequency.QuadPart) * 1000000000ll) /
-                             frequency.QuadPart);
+        if (!QueryPerformanceCounter(&now)) {
+            errno = EINVAL;
+            return -1;
+        }
+        ts->tv_sec = (time_t)(now.QuadPart / frequency);
+        ts->tv_nsec = (long)(((now.QuadPart % frequency) * 1000000000ll) /
+                             frequency);
         return 0;
     }
     if (clock == CLOCK_PROCESS_CPUTIME_ID || clock == CLOCK_THREAD_CPUTIME_ID) {
@@ -123,6 +138,10 @@ int bw_clock_gettime(clockid_t clock, struct timespec* ts) {
         }
         filetime_to_timespec(filetime_ticks(&kernel) + filetime_ticks(&user), ts);
         return 0;
+    }
+    if (clock != CLOCK_REALTIME) {
+        errno = EINVAL;
+        return -1;
     }
     FILETIME ft;
     GetSystemTimePreciseAsFileTime(&ft);
