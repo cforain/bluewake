@@ -1,4 +1,5 @@
 #include "game_options.h"
+#include "bmg_patch.h"
 
 #include <dlfcn.h>
 #include <stdio.h>
@@ -216,62 +217,23 @@ const char* bluewake_game_options_describe(u32 position, const char** title, boo
 static u32 g_bmg;
 static u64 g_retrace;
 
+typedef struct BmgGuestWrite {
+    CPUState* cpu;
+    u32 base;
+} BmgGuestWrite;
+
+static void write_bmg_byte(void* user, size_t offset, uint8_t value) {
+    BmgGuestWrite* write = user;
+    mem_write8(write->cpu, write->base + (u32)offset, value);
+}
+
 static bool patch_bmg(CPUState* cpu, u32 bmg, u32* messages_out, u32* waits_out) {
-    // The header gives the file's size in 32-byte blocks.
-    const u32 blocks = mem_read32(cpu, bmg + 8u);
-    const u32 size = blocks * 32u;
-    const u32 sections = mem_read32(cpu, bmg + 0xCu);
-    if (blocks < 2u || blocks > 0x00400000u / 32u || sections == 0u || sections > 16u ||
-        mem_read8(cpu, bmg + 0x10u) == 2u) // UTF-16 text is not walked
+    const u32 offset = bmg - 0x80000000u;
+    if (cpu == NULL || cpu->ram == NULL || offset >= cpu->ram_size)
         return false;
-    u32 inf = 0u, dat = 0u, at = bmg + 0x20u;
-    for (u32 s = 0; s < sections; ++s) {
-        const u32 magic = mem_read32(cpu, at), section_size = mem_read32(cpu, at + 4u);
-        if (section_size < 8u || at + section_size > bmg + size)
-            return false;
-        if (magic == 0x494E4631u) // INF1
-            inf = at;
-        else if (magic == 0x44415431u) // DAT1
-            dat = at;
-        at += section_size;
-    }
-    if (inf == 0u || dat == 0u)
-        return false;
-    const u32 messages = mem_read16(cpu, inf + 8u), entry = mem_read16(cpu, inf + 0xAu);
-    const u32 text_end = dat + mem_read32(cpu, dat + 4u);
-    if (entry < 0x0Eu || inf + 0x10u + messages * entry > dat)
-        return false;
-    u32 waits = 0u;
-    for (u32 m = 0; m < messages; ++m) {
-        const u32 e = inf + 0x10u + m * entry;
-        mem_write8(cpu, e + 0xDu, 1u);
-        for (u32 p = dat + 8u + mem_read32(cpu, e); p < text_end;) {
-            const u8 byte = mem_read8(cpu, p);
-            if (byte == 0u)
-                break;
-            if (byte != 0x1Au) {
-                ++p;
-                continue;
-            }
-            const u8 length = mem_read8(cpu, p + 1u);
-            if (length < 2u)
-                break;
-            if (length == 7u && mem_read8(cpu, p + 2u) == 0u && mem_read8(cpu, p + 3u) == 0u) {
-                const u8 command = mem_read8(cpu, p + 4u);
-                if ((command == 7u || command == 3u) &&
-                    (command != 7u || mem_read8(cpu, p + 5u) != 0u || mem_read8(cpu, p + 6u) != 0u)) {
-                    ++waits;
-                    mem_write8(cpu, p + 4u, 7u);
-                    mem_write8(cpu, p + 5u, 0u);
-                    mem_write8(cpu, p + 6u, 0u);
-                }
-            }
-            p += length;
-        }
-    }
-    *messages_out = messages;
-    *waits_out = waits;
-    return true;
+    BmgGuestWrite write = {cpu, bmg};
+    return bluewake_bmg_patch(cpu->ram + offset, cpu->ram_size - offset,
+                             write_bmg_byte, &write, messages_out, waits_out);
 }
 
 void bluewake_game_options_retrace(CPUState* cpu) {

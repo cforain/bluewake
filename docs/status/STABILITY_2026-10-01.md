@@ -124,6 +124,29 @@ Waker defaults and disabled-instant-text intro captures before making an audio o
 
 ## Windows cache race fixed
 
+## Instant-text message bounds (candidate validation)
+
+The instant-text patcher previously checked a command's length byte but did not require that
+the complete command fit in DAT1 before reading/writing its wait parameters. It could therefore
+write past the section for a truncated seven-byte command. It also modified each message's draw
+type before validating later message offsets. A rejected later table/string could leave an earlier
+message partially changed. These are code-path bounds defects, not a reproduced speaker-audio cause.
+
+The patcher now checks the claimed file against its remaining loaded RAM span, bounds every section
+header/size and INF1 entry table by its own section, and validates every text offset, terminator and
+control-command extent before any changes. A second pass applies the same instant-text changes
+through the existing guest-memory byte writer, retaining write journaling. No allocation, new option
+default or DSP change is introduced. The parser rejects malformed/UTF-16 data without partial writes.
+
+Synthetic checks cover exact valid/idempotent output, 128 exact-size truncated allocations, malformed
+headers/tables/offsets/commands, a truncated last command with outside-section canaries, reversed
+section placement and all 32,768 single-byte mutations of a synthetic message file. They contain no
+game data. Native Mac sanitizer CI and a sixth native Windows regression/app link are being run;
+results are pending. The new host CTest is registered, but the full local Mac/iOS/tvOS host builds and
+live new-option gameplay checks wait for the current two-job personal module build to finish.
+
+## Windows cache race fixed
+
 The Windows per-call-site environment cache formerly read and published a `volatile` pointer.
 Concurrent first readers could race and publish different string allocations. `volatile` is not
 synchronization. It now uses an acquire load and compare/exchange publication, frees losing copies,

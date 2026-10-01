@@ -182,6 +182,11 @@ target_link_libraries(bluewake_disc_extract PRIVATE bluewake_posix_compat bcrypt
 
 if(BLUEWAKE_WINDOWS_REGRESSION_TESTS)
     enable_testing()
+    add_executable(bluewake_bmg_patch_test ${BLUEWAKE_REPO_ROOT}/tests/bmg_patch_test.c)
+    target_include_directories(bluewake_bmg_patch_test PRIVATE ${BLUEWAKE_HOST_SRC})
+    target_compile_options(bluewake_bmg_patch_test PRIVATE -Wall -Wextra -Werror)
+    add_test(NAME bluewake_bmg_patch_test COMMAND bluewake_bmg_patch_test)
+    set_tests_properties(bluewake_bmg_patch_test PROPERTIES TIMEOUT 30)
     add_executable(bluewake_windows_clock_test ${BLUEWAKE_REPO_ROOT}/tests/windows_clock_test.c)
     target_link_libraries(bluewake_windows_clock_test PRIVATE bluewake_posix_compat)
     target_compile_options(bluewake_windows_clock_test PRIVATE -Wall -Wextra -Werror)

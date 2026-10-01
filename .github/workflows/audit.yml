@@ -17,3 +17,7 @@ jobs:
         run: python3 tests/test_one_game_guard.py
       - name: Preserve synthetic Mac launcher cards
         run: python3 tests/test_mac_launcher.py
+      - name: Bound synthetic instant-text patching under sanitizers
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -I runtime/host/src tests/bmg_patch_test.c -o "$RUNNER_TEMP/bluewake_bmg_patch_test"
+          "$RUNNER_TEMP/bluewake_bmg_patch_test"
