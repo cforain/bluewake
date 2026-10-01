@@ -105,7 +105,7 @@ profile_dependencies() {
         local dawn_tvos=$deps/dawn-tvos
         if [ ! -f "$dawn_tvos/lib/cmake/Dawn/DawnConfig.cmake" ] ||
            [ "$(cat "$dawn_tvos/retagged-from" 2>/dev/null || true)" != "$DAWN_SHA256" ]; then
-            rm -rf "$dawn_tvos"
+            [ ! -e "$dawn_tvos" ] || die "existing Dawn tvOS cache does not match the pin; move it aside and rerun"
             ditto "$deps/dawn-ios" "$dawn_tvos"
             python3 "$root/scripts/ios/retag_macho_platform.py" --platform tvos \
                 "$dawn_tvos/lib/libwebgpu_dawn.a" "$dawn_tvos/lib/libwebgpu_dawn.a"

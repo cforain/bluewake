@@ -1,8 +1,18 @@
 # Building BlueWake for Apple TV
 
-The tvOS target is a controller-first build of the same app. It supports tvOS 17 or newer and
-GameController input. The iPhone/iPad touch shell is not included. On first launch, the TV prepares
+The experimental tvOS target is a controller-first build of the same app, targeting tvOS 17 or newer
+with GameController input. The iPhone/iPad touch shell is not included. On first launch, the TV prepares
 the game files from the disc image copied into its app container during installation.
+
+Ian MacFarlane (@iannotian) contributed this in PR #3 and reported reaching the title screen on a
+physical Apple TV 4K. BlueWake integrates his credited work through PR #6. This is not yet full
+controller gameplay, audio, save persistence or performance acceptance. The dependency uses a
+retagged pinned Dawn iOS archive as a development bridge, not a native tvOS Dawn build. A complete
+couch-friendly in-game settings shell is still pending; do not expect the iPad touch menu here.
+PadMint's published target remains iOS only, and public releases remain paused.
+
+If preparing a transferred image fails, BlueWake leaves that image intact and waits for a changed
+file or **Check for disc**. It does not delete your ISO or keep retrying the same failed input.
 
 ## Requirements
 
@@ -45,5 +55,5 @@ mkdir -p "$HOME/Library/Application Support/BlueWake"
 xcrun devicectl device copy from --device "<Apple TV device ID>" \
     --domain-type appDataContainer --domain-identifier dev.bluewake.BlueWake \
     --source "Library/Caches/BlueWake/GZLE01.card" \
-    --destination "$HOME/Library/Application Support/BlueWake/GZLE01.card"
+    --destination "$HOME/Library/Application Support/BlueWake/AppleTV-$(date +%Y%m%d-%H%M%S).card"
 ```

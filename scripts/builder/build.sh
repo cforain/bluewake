@@ -260,41 +260,8 @@ cp "$module" "$app/Frameworks/$PROFILE_MODULE"
 if [ -n "$identity" ]; then
     cp "$profile" "$app/embedded.mobileprovision"
     security cms -D -i "$profile" > "$out/profile.plist"
-    /usr/libexec/PlistBuddy -x -c 'Print :Entitlements' "$out/profile.plist" > "$out/entitlements.plist"
-    if ! python3 - "$out/profile.plist" "$out/entitlements.plist" "$PROFILE_BUNDLE_ID" "$platform" <<'PY'
-import fnmatch
-import plistlib
-import sys
-
-profile_path, entitlements_path, bundle_id, platform = sys.argv[1:]
-with open(profile_path, "rb") as f:
-    profile = plistlib.load(f)
-entitlements = profile["Entitlements"]
-prefixes = profile.get("ApplicationIdentifierPrefix", [])
-if not prefixes:
-    sys.exit("the provisioning profile has no application identifier prefix")
-prefix = prefixes[0]
-profile_app_id = entitlements.get("application-identifier", "")
-expected_app_id = f"{prefix}.{bundle_id}"
-profile_bundle_pattern = profile_app_id.removeprefix(prefix + ".")
-if not profile_app_id.startswith(prefix + ".") or not fnmatch.fnmatchcase(bundle_id, profile_bundle_pattern):
-    sys.exit(f"the profile is for {profile_app_id}, not {expected_app_id}")
-
-# tvOS: a provisioning profile may authorize a wildcard App ID, but the app
-# itself must claim its concrete application identifier in its sandbox. iOS
-# keeps the profile's own entitlements: an app installed with a wildcard
-# identifier refuses an in-place upgrade that claims another one, and deleting
-# the app to get past that deletes the player's saves.
-if platform == "tvos":
-    entitlements["application-identifier"] = expected_app_id
-    groups = entitlements.get("keychain-access-groups", [])
-    entitlements["keychain-access-groups"] = [
-        expected_app_id if group == f"{prefix}.*" else group for group in groups
-    ]
-with open(entitlements_path, "wb") as f:
-    plistlib.dump(entitlements, f, sort_keys=True)
-PY
-    then
+    if ! python3 "$root/scripts/builder/signing_entitlements.py" \
+        "$out/profile.plist" "$out/entitlements.plist" "$PROFILE_BUNDLE_ID" "$platform"; then
         die "the provisioning profile does not authorize $PROFILE_BUNDLE_ID"
     fi
     run sign-module codesign -f -s "$identity" "$app/Frameworks/$PROFILE_MODULE"

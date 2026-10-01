@@ -20,6 +20,7 @@
     UIProgressView* _progress;
     UIButton* _retry;
     BOOL _importing;
+    BOOL _importFailed;
     NSTimer* _poll;
     unsigned long long _lastDiscSize;
     NSDate* _lastDiscModification;
@@ -84,7 +85,7 @@
     _retry = [UIButton buttonWithType:UIButtonTypeSystem];
     _retry.titleLabel.font = [UIFont systemFontOfSize:23 weight:UIFontWeightSemibold];
     [_retry setTitle:@"Check for disc" forState:UIControlStateNormal];
-    [_retry addTarget:self action:@selector(checkForDisc) forControlEvents:UIControlEventPrimaryActionTriggered];
+    [_retry addTarget:self action:@selector(retryImport) forControlEvents:UIControlEventPrimaryActionTriggered];
     [stack addArrangedSubview:_retry];
 
     [NSLayoutConstraint activateConstraints:@[
@@ -108,6 +109,13 @@
     [self checkForDisc];
 }
 
+- (void)retryImport {
+    if (_importing) return;
+    _importFailed = NO;
+    _discStableSince = nil;
+    [self checkForDisc];
+}
+
 - (void)checkForDisc {
     if (![self hasComposite]) {
         _status.text = @"Translated game code is missing. Rebuild and install BlueWake from the Mac.";
@@ -117,6 +125,7 @@
         _lastDiscSize = 0;
         _lastDiscModification = nil;
         _discStableSince = nil;
+        _importFailed = NO;
         _status.text = @"Waiting for GZLE01.iso. The screen checks automatically when the transfer finishes.";
         return;
     }
@@ -134,11 +143,15 @@
             _lastDiscSize = size;
             _lastDiscModification = modification;
             _discStableSince = [NSDate date];
+            _importFailed = NO;
             _status.text = @"Waiting for the disc image transfer to finish…";
             return;
         }
         if ([[NSDate date] timeIntervalSinceDate:_discStableSince] < 3.0)
             return;
+        // Keep a failed image intact, and avoid retrying it every second.
+        // A changed file or the focused Retry button starts a new attempt.
+        if (_importFailed) return;
         [self prepareFromDisc];
     }
 }
@@ -154,6 +167,7 @@ static void BWTVProgress(void* context, double fraction, const char* stage) {
 
 - (void)prepareFromDisc {
     _importing = YES;
+    _retry.enabled = NO;
     _progress.hidden = NO;
     _progress.progress = 0;
     _status.text = @"Preparing game files…";
@@ -166,9 +180,10 @@ static void BWTVProgress(void* context, double fraction, const char* stage) {
         NSString* message = @(error);
         dispatch_async(dispatch_get_main_queue(), ^{
             self->_importing = NO;
+            self->_retry.enabled = YES;
             self->_progress.hidden = YES;
             if (rc != 0) {
-                [[NSFileManager defaultManager] removeItemAtPath:disc error:nil];
+                self->_importFailed = YES;
                 self->_status.text = message;
                 fprintf(stderr, "[first-run] preparation failed: %s\n", message.UTF8String);
             } else {
