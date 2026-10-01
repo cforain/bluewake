@@ -69,6 +69,7 @@ target_compile_definitions(bluewake_host PRIVATE
 if(APPLE)
     set(BLUEWAKE_APP_DIR "${CMAKE_CURRENT_BINARY_DIR}/BlueWake.app")
     set(BLUEWAKE_MAC_ICON "${CMAKE_CURRENT_BINARY_DIR}/BlueWake.icns")
+    set(BLUEWAKE_MAC_SEED "${CMAKE_CURRENT_SOURCE_DIR}/../../apple/ios/resources/initial_pipeline_cache.db")
     add_custom_command(OUTPUT "${BLUEWAKE_MAC_ICON}"
         COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/mac/make_icon.sh"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../apple/ios/resources/BlueWave.png"
@@ -77,6 +78,9 @@ if(APPLE)
         VERBATIM)
     add_custom_target(bluewake_macos_icon DEPENDS "${BLUEWAKE_MAC_ICON}")
     add_dependencies(bluewake_host bluewake_macos_icon)
+    set_property(TARGET bluewake_host APPEND PROPERTY LINK_DEPENDS
+        "${BLUEWAKE_MAC_ICON}" "${BLUEWAKE_MAC_SEED}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/BlueWakeInfo.plist")
     add_custom_command(TARGET bluewake_host POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "${BLUEWAKE_APP_DIR}/Contents/MacOS"
@@ -84,6 +88,8 @@ if(APPLE)
             "${BLUEWAKE_APP_DIR}/Contents/Resources"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${BLUEWAKE_MAC_ICON}" "${BLUEWAKE_APP_DIR}/Contents/Resources/BlueWake.icns"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${BLUEWAKE_MAC_SEED}" "${BLUEWAKE_APP_DIR}/Contents/Resources/initial_pipeline_cache.db"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:bluewake_host>"
             "${BLUEWAKE_APP_DIR}/Contents/MacOS/BlueWake"

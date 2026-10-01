@@ -105,19 +105,57 @@ The latest iOS source builds, but has not replaced the physical-iPad build descr
 
 The Mac app now packages its icon from the same tracked BlueWake wave artwork as iOS. Both desktop
 settings menus use a scoped navy/cyan BlueWake theme. Mac typography uses the system font without
-changing the game/FPS overlay. The menu keeps tabs and actions visible while settings scroll;
-mouse tab selection, scrolling and Resume were checked in the native app. Closing without changing
-anything does not rewrite preferences. New Mac preferences use Application Support/BlueWake;
+changing the game/FPS overlay. The menu keeps tabs and actions visible while settings scroll.
+Mouse tab selection, scrolling and Resume passed in the first native check. Later automation of the
+pinned-tab layout delivered SDL clicks at 183,232 but ImGui's global-pointer fallback reported
+1342,410, outside the window. Reliable pointer/controller interaction with the final layout remains
+a hands-on gate; no input-engine workaround was added for that automation mismatch.
+A timed native open/close test left an explicit synthetic preferences file byte-identical and
+resumed the game normally. New Mac preferences use Application Support/BlueWake;
 the legacy folder is only read as a fallback and is never renamed, deleted or overwritten.
+The Mac bundle also ships the 404-entry starter cache; a native launch logged 404 rows merged and
+zero skipped. This checks packaging/format compatibility, not a measured first-visit performance gain.
+
+## Apple TV and starter cache
+
+At the user's October 1 request, this branch integrates #6 (including Ian MacFarlane's original
+credited #3 commit) and #8's 404-entry starter pipeline cache. Both remain source integrations on
+this draft branch, not merges to main or public releases.
+
+The current tvOS app compiles and links with the pinned runtime; its executable reports Mach-O
+platform TVOS, minimum OS 17.0, and its bundle uses device family 3. The iOS app still builds as iOS
+with families 1 and 2. Seven synthetic signing tests preserve iOS wildcard identity and unrelated
+entitlements, specialize tvOS's identifier, reject mismatched profiles, and leave input profiles
+unchanged. Import failures now preserve the transferred ISO and wait for a retry or changed file.
+The first-run polling no longer repeatedly imports a known failing input. Existing mismatched Dawn
+tvOS caches are refused instead of recursively removed.
+
+The connected-device inventory contains no physical Apple TV. Ian reported title-screen boot on
+Apple TV 4K; this integration has no independent physical TV gameplay, audio, controller or saves
+acceptance. The retagged Dawn dependency, purgeable tvOS Caches data and lack of a couch-friendly
+in-game settings/backup shell remain explicit developer-preview limits. PadMint remains iOS only.
+See [Apple TV build](status/TVOS_BUILD.md). No personal build or game data is published.
 
 ## Contribution path
 
 The October 1 GitHub check found no open BlueWake issues. Open BlueWake PRs include Smooth Motion
 (#5, covered by this integration), the Apple TV work (#3/#6) and a larger pipeline seed (#8).
-Apple TV and pipeline-seed work remain separate; this branch does not silently merge those changes.
+Apple TV and pipeline-seed work are now integrated into this working branch as requested; their
+original PRs remain open until the maintainer decides how to land the combined work.
 The donor's open issues concern intro music, Switch Pro A/B mapping, Linux support and a Wii U HD-style
 UI. They are follow-up reports/requests, not verified fixes in this branch. Existing BlueWake controller
-remapping is retained; donor controller and intro-audio reports still need targeted reproduction.
+remapping is retained on iOS; desktop and Apple TV remapping still need their own implementation
+and hardware checks. Intro-audio reports need targeted reproduction before changing DSP behavior.
+
+Next priorities from that review:
+
+| Request | Current boundary / next check |
+| --- | --- |
+| Apple TV | Developer target builds; add a controller-first settings/save-backup shell, then test a real TV |
+| Switch Pro / Xbox face buttons | iOS remapping exists; desktop/TV need user-selectable layouts and hot-plug tests |
+| No intro music | Reproduce the narrated intro with audio capture; do not infer correctness from Outset audio |
+| Linux | No Linux build/play acceptance here; validate a source-only native host before claiming support |
+| HD-style UI | BlueWake's desktop shell is restyled; the retail game's HUD is unchanged |
 
 The source integration gives elliotttate credit through Git authorship and the project notices.
 Future changes can be contributed as ordinary pull requests against BlueWake. A source import does

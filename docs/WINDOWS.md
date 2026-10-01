@@ -18,8 +18,11 @@ The fork's initial PC measurements are recorded in its
 They are the contributor's results, not independent Windows gameplay evidence for this integration.
 
 On October 1, the Win32 compatibility layer, entry shim, settings overlay and shared C host sources
-were checked with a native macOS LLVM-MinGW cross-compiler. This is source validation, not a full
-MSVC/Dawn link, Direct3D test or controller/audio acceptance. Parallels is not needed for these checks.
+were checked with a native macOS LLVM-MinGW cross-compiler. The source-only runtime/app also compiled
+and linked on Windows with clang, the MSVC toolchain and Dawn in
+[CI run 36799881615](https://github.com/chrissotraidis/bluewake/actions/runs/36799881615), including the
+BlueWake settings theme and save-state sources. Neither check is Direct3D gameplay, a complete
+personal-module build or controller/audio acceptance. Parallels is not needed for these checks.
 
 The fork's later Windows-only code-generator optimizations and experimental 60 Hz simulation are
 not imported here. Local Windows PGO training and full Windows gameplay remain follow-up gates.

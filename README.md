@@ -124,7 +124,8 @@ For Apple TV, use [the tvOS build guide](docs/status/TVOS_BUILD.md); it builds a
 ### Windows
 
 An experimental native Windows x86-64 source port targets Direct3D 12, using the same disc and verified
-game source. Windows end-to-end build/play validation is still pending for this integration. To try it
+game source. The runtime/app compile and link pass native Windows CI; end-to-end personal-module
+build and Direct3D gameplay validation remain pending. To try it
 with Visual Studio's C++ workload and its Clang component, Python, Git, CMake and Ninja:
 
 ~~~bash
@@ -260,6 +261,8 @@ and the BlueWake slot to put it in; your current saves are backed up first. USA 
 - HD texture pack authors, including
   [Hypatia](https://forums.dolphin-emu.org/Thread-hypatia-s-tloz-the-wind-waker-hd-pack-v2-0001a)
 - SunPad, whose touch control overlay BlueWake adapts
+- [elliotttate](https://github.com/elliotttate), for the credited rendering, desktop and gameplay additions
+- [Ian MacFarlane (@iannotian)](https://github.com/iannotian), for the controller-first Apple TV contribution
 
 ## License and legal
 
