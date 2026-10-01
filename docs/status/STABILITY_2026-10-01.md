@@ -117,7 +117,13 @@ This fixes an identified stereo-order path defect; it is **not** a reproduced mi
 
 A shared synthetic test covers every 16-bit sample value, signed extrema, pair reversal, canaries
 and malformed sizes. It is registered in Mac CTest, native Windows source-only CI and Mac sanitizer
-CI. Compilation/execution of the new C test and live corrected-channel captures remain pending.
+CI. Native Mac ASan/UBSan compilation and execution **pass at `c984ceb`**:
+[CI run 36824881221](https://github.com/chrissotraidis/bluewake/actions/runs/36824881221).
+Native Windows full app linking and all seven regressions **also pass at `c984ceb`**, including
+the stereo-order test:
+[CI run 36824881238](https://github.com/chrissotraidis/bluewake/actions/runs/36824881238).
+Full local Mac/iOS/tvOS builds and live corrected-channel captures remain pending. Neither
+synthetic regression nor source-only app linking establishes audible output or the missing-music fix.
 The existing optimized personal module compile continues unchanged; its sequential validation
 queue now builds the new test before CTest and compares all three option configurations with both
 mono and stereo metrics. The private comparison helper also passes synthetic alignment/gain/DC,
