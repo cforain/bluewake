@@ -19,6 +19,7 @@ extern "C" {
 #include <SDL3/SDL.h>
 #include <imgui.h>
 
+#include <algorithm>
 #include <cmath>
 
 #include <cerrno>
@@ -218,6 +219,7 @@ void restart_note() {
 }
 
 bool combo(const char* label, int* index, const char* const* items, int count) {
+    ImGui::SetNextItemWidth(std::max(80.f, ImGui::GetContentRegionAvail().x * 0.48f));
     return ImGui::Combo(label, index, items, count);
 }
 
@@ -285,7 +287,9 @@ void display_tab() {
 
     ImGui::Separator();
     ImGui::TextUnformatted("HD texture pack (a Dolphin pack's GZL folder):");
-    ImGui::SetNextItemWidth(-160.f);
+    ImGui::SetNextItemWidth(-(ImGui::CalcTextSize("None (next launch)").x +
+                              4.f * ImGui::GetStyle().FramePadding.x +
+                              2.f * ImGui::GetStyle().ItemSpacing.x));
     if (ImGui::InputText("##texpack", g_texture_pack, sizeof g_texture_pack))
         g_dirty = g_restart_pending = true;
     ImGui::SameLine();
@@ -512,10 +516,10 @@ void draw(void*) {
     }
     const ImVec2 display = io.DisplaySize;
     ImGui::SetNextWindowPos(ImVec2(display.x * 0.5f, display.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(display.x * 0.62f, display.y * 0.78f), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(std::min(display.x - 24.f, 860.f), display.y * 0.78f), ImGuiCond_Appearing);
     ImGui::SetNextWindowBgAlpha(0.94f);
     bool open = true;
-    if (ImGui::Begin("Wind Waker Recomp options (paused)", &open,
+    if (ImGui::Begin("BlueWake options (paused)", &open,
                      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
         ImGui::SetWindowFontScale(1.4f);
         if (ImGui::BeginTabBar("##tabs")) {
@@ -540,19 +544,25 @@ void draw(void*) {
             ImGui::TextDisabled("Saved to %s", g_path.c_str());
         if (ImGui::Button("Resume"))
             open = false;
-        ImGui::SameLine();
+        const auto next_button = [](const char* label) {
+            const float width = ImGui::CalcTextSize(label).x + ImGui::GetStyle().FramePadding.x * 2.f;
+            const float right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+            if (right - ImGui::GetItemRectMax().x > width + ImGui::GetStyle().ItemSpacing.x)
+                ImGui::SameLine();
+        };
+        next_button("Save state (F5)");
         // Save states (debugging): taken or put back at the game's next clean
         // point once the menu has closed (main.c's host_state_*).
         if (ImGui::Button("Save state (F5)")) {
             bluewake_save_state_hotkey(false);
             open = false;
         }
-        ImGui::SameLine();
+        next_button("Load latest state (F9)");
         if (ImGui::Button("Load latest state (F9)")) {
             bluewake_save_state_hotkey(true);
             open = false;
         }
-        ImGui::SameLine();
+        next_button("Quit the game");
         if (ImGui::Button("Quit the game")) {
             close_menu();
             SDL_Event quit{};
