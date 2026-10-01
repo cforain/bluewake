@@ -8,7 +8,7 @@ the project's own.
 
 ## Shared runtime and iOS
 
-The integration imports the main branch's feature commits through `887c26dfddba`:
+The integration imports the main branch's feature commits through `b39bd0dc9d18`:
 
 - Renderer interpolation, matching of scenery and particles, steady 60/120 Hz presentation,
   batching, staging-buffer uploads and overload pacing.
@@ -25,7 +25,7 @@ The alias-cache epoch is atomic across the game and graphics threads. Existing d
 fetch the parent without recursively fetching a new submodule from its old remote, then synchronize
 the translator's remote before updating it.
 
-RecompCore is pinned at `68929476fcc6be8539007583aa62a89c08fa63d0` and DolRecomp at
+RecompCore is pinned at `8ab24daee9c641634fda5cac30389ad4b2cfda5e` and DolRecomp at
 `b8b534591cba8ca7cd43943a655ee6e2591cf5de`. These are the fork's changes over BlueWake's previous
 `2d60636` and `5c91d6e`. Base translation must still satisfy the existing composite digest.
 New Better Wind Waker options and 16:10 require rebuilding the personal module. App-only upgrades
@@ -35,8 +35,13 @@ otherwise that mod is safely skipped with a rebuild message, without changing th
 ## Checks performed here
 
 - iOS app-only build and native Apple Silicon Mac host build pass.
-- All 21 registered BlueWake host tests pass, including a new fast-transition test covering black
+- All 22 registered BlueWake host tests pass, including a new fast-transition test covering black
   menus, fade ordering, return to rendering, timeout, and disabled settings.
+- Save-state container tests cover roundtrip, malformed/truncated fields without partial writes,
+  unsupported versions, missing END, duplicate chunks and trailing bytes. Address/undefined-behavior
+  sanitizers pass. Decompressed input is capped at 256 MiB and 4,096 chunks, and host/alias streams
+  are checked before replacing guest memory. Save states remain experimental debug tools, not a
+  replacement for memory-card saves or an arbitrary-file security guarantee.
 - Actor-search equivalence also passes with undefined-behavior sanitization.
 - The composite generator's 18 synthetic fixtures pass. The separate CPU ABI script needs the
   absent `generated/full/composite-lib` developer fixture; it was not counted as a pass.
@@ -77,6 +82,24 @@ C host sources, two disc-tool sources, the entry shim, settings overlay and Win3
 The production MSVC/Dawn link and Direct3D/gameplay gates remain open. The fork's later Windows
 code-generator changes and experimental 60 Hz simulation are not included. No ready-made donor app
 or game module was downloaded. Parallels remains off at the user's request.
+
+Native Apple Silicon Mac gameplay was visually checked on Outset with Smooth Motion, around
+60 displayed / 30 game frames in this short scene. Intel Macs, packaged fresh-machine installation,
+speaker audio, long-session stability and 120 Hz remain separate acceptance gates.
+
+The latest source also imports experimental desktop save states and opt-in wall climbing, plus
+the newer derived-pipeline cache and graphics-worker timing work. In a headless Outset scripted walk,
+saving around retrace 1,000, restarting from the state, and continuing to 1,500 produced identical
+CPU, MEM1, ARAM, aliases, VI clock, host fields, loop fields and DSP chunks against an uninterrupted
+run. A Metal-window save/load also restored its GX chunk and completed normally. These are local
+personal-build tests; no states or game artifacts are published. Wall climbing is off by default
+and not independently gameplay-validated here; iOS has no new climbing/states settings UI yet.
+
+Windows gains save/load buttons in its Game tab and F6/F8 shortcuts, preserving F9 for FPS.
+States default to `%APPDATA%\\BlueWake\\states`. The new GitHub Windows host workflow compiles
+and links only public runtime/app source, without any disc, translated module, release or artifact
+upload. Adding the workflow is not a successful Windows build result; check its live run separately.
+The latest iOS source builds, but has not replaced the physical-iPad build described above.
 
 ## Contribution path
 

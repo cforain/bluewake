@@ -5870,7 +5870,9 @@ static const BwStateField k_host_state_fields[] = {
     HS_FIELD(g_guest_decrementer_pending),
     HS_FIELD(g_cycle_domain.absolute_cycles), HS_FIELD(g_cycle_domain.dispatch_cycles),
     HS_FIELD(g_vi_cycle_cursor), HS_FIELD(g_audio_cycle_cursor), HS_FIELD(g_dsp_cycle_cursor),
+#ifdef BLUEWAKE_HAS_DSP_ADAPTER
     HS_FIELD(g_dsp_adapter_interrupt_pending), HS_FIELD(g_dsp_adapter_slice_cycles),
+#endif
     HS_FIELD(g_dsp_adapter_update_elapsed), HS_FIELD(g_dsp_adapter_dma_count),
     HS_FIELD(g_host_retrace_count), HS_FIELD(g_previous_retrace_timebase), HS_FIELD(g_vi_assert_reports),
     HS_FIELD(g_context_shadows), HS_FIELD(g_delivery_digest),
@@ -6134,6 +6136,37 @@ static bool host_state_load(const char* path, CPUState* cpu,
     if (mem1 == NULL || mem1->size != cpu->ram_size) {
         fprintf(stderr, "[state] %s: MEM1 chunk missing\n", path);
         goto done;
+    }
+    // Reject malformed host/alias chunks before changing CPU or guest memory.
+    const BwStateChunk* aliases = bw_state_find(&reader, "ALIASES");
+    const BwStateChunk* vars = bw_state_find(&reader, "HOSTVARS");
+    const BwStateChunk* loops = bw_state_find(&reader, "LOOPVARS");
+    if (aliases == NULL || aliases->size < 4u || vars == NULL ||
+        !bw_state_fields_valid(vars->data, vars->size) ||
+        (loops != NULL && !bw_state_fields_valid(loops->data, loops->size))) {
+        fprintf(stderr, "[state] %s: invalid host or alias chunk\n", path);
+        goto done;
+    }
+    {
+        u32 count;
+        memcpy(&count, aliases->data, sizeof count);
+        u64 offset = 4u;
+        if (count > HOST_STATE_MAX_ALIASES)
+            goto done;
+        for (u32 i = 0; i < count; ++i) {
+            u32 address, length;
+            if (aliases->size - offset < 8u)
+                goto done;
+            memcpy(&address, aliases->data + offset, 4u);
+            memcpy(&length, aliases->data + offset + 4u, 4u);
+            offset += 8u;
+            if (length == 0u || length > aliases->size - offset ||
+                (u64)address + length > UINT32_MAX)
+                goto done;
+            offset += length;
+        }
+        if (offset != aliases->size)
+            goto done;
     }
     // Past this point the machine is being replaced; a failure is reported
     // and the load stops, which leaves an inconsistent machine. The FIFO

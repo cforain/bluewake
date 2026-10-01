@@ -571,6 +571,10 @@ int main(int argc, char** argv) {
     bw_default("BLUEWAKE_CLOCK", "now");
     bw_default_path("BLUEWAKE_SRAM", g_data_dir, "sram.bin");
     bw_default_path("BLUEWAKE_CARD_PATH", g_data_dir, "GZLE01.card");
+    char states[MAX_PATH * 4];
+    snprintf(states, sizeof states, "%sstates", g_data_dir);
+    _mkdir(states);
+    bw_default("BLUEWAKE_STATE_DIR", states);
     bw_default_path("BLUEWAKE_DOL", g_exe_dir, "game\\main.dol");
     bw_default_path("BLUEWAKE_RELS_DIR", g_exe_dir, "game\\rels");
     bw_default_path("BLUEWAKE_DISC", g_exe_dir, "game\\GZLE01.iso");

@@ -1,0 +1,47 @@
+name: Windows source-only host
+
+on:
+  pull_request:
+  push:
+    branches: [main, codex/fork-parity]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the pinned public runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $lock = Get-Content config/dependencies.lock.json -Raw | ConvertFrom-Json
+          $runtime = $lock.dependencies | Where-Object id -eq 'recompcore'
+          if (-not $runtime -or $runtime.sha -notmatch '^[0-9a-f]{40}$') { throw 'Missing runtime pin' }
+          git init ref/recompcore
+          if ($LASTEXITCODE) { throw 'Runtime init failed' }
+          git -C ref/recompcore fetch --depth 1 --no-tags --recurse-submodules=no $runtime.url $runtime.sha
+          if ($LASTEXITCODE) { throw 'Runtime fetch failed' }
+          git -C ref/recompcore checkout --detach FETCH_HEAD
+          if ($LASTEXITCODE) { throw 'Runtime checkout failed' }
+      - name: Compile and link the host without a disc or game module
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vs) { throw 'Visual Studio C++ tools missing' }
+          Import-Module "$vs\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
+          Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation -DevCmdArguments '-arch=amd64 -host_arch=amd64'
+          $env:PATH = "$vs\VC\Tools\Llvm\x64\bin;$env:PATH"
+          cmake -S windows -B build/windows-host -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld -DBUILD_TESTING=OFF -DAURORA_DAWN_PROVIDER=package
+          if ($LASTEXITCODE) { throw 'Windows configuration failed' }
+          cmake --build build/windows-host --target BlueWake bluewake_disc_extract --parallel 2
+          if ($LASTEXITCODE) { throw 'Windows host build failed' }
+          if (-not (Test-Path build/windows-host/BlueWake.exe)) { throw 'Windows host missing' }
+          if (Get-ChildItem build/windows-host -Recurse -Filter 'gGZLE01_recomp*') { throw 'Unexpected personal game module' }
+          # No artifacts are uploaded and no release is created.

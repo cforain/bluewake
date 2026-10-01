@@ -91,6 +91,8 @@ bool bw_state_writer_close(BwStateWriter* writer) {
 }
 
 bool bw_state_reader_open(BwStateReader* reader, const char* path) {
+    if (reader == NULL || path == NULL || path[0] == '\0')
+        return false;
     memset(reader, 0, sizeof(*reader));
     gzFile file = gzopen(path, "rb");
     if (file == NULL) {
@@ -108,6 +110,12 @@ bool bw_state_reader_open(BwStateReader* reader, const char* path) {
             return false;
         }
         if (size == capacity) {
+            if (capacity >= BW_STATE_MAX_BYTES) {
+                fprintf(stderr, "[state] %s exceeds the state size limit\n", path);
+                free(buffer);
+                gzclose(file);
+                return false;
+            }
             capacity *= 2u;
             uint8_t* grown = (uint8_t*)realloc(buffer, capacity);
             if (grown == NULL)
@@ -127,6 +135,14 @@ bool bw_state_reader_open(BwStateReader* reader, const char* path) {
         if (got == 0)
             break;
         size += (size_t)got;
+    }
+    int read_error = Z_OK;
+    (void)gzerror(file, &read_error);
+    if (read_error != Z_OK && read_error != Z_STREAM_END) {
+        fprintf(stderr, "[state] %s: incomplete compressed stream\n", path);
+        free(buffer);
+        gzclose(file);
+        return false;
     }
     gzclose(file);
     if (size < 12u || memcmp(buffer, BW_STATE_MAGIC, 8u) != 0) {
@@ -158,9 +174,12 @@ bool bw_state_reader_open(BwStateReader* reader, const char* path) {
         chunk.data = buffer + offset;
         offset += (size_t)chunk.size;
         if (strcmp(chunk.tag, "END") == 0) {
-            ended = true;
+            ended = chunk.size == 0u && offset == size;
             break;
         }
+        if (chunk.tag[0] == '\0' || reader->chunk_count >= BW_STATE_MAX_CHUNKS ||
+            bw_state_find(reader, chunk.tag) != NULL)
+            break;
         if (reader->chunk_count == chunk_capacity) {
             chunk_capacity *= 2u;
             BwStateChunk* grown = (BwStateChunk*)realloc(
@@ -196,8 +215,14 @@ void bw_state_reader_close(BwStateReader* reader) {
 bool bw_state_fields_pack(const BwStateField* fields, uint32_t count,
                           uint8_t** out, uint64_t* out_size) {
     uint64_t total = 4u;
-    for (uint32_t i = 0; i < count; ++i)
+    for (uint32_t i = 0; i < count; ++i) {
+        if (fields[i].name == NULL || strlen(fields[i].name) > UINT16_MAX ||
+            (fields[i].data == NULL && fields[i].size != 0u))
+            return false;
         total += 2u + strlen(fields[i].name) + 4u + fields[i].size;
+        if (total > BW_STATE_MAX_BYTES)
+            return false;
+    }
     uint8_t* blob = (uint8_t*)malloc((size_t)total);
     if (blob == NULL)
         return false;
@@ -221,10 +246,34 @@ bool bw_state_fields_pack(const BwStateField* fields, uint32_t count,
     return true;
 }
 
+bool bw_state_fields_valid(const uint8_t* blob, uint64_t blob_size) {
+    if (blob == NULL || blob_size < 4u || blob_size > BW_STATE_MAX_BYTES)
+        return false;
+    const uint32_t records = get_le32(blob);
+    uint64_t offset = 4u;
+    for (uint32_t r = 0; r < records; ++r) {
+        if (blob_size - offset < 2u)
+            return false;
+        const uint32_t length = (uint32_t)blob[offset] | ((uint32_t)blob[offset + 1u] << 8);
+        offset += 2u;
+        if (length == 0u || blob_size - offset < (uint64_t)length + 4u)
+            return false;
+        offset += length;
+        const uint32_t size = get_le32(blob + offset);
+        offset += 4u;
+        if (size > blob_size - offset)
+            return false;
+        offset += size;
+    }
+    return offset == blob_size;
+}
+
 bool bw_state_fields_unpack(const BwStateField* fields, uint32_t count,
                             const uint8_t* blob, uint64_t blob_size,
                             uint32_t* restored, uint32_t* missing,
                             uint32_t* mismatched) {
+    if (!bw_state_fields_valid(blob, blob_size))
+        return false;
     uint32_t n_restored = 0u, n_mismatched = 0u;
     bool* seen = (bool*)calloc(count != 0u ? count : 1u, sizeof(bool));
     if (seen == NULL || blob_size < 4u) {

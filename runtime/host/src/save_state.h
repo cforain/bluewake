@@ -29,6 +29,8 @@ extern "C" {
 #define BW_STATE_MAGIC "BWSTATE1"
 #define BW_STATE_VERSION 1u
 #define BW_STATE_TAG_LEN 16u
+#define BW_STATE_MAX_BYTES (256u * 1024u * 1024u)
+#define BW_STATE_MAX_CHUNKS 4096u
 
 typedef struct BwStateWriter BwStateWriter;
 
@@ -77,6 +79,8 @@ bool bw_state_fields_unpack(const BwStateField* fields, uint32_t count,
                             const uint8_t* blob, uint64_t blob_size,
                             uint32_t* restored, uint32_t* missing,
                             uint32_t* mismatched);
+// Validate the complete field stream without changing any running state.
+bool bw_state_fields_valid(const uint8_t* blob, uint64_t blob_size);
 
 // FNV-1a 64 over bytes, for identities and quick equality checks in logs.
 uint64_t bw_state_hash(const void* data, size_t size, uint64_t seed);

@@ -119,6 +119,11 @@ target_link_libraries(bluewake_fast_load_test PRIVATE gxruntime)
 target_include_directories(bluewake_fast_load_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_test(NAME bluewake_fast_load_test COMMAND bluewake_fast_load_test)
 
+add_executable(bluewake_save_state_test ../../tests/save_state_test.c src/save_state.c)
+target_include_directories(bluewake_save_state_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(bluewake_save_state_test PRIVATE z)
+add_test(NAME bluewake_save_state_test COMMAND bluewake_save_state_test)
+
 add_executable(bluewake_interrupt_sources_test
     ../../tests/interrupt_sources_test.c
     src/cycle_domain.c

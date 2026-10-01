@@ -42,6 +42,7 @@
 #include <vector>
 
 #include "gxruntime/aurora_backend.h"
+#include "save_state.h"
 
 extern "C" {
 // runtime/host/src/mouse_camera.h and game_options.h, declared here with plain
@@ -554,6 +555,18 @@ void tab_enhancements() {
 
 void tab_game() {
     Settings& d = g_saved;
+    ImGui::TextUnformatted("Experimental debug save states");
+    if (ImGui::Button("Save state (F6)")) {
+        bluewake_save_state_hotkey(false);
+        set_menu_open(false);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Load latest state (F8)")) {
+        bluewake_save_state_hotkey(true);
+        set_menu_open(false);
+    }
+    ImGui::TextDisabled("Keep normal memory-card saves. States depend on this game translation.");
+    ImGui::Spacing();
     ImGui::TextUnformatted("Sound");
     restart_note(d.lle_audio != g_launched.lle_audio);
     if (ImGui::RadioButton("Fast (Dolphin's high-level Zelda sound)", !d.lle_audio)) {
@@ -908,6 +921,12 @@ extern "C" int bw_settings_key(unsigned virtual_key, int alt) {
         aurora_set_frame_interpolation(g_saved.smooth_motion);
         changed();
         std::fprintf(stderr, "[windows] Smooth Motion %s\n", g_saved.smooth_motion ? "on" : "off");
+        return 1;
+    case VK_F6:
+        bluewake_save_state_hotkey(false);
+        return 1;
+    case VK_F8:
+        bluewake_save_state_hotkey(true);
         return 1;
     case VK_F9:
         g_saved.show_fps = !g_saved.show_fps;
