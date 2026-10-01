@@ -4,6 +4,17 @@ This is work on the next BlueWake version, not a release or whole-game acceptanc
 Personal discs, translated modules, memory cards, states and audio remain in ignored local storage.
 Parallels is not used; local builds are limited to two jobs.
 
+## Maintainer-requested stop and cloud handoff
+
+On October 1, the maintainer requested that local engineering stop, source branches be
+backed up on GitHub, and a cloud agent take over. The goal is paused, not completed.
+The optimized personal module build was interrupted at 661/822 Ninja steps; its
+sequential Mac/test/audio/iOS/tvOS queue was also stopped. No module link, new 28-test
+result, corrected live-channel capture or latest Apple app build is claimed from that queue.
+Completed objects, known modules, private inputs and captures remain local and unchanged.
+The evidence below remains historical; references to a running queue describe the earlier
+state. See [cloud handoff](CLOUD_HANDOFF_2026-10-01.md) and [candidate gates](RELEASE.md).
+
 ## Profiling isolation guard repaired
 
 The one-game guard's previous Mac pattern ended at the executable name, so it did not match

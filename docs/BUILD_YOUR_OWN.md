@@ -31,7 +31,8 @@ before mods, training, compilation and packaging; it produces no app. If it pass
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
 ```
 
-This includes [local optimization](#local-optimization), which is what lets the game hold 30 FPS.
+This includes [local optimization](#local-optimization). Matched physical-device frame-rate
+acceptance of the current player-built candidate remains pending; training alone does not prove 30 FPS.
 Expect well over an hour on a fast Mac and longer on smaller ones; the Mac stays busy. The terminal
 shows each stage and its elapsed time. Rerunning the same command reuses compiled work and completed
 matching profiles. Interrupted training playback starts again from an isolated card; it does not

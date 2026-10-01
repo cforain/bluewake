@@ -24,16 +24,20 @@
 > assets or saves. Your personal app contains code translated from your disc; you also import the
 > disc on your device.
 >
-> **Get it with PadMint.** Each release has the BlueWake app without any game code. On an Apple
-> silicon Mac, [PadMint](https://github.com/chrissotraidis/padmint/releases/latest) builds your game
-> module from your own disc and adds it to that app. The build tunes the game on your Mac; the
-> developer build tuned this way reaches 30 FPS on an iPad Pro (M2). See [Getting started](#getting-started).
+> **Public app releases are paused.** Build privately from source using your own disc; do not
+> expect a downloadable BlueWake app. Publication requires clearance in the maintainer's private
+> release audit. See [Getting started](#getting-started) and the [candidate checklist](docs/status/RELEASE.md).
 >
 > **AI disclosure:** BlueWake is developed with substantial AI assistance for code, testing,
 > documentation and debugging. The status log records what has actually been checked, and on what.
 
 **Questions or bugs?** Join the [Discord](https://discord.gg/xwHfUD2bxW) or
 [open an issue](https://github.com/chrissotraidis/bluewake/issues).
+
+The next stability candidate is still being validated on the draft integration branch, not main.
+The measurements below describe earlier developer builds; they are not acceptance of the latest
+changes or every personal player build. Windows and Apple TV remain experimental. See the
+[platform evidence](docs/FORK_INTEGRATION.md) for completed checks and remaining gates.
 
 ## What is BlueWake?
 
@@ -96,13 +100,10 @@ You need:
 - Or an Apple TV on tvOS 17 or later, with Developer Mode on ([Apple TV build guide](docs/status/TVOS_BUILD.md))
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
-**The easy way:** download [PadMint](https://github.com/chrissotraidis/padmint/releases/latest),
-unzip it, double-click `PadMint.command`, choose BlueWake and drag in your disc image. PadMint gets
-the tools it needs and the app from the [latest release](https://github.com/chrissotraidis/bluewake/releases/latest)
-(which contains no game code), builds your game module from your disc and adds it, and saves your
-BlueWake IPA in your Downloads folder.
+PadMint's BlueWake workflow uses an app-only release as its starting point. Public app releases
+are currently paused, so use the source builder below instead of relying on that release workflow.
 
-**From this repository,** one command builds your own app from a fresh checkout:
+**From this repository,** one command builds your own personal app from a fresh checkout:
 
 ~~~bash
 scripts/builder/build.sh "/path/to/The Legend Of Zelda The Wind Waker.iso" --ipa build/BlueWake.ipa
@@ -190,10 +191,9 @@ Waker settings and 16:10 variants; an older module does not gain those variants 
 
 ### Can I download it?
 
-The app is on the [latest release](https://github.com/chrissotraidis/bluewake/releases/latest), without
-the game code. The game code is translated from the game, so everyone makes their own from their own
-disc: PadMint does it on an Apple silicon Mac and adds it to the released app (see
-[Getting started](#getting-started)). Without it, the app opens and shows "Translated game code: Missing".
+Public app releases are paused. You can build a personal app from source on an Apple silicon Mac
+with your own disc (see [Getting started](#getting-started)). Never share that app: it contains
+translated game code. An app-only build without your module shows "Translated game code: Missing".
 
 ### Why does it need my disc?
 
