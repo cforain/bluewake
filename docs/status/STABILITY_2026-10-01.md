@@ -122,8 +122,6 @@ build or ready-to-install module. After successful linking, compare mod-disabled
 Waker defaults and disabled-instant-text intro captures before making an audio or option claim.
 `skip_intro_movie` is off by default in the source option table; it must remain off in those tests.
 
-## Windows cache race fixed
-
 ## Instant-text message bounds (candidate validation)
 
 The instant-text patcher previously checked a command's length byte but did not require that
@@ -141,9 +139,20 @@ default or DSP change is introduced. The parser rejects malformed/UTF-16 data wi
 Synthetic checks cover exact valid/idempotent output, 128 exact-size truncated allocations, malformed
 headers/tables/offsets/commands, a truncated last command with outside-section canaries, reversed
 section placement and all 32,768 single-byte mutations of a synthetic message file. They contain no
-game data. Native Mac sanitizer CI and a sixth native Windows regression/app link are being run;
-results are pending. The new host CTest is registered, but the full local Mac/iOS/tvOS host builds and
-live new-option gameplay checks wait for the current two-job personal module build to finish.
+game data. Native Mac ASan/UBSan CI **passes at `f2f6486`**:
+[CI run 36817410533](https://github.com/chrissotraidis/bluewake/actions/runs/36817410533).
+Native Windows app linking and all six regressions also **pass at `f2f6486`**:
+[CI run 36817410520](https://github.com/chrissotraidis/bluewake/actions/runs/36817410520).
+The new host CTest is registered, but full local Mac/iOS/tvOS builds and live new-option gameplay
+checks wait for the current two-job personal module build to finish. Successful source-only CI
+does not prove Windows gameplay, speaker output or the reported affected build.
+
+An independent read-only extent scan of a private Outset RAM snapshot finds the supported loaded
+message banks consistent with these rules: 4,411 messages/8,888 control commands/1,213 wait or prompt
+commands in the 639,328-byte bank, and 15 messages with no control commands in the 1,504-byte bank.
+A 608-byte bank has four-byte entries and no draw-type field; both the old and candidate patchers
+reject that unsupported layout. This scan checks metadata/extent compatibility, not execution of
+the new native patcher on real game data. No message contents, snapshot or game files are published.
 
 ## Windows cache race fixed
 
