@@ -18,4 +18,9 @@ const char* bluewake_fps_watch_reason(double shown, double speed, bool smooth,
                                     int steps, unsigned long long frames,
                                     unsigned long long interpolated);
 
+// Cumulative worker counters may reset when a worker exits or is replaced.
+double bluewake_fps_watch_cpu_percent(unsigned long long current,
+                                     unsigned long long previous,
+                                     unsigned long long wall_us);
+
 #endif

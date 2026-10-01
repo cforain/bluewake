@@ -38,14 +38,12 @@ jobs:
           Import-Module "$vs\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
           Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation -DevCmdArguments '-arch=amd64 -host_arch=amd64'
           $env:PATH = "$vs\VC\Tools\Llvm\x64\bin;$env:PATH"
-          cmake -S windows -B build/windows-host -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld -DBUILD_TESTING=OFF -DAURORA_DAWN_PROVIDER=package
+          cmake -S windows -B build/windows-host -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld -DBUILD_TESTING=OFF -DBLUEWAKE_WINDOWS_REGRESSION_TESTS=ON -DAURORA_DAWN_PROVIDER=package
           if ($LASTEXITCODE) { throw 'Windows configuration failed' }
-          cmake --build build/windows-host --target BlueWake bluewake_disc_extract --parallel 2
+          cmake --build build/windows-host --target BlueWake bluewake_disc_extract bluewake_windows_getenv_cache_test bluewake_fps_watch_test --parallel 2
           if ($LASTEXITCODE) { throw 'Windows host build failed' }
           if (-not (Test-Path build/windows-host/BlueWake.exe)) { throw 'Windows host missing' }
           if (Get-ChildItem build/windows-host -Recurse -Filter 'gGZLE01_recomp*') { throw 'Unexpected personal game module' }
-          clang -std=c11 -O2 -Wall -Wextra -Werror tests/windows_getenv_cache_test.c -o build/windows-host/windows_getenv_cache_test.exe
-          if ($LASTEXITCODE) { throw 'Windows getenv cache test build failed' }
-          & build/windows-host/windows_getenv_cache_test.exe
-          if ($LASTEXITCODE) { throw 'Windows getenv cache regression failed' }
+          ctest --test-dir build/windows-host --output-on-failure -R '^bluewake_'
+          if ($LASTEXITCODE) { throw 'Windows host regression failed' }
           # No artifacts are uploaded and no release is created.

@@ -34,6 +34,14 @@ static double target_fps(bool smooth, int steps) {
     return 30.0 * (steps + 1);
 }
 
+double bluewake_fps_watch_cpu_percent(unsigned long long current,
+                                     unsigned long long previous,
+                                     unsigned long long wall_us) {
+    if (wall_us == 0u || current < previous)
+        return 0.0;
+    return 100.0 * (double)(current - previous) / (double)wall_us;
+}
+
 const char* bluewake_fps_watch_reason(double shown, double speed, bool smooth,
                                     int steps, unsigned long long frames,
                                     unsigned long long interpolated) {
@@ -128,7 +136,8 @@ void bluewake_fps_watch_retrace(void) {
     const unsigned long long draws = now.interp_draws - g_last.interp_draws;
     const unsigned long long rejected = now.interp_rejected - g_last.interp_rejected;
     const unsigned long long unmatched = now.interp_unmatched - g_last.interp_unmatched;
-    const double busy = 100.0 * (double)(cpu_us - g_last_cpu_us) / (double)(wall - g_last_wall_us);
+    const unsigned long long wall_us = wall - g_last_wall_us;
+    const double busy = bluewake_fps_watch_cpu_percent(cpu_us, g_last_cpu_us, wall_us);
     // Where the emulation thread waited, in milliseconds of this second: for
     // the GX translation worker at the game's draw barriers, in presents, and
     // the part of those in the GPU submission and waiting for a drawable.
@@ -159,10 +168,14 @@ void bluewake_fps_watch_retrace(void) {
         fprintf(stderr,
                 "[fps-dip] retrace=%llu shown=%.1f game=%llu speed=%.0f%% interpolated=%llu/%llu "
                 "draws/frame=%llu rejected=%.1f%% unmatched=%.1f%% busy=%.0f%% waits: gx=%.0fms present=%.0fms "
-                "gpu=%.0fms stage=%s room=%d event=%u pos=%.0f,%.0f,%.0f target=%.0f reason=%s\n",
+                "gpu=%.0fms workers: gx=%.0f%% interp=%.0f%% render=%.0f%% "
+                "stage=%s room=%d event=%u pos=%.0f,%.0f,%.0f target=%.0f reason=%s\n",
                 g_retrace, shown, game, speed * 100.0, interpolated, frames, frames ? draws / frames : 0ull,
                 draws ? 100.0 * (double)rejected / (double)draws : 0.0,
-                draws ? 100.0 * (double)unmatched / (double)draws : 0.0, busy, gx_ms, present_ms, gpu_ms, stage,
+                draws ? 100.0 * (double)unmatched / (double)draws : 0.0, busy, gx_ms, present_ms, gpu_ms,
+                bluewake_fps_watch_cpu_percent(now.gx_worker_cpu_us, g_last.gx_worker_cpu_us, wall_us),
+                bluewake_fps_watch_cpu_percent(now.interp_helper_cpu_us, g_last.interp_helper_cpu_us, wall_us),
+                bluewake_fps_watch_cpu_percent(now.render_worker_cpu_us, g_last.render_worker_cpu_us, wall_us), stage,
                 (int)(signed char)mem_read8(cpu, kStayRoom), mem_read8(cpu, kEventMode), x, y, z,
                 target_fps(smooth, steps), reason);
     }

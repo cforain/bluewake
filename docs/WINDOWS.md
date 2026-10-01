@@ -24,6 +24,12 @@ and linked on Windows with clang, the MSVC toolchain and Dawn in
 BlueWake settings theme and save-state sources. Neither check is Direct3D gameplay, a complete
 personal-module build or controller/audio acceptance. Parallels is not needed for these checks.
 
+The October 1 stability follow-up also passes native app linking and the 16-reader environment-cache
+regression at `60be199` in [CI run 36805880425](https://github.com/chrissotraidis/bluewake/actions/runs/36805880425).
+The source-only workflow now opts into `BLUEWAKE_WINDOWS_REGRESSION_TESTS`, building CTest targets
+for that cache test and the shared FPS classifier/worker-counter checks. This expanded configuration
+must pass its own run; it does not imply Windows gameplay or audio acceptance.
+
 The fork's later Windows-only code-generator optimizations and experimental 60 Hz simulation are
 not imported here. Local Windows PGO training and full Windows gameplay remain follow-up gates.
 

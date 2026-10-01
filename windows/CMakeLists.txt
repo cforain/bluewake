@@ -20,6 +20,7 @@ set(BLUEWAKE_COMPAT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/compat)
 
 option(BLUEWAKE_WINDOWS_CONSOLE "Build a console-subsystem executable (logs on the terminal)" OFF)
 option(BLUEWAKE_WINDOWS_DEVELOPER_TRACING "Compile BLUEWAKE_TRACE_* probes into the host" OFF)
+option(BLUEWAKE_WINDOWS_REGRESSION_TESTS "Build source-only Windows host regressions" OFF)
 
 # Source paths compiled into the app (assert and log messages) are written
 # relative to the checkout, so a build does not carry the builder's home folder.
@@ -178,6 +179,24 @@ target_include_directories(bluewake_disc_extract PRIVATE
     ${BLUEWAKE_COMPAT_INCLUDES} ${BLUEWAKE_REPO_ROOT}/apple/ios/src)
 target_compile_options(bluewake_disc_extract PRIVATE ${BLUEWAKE_COMPAT_FORCE_INCLUDE})
 target_link_libraries(bluewake_disc_extract PRIVATE bluewake_posix_compat bcrypt)
+
+if(BLUEWAKE_WINDOWS_REGRESSION_TESTS)
+    enable_testing()
+    add_executable(bluewake_windows_getenv_cache_test
+        ${BLUEWAKE_REPO_ROOT}/tests/windows_getenv_cache_test.c)
+    target_compile_options(bluewake_windows_getenv_cache_test PRIVATE -Wall -Wextra -Werror)
+    add_test(NAME bluewake_windows_getenv_cache_test COMMAND bluewake_windows_getenv_cache_test)
+
+    add_executable(bluewake_fps_watch_test
+        ${BLUEWAKE_REPO_ROOT}/tests/fps_watch_test.c ${BLUEWAKE_HOST_SRC}/fps_watch.c)
+    target_include_directories(bluewake_fps_watch_test PRIVATE
+        ${BLUEWAKE_HOST_SRC} ${BLUEWAKE_COMPAT_INCLUDES})
+    target_compile_options(bluewake_fps_watch_test PRIVATE ${BLUEWAKE_COMPAT_FORCE_INCLUDE})
+    target_link_libraries(bluewake_fps_watch_test PRIVATE gxruntime bluewake_posix_compat)
+    set_target_properties(bluewake_fps_watch_test PROPERTIES LINKER_LANGUAGE CXX)
+    add_test(NAME bluewake_fps_watch_test COMMAND bluewake_fps_watch_test)
+    set_tests_properties(bluewake_windows_getenv_cache_test bluewake_fps_watch_test PROPERTIES TIMEOUT 15)
+endif()
 
 # The app folder: the executable, its runtime DLLs (SDL3, Dawn and the DXC
 # shader compiler Dawn loads for Direct3D 12) and Aurora's bundled pipeline

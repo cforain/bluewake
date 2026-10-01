@@ -33,7 +33,8 @@ THREAD = re.compile(r"^\s*\d+\s+Thread_")
 
 
 def parse(path):
-    text = open(path, errors="replace").read().splitlines()
+    with open(path, errors="replace") as capture:
+        text = capture.read().splitlines()
     start = next((i for i, l in enumerate(text) if "Call graph:" in l), None)
     if start is None:
         sys.exit("no call graph in %s" % path)
@@ -41,7 +42,8 @@ def parse(path):
                 if text[i].startswith("Total number in stack")), len(text))
     body = text[start + 1:end]
     mt = next((i for i, l in enumerate(body)
-               if "com.apple.main-thread" in l), None)
+               if THREAD.match(l) and
+               ("com.apple.main-thread" in l or re.search(r": Main Thread\b", l))), None)
     if mt is None:
         sys.exit("no main thread in %s" % path)
     # The main thread's tree ends where the next thread's summary begins; every

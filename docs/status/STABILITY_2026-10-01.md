@@ -21,10 +21,11 @@ three native Mac headless runs completed normally at 3,600 retraces:
 
 Both DSP modes have similar five-second RMS envelopes and nonzero samples throughout the later
 intro window. Disabling transition acceleration also produces nonzero audio. This rules out total
-silence in these particular guest-PCM captures. It does **not** identify the expected music, prove
-speaker output, or reproduce the report on Windows/iOS or a newly rebuilt Better Wind Waker module.
-No speculative DSP change has been made. The next gate is comparison against an isolated Dolphin
-reference and a rendered/output-device reproduction with the reporter's settings.
+silence in these particular guest-PCM captures. Subsequent stream tracing and direct disc-track
+comparison identify the expected music in the captures (below), but do **not** prove speaker output
+or reproduce the report on Windows/iOS or a newly rebuilt Better Wind Waker module.
+No speculative DSP change has been made. The next audio gate is a rendered/output-device
+reproduction with the reporter's platform, build and settings.
 
 Initial Dolphin captures are not accepted as a narrated-intro reference: their replay has not been
 shown to reach the same scene, and late-window RMS correlation is low (0.42-0.45). A fixed-timing
@@ -37,6 +38,24 @@ The game's source prepares `JA_STRM_DEMO_01_01` at opening timer 40 only when th
 longer peeking, then calls stream play at state 2. That is a diagnostic lead, not an established
 BlueWake bug. Sources: [opening state machine](https://github.com/zeldaret/tww/blob/main/src/d/d_s_open_sub.cpp),
 [stream prepare/play](https://github.com/zeldaret/tww/blob/main/src/JAZelAudio/JAIZelBasic.cpp).
+
+### Expected intro music is present in the tested Mac PCM
+
+A developer-only, read-only probe (`BLUEWAKE_ENABLE_DEVELOPER_TRACING=ON` and
+`BLUEWAKE_TRACE_BGM_STREAM=1`) observes the GZLE01 stream calls and changes in the sound state.
+With fast defaults it records prepare for `0xC0000024` at retrace 896, a valid stream handle at
+897, `Audiores/Stream/1tale.afc` loaded/ready at 899, play at 1000, and sound state 4 (playing) at
+1001. The audio-disabled flag stays clear. The probe's capture remains byte-identical to the
+untraced baseline: 1,918,984 stereo frames, hash `81DF89AD`.
+
+The requested AFC was extracted privately from the same personal disc and decoded locally with
+FFmpeg. Comparing the captured 30-32 second window against that track gives sample-level
+correlations of 0.999999 (HLE fast), 0.984158 (LLE fast), and 0.999998 (HLE original transitions).
+The 30-59 second RMS envelopes correlate at 0.987479, 0.945278 and 0.971072 respectively.
+This is specific music evidence, not just a nonzero-samples test. It does not establish playback
+through speakers or rule out a platform/settings-specific report. The stream probe compiles out
+of ordinary builds; the final native Mac build has tracing OFF. No track, capture, disc or state
+is committed or uploaded.
 
 ## Windows cache race fixed
 
@@ -56,6 +75,13 @@ The first native CI attempt linked the app but rejected the new standalone test 
 because its CRT deprecation policy did not match the runtime's. The harness now uses the same
 `_CRT_SECURE_NO_WARNINGS` policy and a length-bounded memcpy; native CI is rerun rather than counting
 that attempt as a pass.
+
+The native source-only workflow subsequently **passes at `60be199`**, including the full app link
+and 16-reader cache regression:
+[CI run 36805880425](https://github.com/chrissotraidis/bluewake/actions/runs/36805880425).
+The next change adds opt-in CMake/CTest regression targets for both the cache and the shared FPS
+classifier/worker-counter arithmetic, so these run under the actual Windows compatibility layer.
+That new configuration needs its own CI result; the earlier pass is not proof of it.
 
 ## Gameplay profiling, not an FPS claim
 
@@ -87,6 +113,23 @@ periods no longer log `presents late`; actual sub-95% dips still log `target=30`
 The native Mac host and iOS/tvOS app targets compile/link after this shared change; all 24 registered
 BlueWake CTests pass. Physical device installation, Windows gameplay and 120 Hz display acceptance
 are not implied. Neither the selected mode nor any player's stored settings was changed.
+
+Slowdown logs now include CPU utilization for the FIFO, interpolation-helper and render workers,
+using their existing cumulative counters. Four additional synthetic cases guard normal utilization,
+idle counters, worker replacement/reset and a zero-length interval. The counter subtraction is
+guarded against unsigned underflow when a worker exits. These are diagnostic improvements, not a
+claimed speedup.
+
+Two longer visible/foreground-observed repeats have post-startup one-second VI-rate medians of
+58.7 and 59.7, compared with 44.75 in an earlier isolated repeat. They still have substantial dips;
+one includes a brief minimize/restore check. Other project simulators/background processes were
+active, and the earlier slow runs also logged gained focus without subsequent focus loss. Therefore
+focus alone is **not** an established cause and these are not controlled before/after benchmarks.
+No worker-priority, App Nap, global interpolation or quality change has been made.
+
+The sample parser now accepts both macOS main-thread labels (`com.apple.main-thread` and
+`: Main Thread`) without counting worker stacks as game-thread work. Three synthetic fixtures
+guard both labels and refusal to guess an unidentified thread; they also run in repository CI.
 
 These runs reveal a repeatability/scheduling or graphics-translation problem worth investigating.
 Do not subtract inclusive sampled owner shares to infer self time. Next: repeat the worker A/B with

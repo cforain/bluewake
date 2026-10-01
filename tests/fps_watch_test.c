@@ -12,6 +12,10 @@ int aurora_get_frame_interp_steps(void) { return 1; }
 void dol_aurora_frame_timing(DolAuroraFrameTiming* out) { memset(out, 0, sizeof(*out)); }
 
 int main(void) {
+    assert(bluewake_fps_watch_cpu_percent(750000, 250000, 1000000) == 50.0);
+    assert(bluewake_fps_watch_cpu_percent(250000, 250000, 1000000) == 0.0);
+    assert(bluewake_fps_watch_cpu_percent(10, 250000, 1000000) == 0.0);
+    assert(bluewake_fps_watch_cpu_percent(750000, 250000, 0) == 0.0);
     assert(bluewake_fps_watch_reason(29.3, 1.0, false, 3, 0, 0) == NULL);
     assert(bluewake_fps_watch_reason(59.0, 1.0, true, 1, 30, 30) == NULL);
     assert(bluewake_fps_watch_reason(118.0, 1.0, true, 3, 30, 30) == NULL);

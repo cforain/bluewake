@@ -1042,6 +1042,66 @@ static unsigned g_external_dispatch_store_reports;
 static unsigned long long g_heap_write_watch_total;
 static bool g_heap_write_watch_late;
 BLUEWAKE_TRACE_STORAGE(g_audio_object_watch);
+#if BLUEWAKE_ENABLE_DEVELOPER_TRACING
+static bool g_bgm_stream_trace;
+static unsigned g_bgm_stream_reports;
+static u32 g_bgm_stream_last_object, g_bgm_stream_last_sound, g_bgm_stream_last_id;
+static u8 g_bgm_stream_last_disabled, g_bgm_stream_last_sound_state;
+static u32 g_bgm_stream_last_flags, g_bgm_stream_last_start;
+
+// GZLE01 revision 0: JAIZelBasic's stream calls and zel_basic SDA slot.
+// Observation only: do not intercept calls or write guest state. Shipping hosts
+// compile this probe out, including the per-edge and per-retrace checks.
+static void host_trace_bgm_stream(CPUState* cpu, u32 address) {
+    if (!g_bgm_stream_trace || cpu == NULL || g_bgm_stream_reports >= 64u)
+        return;
+    const bool prepare = address == 0x802A334Cu;
+    const bool play = address == 0x802A33D0u;
+    if (address != 0u && !prepare && !play)
+        return;
+    u32 object = cpu->gpr[3];
+    if (address == 0u) {
+        const u32 slot = cpu->gpr[13] - 27088u;
+        if (slot < 0x80000000u || slot > 0x817FFFFCu)
+            return;
+        object = mem_read32(cpu, slot);
+    }
+    if (object < 0x80000000u || object > 0x817FFF80u)
+        return;
+    const u32 sound = mem_read32(cpu, object + 0x70u);
+    const u32 id = mem_read32(cpu, object + 0x7Cu);
+    const u8 disabled = mem_read8(cpu, object + 0x63u);
+    const u8 sound_state = sound >= 0x80000000u && sound <= 0x817FFFBAu
+                              ? mem_read8(cpu, sound + 5u) : 0u;
+    const u32 flags = mem_read32(cpu, 0x803F768Cu);
+    const u32 start = mem_read32(cpu, 0x803F76C8u);
+    if (address == 0u && object == g_bgm_stream_last_object &&
+        sound == g_bgm_stream_last_sound && id == g_bgm_stream_last_id &&
+        disabled == g_bgm_stream_last_disabled && sound_state == g_bgm_stream_last_sound_state &&
+        flags == g_bgm_stream_last_flags && start == g_bgm_stream_last_start)
+        return;
+    char path[100] = {0};
+    for (unsigned i = 0u; i + 1u < sizeof path; ++i) {
+        path[i] = (char)mem_read8(cpu, 0x803ED130u + i);
+        if (path[i] == '\0') break;
+    }
+    fprintf(stderr,
+            "[bgm-stream] event=%s retrace=%llu object=0x%08X "
+            "requested=0x%08X id=0x%08X sound=0x%08X sound_state=%u disabled=%u "
+            "flags=0x%08X start=%u path=\"%s\" lr=0x%08X\n",
+            prepare ? "prepare" : play ? "play" : "state",
+            (unsigned long long)g_host_retrace_count, object,
+            prepare ? cpu->gpr[4] : 0u, id, sound, sound_state, disabled, flags, start, path, cpu->lr);
+    g_bgm_stream_reports++;
+    g_bgm_stream_last_object = object;
+    g_bgm_stream_last_sound = sound;
+    g_bgm_stream_last_id = id;
+    g_bgm_stream_last_disabled = disabled;
+    g_bgm_stream_last_sound_state = sound_state;
+    g_bgm_stream_last_flags = flags;
+    g_bgm_stream_last_start = start;
+}
+#endif
 static unsigned g_audio_object_watch_reports;
 static unsigned g_audio_context_interrupt_reports;
 static unsigned g_audio_dsp_handler_reports;
@@ -1759,6 +1819,9 @@ static void host_actor_search_native(CPUState* cpu) {
 }
 
 static bool host_chassis_edge_service(void* user, CPUState* cpu, u32 address) {
+#if BLUEWAKE_ENABLE_DEVELOPER_TRACING
+    host_trace_bgm_stream(cpu, address);
+#endif
     bluewake_mouse_camera_dispatch(cpu, address);
     bluewake_climb_dispatch(cpu, address);
     bluewake_quick_doors_dispatch(cpu, address);
@@ -4790,6 +4853,9 @@ static void host_sync_vi_cycles(CPUState* cpu) {
     dol_vi_clock_advance(g_cycle_vi_clock, elapsed_cycles);
     while (dol_vi_clock_pop_retrace(g_cycle_vi_clock, NULL)) {
         g_host_retrace_count++;
+#if BLUEWAKE_ENABLE_DEVELOPER_TRACING
+        host_trace_bgm_stream(cpu, 0u);
+#endif
         aurora_backend_service_present();
         host_mods_reapply(cpu);
         bluewake_game_options_retrace(cpu);
@@ -7285,6 +7351,11 @@ int main(int argc, char** argv) {
     g_j2d_payload_flow_reports = 0u;
     BLUEWAKE_TRACE_ASSIGN(g_audio_object_watch,
                           "BLUEWAKE_TRACE_AUDIO_OBJECT");
+#if BLUEWAKE_ENABLE_DEVELOPER_TRACING
+    g_bgm_stream_trace = getenv("BLUEWAKE_TRACE_BGM_STREAM") != NULL;
+    g_bgm_stream_reports = 0u;
+    g_bgm_stream_last_object = 0u;
+#endif
     g_audio_object_watch_reports = 0u;
     g_audio_transition_trace_remaining = 0u;
     if (g_runqueue_trace || g_pad_lifecycle_trace ||

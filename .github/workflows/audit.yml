@@ -11,3 +11,5 @@ jobs:
         run: python3 -c "import json; d=json.load(open('config/dependencies.lock.json')); assert len(d['dependencies']) > 0"
       - name: Preserve platform signing identities
         run: python3 tests/test_signing_entitlements.py
+      - name: Check synthetic profiling fixtures
+        run: python3 tests/test_sample_owners.py
