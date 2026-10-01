@@ -4,6 +4,22 @@ This is work on the next BlueWake version, not a release or whole-game acceptanc
 Personal discs, translated modules, memory cards, states and audio remain in ignored local storage.
 Parallels is not used; local builds are limited to two jobs.
 
+## Profiling isolation guard repaired
+
+The one-game guard's previous Mac pattern ended at the executable name, so it did not match
+`BlueWake.app/Contents/MacOS/BlueWake MODULE.dylib`. The guard now accepts either the end of the
+command or whitespace after that executable, without matching `BlueWakeHelper` or unrelated apps.
+Seven synthetic process-list fixtures cover native arguments, spaces in paths, raw host/Dolphin,
+simulator opt-out and unrelated/empty process lists; they pass and run in repository CI.
+A live check during a timed Mac run also correctly refuses another game launch.
+
+One new instruction-count pair overlapped for approximately six seconds before this was caught,
+as confirmed by the private log creation/completion times. Both runs are excluded from performance
+comparisons. The replacement sequence waits for each child to exit and uses the repaired guard.
+Earlier serial cache A/B/B/A runs were individually completed before the next began; their existing
+no-FPS-gain conclusion is unchanged. The guard checks already-running processes, not an atomic
+cross-agent launch lock; do not dispatch concurrent game launches.
+
 ## Intro audio report
 
 [The fork's issue #1](https://github.com/elliotttate/Wind-Waker-Recomp/issues/1) reports missing
