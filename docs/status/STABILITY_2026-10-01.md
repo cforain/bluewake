@@ -237,9 +237,13 @@ also unchanged. This is a small host change, not a generator or simulation-rate 
 
 The source-only regression compares the original dispatch sequence with the filtered sequence at
 every aligned MEM1 address for all eight combinations of the three armed/enable flags, plus range
-edges and unrelated/mirrored addresses. Hook counts and order agree. All **26 Mac host CTests pass**;
-the final shared source also compiles/links in the native iOS and tvOS app targets. The new fifth
-Windows regression is included in source-only CI; native validation is pending for this change.
+edges and unrelated/mirrored addresses. Hook counts and order agree; a separate optimized
+undefined-behavior-sanitized run also passes. All **26 Mac host CTests pass**;
+the final shared source also compiles/links in the native iOS and tvOS app targets. Native
+Windows clang/MSVC CI **passes at `c3d61a4`**, linking the app and running all five regressions,
+including the exhaustive dispatch comparison:
+[CI run 36814289531](https://github.com/chrissotraidis/bluewake/actions/runs/36814289531).
+No game module is supplied or uploaded, and no Windows gameplay/audio claim follows from this.
 
 Retired-instruction comparisons use the same Outset room-44 state, 960x720, 1x scale, FIFO worker
 enabled, no live input and isolated copied card/SRAM. Smooth Motion and audio stretching are off
@@ -273,7 +277,8 @@ retraces. Its 1,918,984 stereo PCM frames remain byte-identical to the earlier H
 audio; speaker audibility and the reporter's affected build remain separate unresolved gates.
 
 These runs reveal a repeatability/scheduling or graphics-translation problem worth investigating.
-Do not subtract inclusive sampled owner shares to infer self time. Next: repeat the worker A/B with
-controlled foreground/occlusion, collect FIFO-worker and draw-plan costs, confirm the Smooth Motion A/B,
-and validate the chosen change against scene pictures, audio and saved-state equivalence. Native
-Windows Direct3D play and longer physical-device/thermal runs remain unverified.
+Do not subtract inclusive sampled owner shares to infer self time. Next: extend beyond the restored
+Outset scene using a verified gameplay route, compare the newly generated game-options module's
+intro with the known module, and collect matched Smooth Motion/presentation costs. Preserve the
+current state/PCM baseline and do not substitute unverified Dolphin/replay captures. Native Windows
+Direct3D speaker/controller play and longer physical-device/thermal runs remain unverified.
