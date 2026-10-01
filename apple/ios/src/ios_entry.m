@@ -1,14 +1,16 @@
-// BlueWake iOS/iPadOS entry shim.
+// BlueWake iOS/iPadOS/tvOS entry shim.
 //
 // SDL owns main() on iOS (SDL_main.h renames ours to SDL_main and starts
 // UIApplicationMain first). This file only fills in default paths inside the
 // app container, then runs the unchanged host.
 //
-// Data layout, all user-provided and never bundled:
-//   Documents/BlueWake/GZLE01.iso              the user's disc image
-//   Documents/BlueWake/main.dol, rels/         prepared from that disc on the
+// Data layout, all user-provided and never bundled. iOS/iPadOS use Documents;
+// tvOS uses Library/Caches because this Apple TV rejects writes to Documents
+// and Application Support:
+//   Library/Caches/BlueWake/GZLE01.iso         the user's disc image
+//   Library/Caches/BlueWake/main.dol, rels/    prepared from that disc on the
 //                                              device (first_run.m)
-//   Documents/BlueWake/GZLE01.card             the memory card (saves)
+//   Library/Caches/BlueWake/GZLE01.card        the memory card (saves)
 //   Frameworks/gGZLE01_recomp.dylib            the translated composite, built
 //                                              on a Mac from the same disc
 //                                              (Documents/BlueWake in the
@@ -19,6 +21,7 @@
 // In the simulator dev loop, BLUEWAKE_ROOT (passed as SIMCTL_CHILD_BLUEWAKE_ROOT)
 // points at the repository instead and the host resolves its usual layout.
 #import <Foundation/Foundation.h>
+#include <TargetConditionals.h>
 #include <SDL3/SDL_main.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -31,8 +34,10 @@
 #include <CommonCrypto/CommonDigest.h>
 
 #include "first_run.h"
-#include "controller_settings.h"
+#include "controller_settings.h" // Shared settings keys; the tvOS shell uses controller defaults.
+#if !TARGET_OS_TV
 #include "touch_controls.h"
+#endif
 
 int bluewake_host_main(int argc, char** argv);
 
@@ -96,7 +101,7 @@ static void bw_default_if_exists(const char* name, NSString* path) {
 }
 
 // Session log. Everything the app writes to stdout and stderr also goes to
-// Documents/BlueWake/logs/session-YYYYMMDD-HHMMSS.log, each line stamped with
+// the app data folder's logs/session-YYYYMMDD-HHMMSS.log, each line stamped with
 // the local wall-clock time, so a session can be read back from the device
 // (Finder, Files, or afcclient) without a console attached, and a moment the
 // player remembers ("it lagged around 3:42") can be found in it. The original
@@ -163,13 +168,23 @@ int main(int argc, char** argv) {
         // Logs go to files under simctl/devicectl; keep them readable live.
         setvbuf(stdout, NULL, _IOLBF, 0);
         setvbuf(stderr, NULL, _IOLBF, 0);
+#if TARGET_OS_TV
+        NSString* caches = [NSSearchPathForDirectoriesInDomains(
+            NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+        NSString* data = [caches stringByAppendingPathComponent:@"BlueWake"];
+#else
         NSString* docs = [NSSearchPathForDirectoriesInDomains(
             NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
         NSString* data = [docs stringByAppendingPathComponent:@"BlueWake"];
-        [[NSFileManager defaultManager] createDirectoryAtPath:data
-                                  withIntermediateDirectories:YES
-                                                   attributes:nil
-                                                        error:nil];
+#endif
+        NSError* dataDirectoryError = nil;
+        if (![[NSFileManager defaultManager] createDirectoryAtPath:data
+                                     withIntermediateDirectories:YES
+                                                      attributes:nil
+                                                           error:&dataDirectoryError])
+            fprintf(stderr, "[ios] cannot create data directory %s: %s\n",
+                    data.fileSystemRepresentation,
+                    dataDirectoryError.localizedDescription.UTF8String ?: "unknown error");
         if (getenv("BLUEWAKE_SESSION_LOG") == NULL ||
             strcmp(getenv("BLUEWAKE_SESSION_LOG"), "0") != 0)
             bw_start_session_log(data);
@@ -234,8 +249,8 @@ int main(int argc, char** argv) {
                 [mods addObject:@"widescreen"];
                 bw_default("DOL_AURORA_ASPECT_RATIO", @"1.7778");
             }
-            // HD textures: Dolphin-format packs go in Documents/BlueWake/Load/
-            // Textures/GZLE01 (Dolphin's own layout), which the Files app shows.
+            // HD textures: Dolphin-format packs go in the app data folder's
+            // Load/Textures/GZLE01 (Dolphin's own layout).
             NSString* pack = [data stringByAppendingPathComponent:@"Load/Textures/GZLE01"];
             [[NSFileManager defaultManager] createDirectoryAtPath:pack withIntermediateDirectories:YES
                                                        attributes:nil error:nil];
@@ -292,7 +307,7 @@ int main(int argc, char** argv) {
                 [data stringByAppendingPathComponent:@"dsp_rom.bin"]);
             bw_default_if_exists("BLUEWAKE_DSP_COEF",
                 [data stringByAppendingPathComponent:@"dsp_coef.bin"]);
-            // Saves live beside the other data so Files and Finder show them.
+            // Card and SRAM save alongside the imported data.
             bw_default("BLUEWAKE_CARD_PATH",
                 [data stringByAppendingPathComponent:@"GZLE01.card"]);
         }
@@ -308,7 +323,9 @@ int main(int argc, char** argv) {
             host_argc = 2;
         }
         // Drawn in the game's own frame through Aurora's overlay hook.
+#if !TARGET_OS_TV
         bluewake_touch_controls_install();
+#endif
         const int status = bluewake_host_main(host_argc, host_argv);
         // Returning from SDL's main leaves UIKit running with no game. The
         // host only returns at a bounded stop (BLUEWAKE_MAX_RETRACES), a quit
