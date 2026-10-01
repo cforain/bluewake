@@ -15,8 +15,10 @@ extern "C" {
 }
 
 #include "gxruntime/aurora_backend.h"
+#include "desktop_theme.h"
 
 #include <SDL3/SDL.h>
+#include <aurora/imgui.h>
 #include <imgui.h>
 
 #include <algorithm>
@@ -95,7 +97,7 @@ std::string default_path() {
     const char* home = std::getenv("HOME");
     if (home == nullptr || home[0] == '\0')
         return "";
-    return std::string(home) + "/Library/Application Support/Wind Waker Recomp/settings.ini";
+    return std::string(home) + "/Library/Application Support/BlueWake/settings.ini";
 }
 
 std::string trim(std::string text) {
@@ -126,11 +128,11 @@ std::string options_value() {
 }
 
 void save() {
-    if (g_path.empty())
+    if (g_path.empty() || !g_dirty)
         return;
     const auto slash = g_path.rfind('/');
     if (slash != std::string::npos) {
-        // Application Support/Wind Waker Recomp, one level at a time.
+        // Application Support/BlueWake, one level at a time.
         std::string dir = g_path.substr(0, slash);
         for (size_t at = 1; (at = dir.find('/', at)) != std::string::npos; ++at)
             mkdir(dir.substr(0, at).c_str(), 0755);
@@ -141,7 +143,7 @@ void save() {
         std::fprintf(stderr, "[settings] cannot write %s: %s\n", g_path.c_str(), std::strerror(errno));
         return;
     }
-    std::fputs("# Wind Waker Recomp settings, written by the options menu (Esc or F1 in the game).\n"
+    std::fputs("# BlueWake settings, written by the options menu (Esc or F1 in the game).\n"
                "# KEY=VALUE, the host's environment settings; these win over the launch command's.\n",
                file);
     for (const char* key : kKeys) {
@@ -221,6 +223,15 @@ void restart_note() {
 bool combo(const char* label, int* index, const char* const* items, int count) {
     ImGui::SetNextItemWidth(std::max(80.f, ImGui::GetContentRegionAvail().x * 0.48f));
     return ImGui::Combo(label, index, items, count);
+}
+
+bool slider(const char* label, float* value, float low, float high, const char* format) {
+    ImGui::PushID(label);
+    ImGui::TextWrapped("%s", label);
+    ImGui::SetNextItemWidth(-1.f);
+    const bool changed = ImGui::SliderFloat("##value", value, low, high, format);
+    ImGui::PopID();
+    return changed;
 }
 
 void display_tab() {
@@ -325,7 +336,9 @@ void gameplay_tab() {
     int fade = std::atoi(env("BLUEWAKE_FADE_FRAMES", "6").c_str());
     if (fade <= 0 || fade > 26)
         fade = 26;
-    if (ImGui::SliderInt("Fade length (game frames; 26 is the game's)", &fade, 2, 26)) {
+    ImGui::TextWrapped("Fade length (game frames; 26 is the original)");
+    ImGui::SetNextItemWidth(-1.f);
+    if (ImGui::SliderInt("##fade-length", &fade, 2, 26)) {
         set_env("BLUEWAKE_FADE_FRAMES", fade >= 26 ? "0" : std::to_string(fade));
         bluewake_fast_load_reload();
     }
@@ -342,7 +355,7 @@ void gameplay_tab() {
 
     ImGui::Separator();
     bool climb = env_on("BLUEWAKE_CLIMB", false);
-    if (ImGui::Checkbox("Climb any wall, on a stamina wheel (like Breath of the Wild)", &climb)) {
+    if (ImGui::Checkbox("Wall climbing (experimental)", &climb)) {
         set_env("BLUEWAKE_CLIMB", climb ? "1" : "0");
         bluewake_climb_reload();
     }
@@ -350,7 +363,7 @@ void gameplay_tab() {
     float stamina = static_cast<float>(std::atof(env("BLUEWAKE_CLIMB_STAMINA", "12").c_str()));
     if (stamina < 1.f)
         stamina = 12.f;
-    if (ImGui::SliderFloat("Climbing stamina", &stamina, 4.f, 30.f, "%.0f seconds")) {
+    if (slider("Climbing stamina", &stamina, 4.f, 30.f, "%.0f seconds")) {
         char text[16];
         std::snprintf(text, sizeof text, "%.0f", stamina);
         set_env("BLUEWAKE_CLIMB_STAMINA", text);
@@ -367,7 +380,7 @@ void gameplay_tab() {
     float sprint = static_cast<float>(std::atof(env("BLUEWAKE_SPRINT_SPEED", "1.5").c_str()));
     if (sprint < 1.f)
         sprint = 1.f;
-    if (ImGui::SliderFloat("Sprint speed (Shift, left stick click; 1 is off)", &sprint, 1.f, 2.f, "%.2fx")) {
+    if (slider("Sprint speed (Shift, left stick click; 1 is off)", &sprint, 1.f, 2.f, "%.2fx")) {
         char text[16];
         std::snprintf(text, sizeof text, "%.2f", sprint);
         set_env("BLUEWAKE_SPRINT_SPEED", text);
@@ -385,7 +398,7 @@ void controls_tab() {
     float sensitivity = static_cast<float>(std::atof(env("BLUEWAKE_MOUSE_SENSITIVITY", "1.0").c_str()));
     if (sensitivity <= 0.f)
         sensitivity = 1.f;
-    if (ImGui::SliderFloat("Mouse sensitivity", &sensitivity, 0.2f, 3.f, "%.2f")) {
+    if (slider("Mouse sensitivity", &sensitivity, 0.2f, 3.f, "%.2f")) {
         char text[16];
         std::snprintf(text, sizeof text, "%.2f", sensitivity);
         set_env("BLUEWAKE_MOUSE_SENSITIVITY", text);
@@ -400,8 +413,7 @@ void controls_tab() {
 
     ImGui::Separator();
     bool stick = env_on("BLUEWAKE_STICK_CAMERA", true);
-    if (ImGui::Checkbox("Fast right-stick camera and aiming (like the mouse; click the stick for first person)",
-                        &stick)) {
+    if (ImGui::Checkbox("Direct right-stick camera and aiming", &stick)) {
         set_env("BLUEWAKE_STICK_CAMERA", stick ? "1" : "0");
         bluewake_mouse_camera_reload();
     }
@@ -409,7 +421,7 @@ void controls_tab() {
     float speed = static_cast<float>(std::atof(env("BLUEWAKE_STICK_CAMERA_SPEED", "360").c_str()));
     if (speed <= 0.f)
         speed = 360.f;
-    if (ImGui::SliderFloat("Right-stick turn speed", &speed, 120.f, 720.f, "%.0f degrees a second")) {
+    if (slider("Right-stick turn speed", &speed, 120.f, 720.f, "%.0f degrees a second")) {
         char text[16];
         std::snprintf(text, sizeof text, "%.0f", speed);
         set_env("BLUEWAKE_STICK_CAMERA_SPEED", text);
@@ -418,8 +430,8 @@ void controls_tab() {
     float aim = static_cast<float>(std::atof(env("BLUEWAKE_STICK_AIM_SPEED", "180").c_str()));
     if (aim <= 0.f)
         aim = 180.f;
-    if (ImGui::SliderFloat("Right-stick aim speed (first person, items)", &aim, 60.f, 480.f,
-                           "%.0f degrees a second")) {
+    if (slider("Right-stick aim speed (first person, items)", &aim, 60.f, 480.f,
+               "%.0f degrees a second")) {
         char text[16];
         std::snprintf(text, sizeof text, "%.0f", aim);
         set_env("BLUEWAKE_STICK_AIM_SPEED", text);
@@ -436,7 +448,8 @@ void controls_tab() {
         bluewake_mouse_camera_reload();
     }
     ImGui::EndDisabled();
-    ImGui::TextDisabled(stick ? "In the telescope and the Picto Box the left stick (or the D-pad) zooms."
+    ImGui::PushTextWrapPos();
+    ImGui::TextDisabled(stick ? "Click the right stick for first person. In the telescope and Picto Box, the left stick or D-pad zooms."
                               : "The game's right stick: its left and right follow Better Wind Waker's "
                                 "\"Invert camera\" (Gameplay).");
 
@@ -451,6 +464,7 @@ void controls_tab() {
     ImGui::BulletText("Left bumper jump, left stick click sprint (until Link stops), Back this menu");
     ImGui::BulletText("Right stick: turns the camera and aims; its click is first person (and back out)");
     ImGui::BulletText("Telescope and Picto Box: the right stick aims, the left stick (or D-pad) zooms");
+    ImGui::PopTextWrapPos();
 }
 
 void open_menu();
@@ -504,7 +518,39 @@ void draw_climb_wheel() {
     list->PathStroke(color, 0, thick);
 }
 
+float g_font_dpi = 1.f;
+bool g_font_ready = false;
+ImFont* g_menu_font = nullptr;
+
+void load_mac_font() {
+    SDL_Window* window = game_window();
+    g_font_dpi = window != nullptr ? std::max(1.f, SDL_GetWindowDisplayScale(window)) : 1.f;
+    auto* atlas = new ImFontAtlas(); // Process lifetime; never mutate Aurora's live atlas.
+    atlas->Flags |= ImFontAtlasFlags_NoMouseCursors;
+    ImFont* font = atlas->AddFontFromFileTTF("/System/Library/Fonts/SFNS.ttf", 17.f * g_font_dpi);
+    if (font == nullptr) {
+        ImFontConfig config;
+        config.SizePixels = 17.f * g_font_dpi;
+        font = atlas->AddFontDefault(&config);
+    }
+    unsigned char* pixels = nullptr;
+    int width = 0, height = 0;
+    atlas->GetTexDataAsRGBA32(&pixels, &width, &height);
+    if (pixels != nullptr && width > 0 && height > 0) {
+        atlas->SetTexID(aurora_imgui_add_texture(width, height, pixels));
+        atlas->ClearTexData();
+        g_menu_font = font;
+    } else {
+        g_font_dpi = 1.f;
+    }
+}
+
 void draw(void*) {
+    if (!g_font_ready) {
+        load_mac_font();
+        g_font_ready = true;
+        return;
+    }
     test_hook();
     draw_climb_wheel();
     if (!g_open)
@@ -518,21 +564,30 @@ void draw(void*) {
     ImGui::SetNextWindowPos(ImVec2(display.x * 0.5f, display.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(std::min(display.x - 24.f, 860.f), display.y * 0.78f), ImGuiCond_Appearing);
     ImGui::SetNextWindowBgAlpha(0.94f);
+    bluewake_ui::begin_theme();
+    if (g_menu_font != nullptr) ImGui::PushFont(g_menu_font);
     bool open = true;
-    if (ImGui::Begin("BlueWake options (paused)", &open,
+    if (ImGui::Begin("BlueWake settings", &open,
                      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::SetWindowFontScale(1.4f);
+        ImGui::SetWindowFontScale(1.f / g_font_dpi);
+        bluewake_ui::heading("Play your way", "Game paused. F1 or Esc returns you to the adventure.");
         if (ImGui::BeginTabBar("##tabs")) {
             if (ImGui::BeginTabItem("Display")) {
+                ImGui::BeginChild("##display-body", ImVec2(0, -110.f), false);
                 display_tab();
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Gameplay")) {
+                ImGui::BeginChild("##gameplay-body", ImVec2(0, -110.f), false);
                 gameplay_tab();
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Controls")) {
+                ImGui::BeginChild("##controls-body", ImVec2(0, -110.f), false);
                 controls_tab();
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -540,8 +595,10 @@ void draw(void*) {
         ImGui::Separator();
         if (g_restart_pending)
             ImGui::TextColored(ImVec4(1.f, 0.8f, 0.3f, 1.f), "Some changes take effect at the next launch.");
-        if (!g_path.empty())
-            ImGui::TextDisabled("Saved to %s", g_path.c_str());
+        if (!g_path.empty()) {
+            ImGui::TextDisabled("Preferences saved automatically when you resume.");
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", g_path.c_str());
+        }
         if (ImGui::Button("Resume"))
             open = false;
         const auto next_button = [](const char* label) {
@@ -571,6 +628,8 @@ void draw(void*) {
         }
     }
     ImGui::End();
+    if (g_menu_font != nullptr) ImGui::PopFont();
+    bluewake_ui::end_theme();
     if (!open)
         close_menu();
 }
@@ -585,6 +644,15 @@ extern "C" void bluewake_settings_load(void) {
     if (g_path.empty())
         return;
     FILE* file = std::fopen(g_path.c_str(), "r");
+    // Read legacy preferences if needed, but never rename or overwrite the old file.
+    if (file == nullptr && chosen == nullptr) {
+        const char* user_home = std::getenv("HOME");
+        if (user_home != nullptr) {
+            const std::string legacy = std::string(user_home) +
+                "/Library/Application Support/Wind Waker Recomp/settings.ini";
+            file = std::fopen(legacy.c_str(), "r");
+        }
+    }
     if (file == nullptr)
         return;
     char line[2048];

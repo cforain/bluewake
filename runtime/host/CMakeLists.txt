@@ -68,9 +68,22 @@ target_compile_definitions(bluewake_host PRIVATE
 
 if(APPLE)
     set(BLUEWAKE_APP_DIR "${CMAKE_CURRENT_BINARY_DIR}/BlueWake.app")
+    set(BLUEWAKE_MAC_ICON "${CMAKE_CURRENT_BINARY_DIR}/BlueWake.icns")
+    add_custom_command(OUTPUT "${BLUEWAKE_MAC_ICON}"
+        COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/mac/make_icon.sh"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../apple/ios/resources/BlueWave.png"
+            "${BLUEWAKE_MAC_ICON}"
+        DEPENDS ../../scripts/mac/make_icon.sh ../../apple/ios/resources/BlueWave.png
+        VERBATIM)
+    add_custom_target(bluewake_macos_icon DEPENDS "${BLUEWAKE_MAC_ICON}")
+    add_dependencies(bluewake_host bluewake_macos_icon)
     add_custom_command(TARGET bluewake_host POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "${BLUEWAKE_APP_DIR}/Contents/MacOS"
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${BLUEWAKE_APP_DIR}/Contents/Resources"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${BLUEWAKE_MAC_ICON}" "${BLUEWAKE_APP_DIR}/Contents/Resources/BlueWake.icns"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:bluewake_host>"
             "${BLUEWAKE_APP_DIR}/Contents/MacOS/BlueWake"

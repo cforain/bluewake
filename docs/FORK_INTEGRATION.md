@@ -79,7 +79,9 @@ The Windows foundation port (`4b01c6b`) and settings overlay (`4fbcc7f`) are int
 the new shared feature sources and opt-in gameplay settings, keeps Windows' own options menu, and
 uses portable C thread-local declarations. A macOS-hosted LLVM-MinGW check passes for all 27 shared
 C host sources, two disc-tool sources, the entry shim, settings overlay and Win32 compatibility layer.
-The production MSVC/Dawn link and Direct3D/gameplay gates remain open. The fork's later Windows
+The native Windows clang/MSVC-toolchain/Dawn compile and link passed in
+[CI run 36796926528](https://github.com/chrissotraidis/bluewake/actions/runs/36796926528) at `756e3aa`.
+Direct3D/gameplay gates remain open. The fork's later Windows
 code-generator changes and experimental 60 Hz simulation are not included. No ready-made donor app
 or game module was downloaded. Parallels remains off at the user's request.
 
@@ -98,8 +100,15 @@ and not independently gameplay-validated here; iOS has no new climbing/states se
 Windows gains save/load buttons in its Game tab and F6/F8 shortcuts, preserving F9 for FPS.
 States default to `%APPDATA%\\BlueWake\\states`. The new GitHub Windows host workflow compiles
 and links only public runtime/app source, without any disc, translated module, release or artifact
-upload. Adding the workflow is not a successful Windows build result; check its live run separately.
+upload. That source-only result does not establish gameplay or fresh-machine packaging compatibility.
 The latest iOS source builds, but has not replaced the physical-iPad build described above.
+
+The Mac app now packages its icon from the same tracked BlueWake wave artwork as iOS. Both desktop
+settings menus use a scoped navy/cyan BlueWake theme. Mac typography uses the system font without
+changing the game/FPS overlay. The menu keeps tabs and actions visible while settings scroll;
+mouse tab selection, scrolling and Resume were checked in the native app. Closing without changing
+anything does not rewrite preferences. New Mac preferences use Application Support/BlueWake;
+the legacy folder is only read as a fallback and is never renamed, deleted or overwritten.
 
 ## Contribution path
 

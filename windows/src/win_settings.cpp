@@ -43,6 +43,7 @@
 
 #include "gxruntime/aurora_backend.h"
 #include "save_state.h"
+#include "desktop_theme.h"
 
 extern "C" {
 // runtime/host/src/mouse_camera.h and game_options.h, declared here with plain
@@ -651,10 +652,7 @@ void load_font(SDL_Window* w) {
 void draw_menu(SDL_Window* w) {
     ImGuiIO& io = ImGui::GetIO();
     const float scale = ui_scale(w);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14 * scale, 12 * scale));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6 * scale, 4 * scale));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * scale, 6 * scale));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6 * scale);
+    bluewake_ui::begin_theme(scale);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always,
                             ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(io.DisplaySize.x * 0.95f, io.DisplaySize.y * 0.9f));
@@ -669,6 +667,7 @@ void draw_menu(SDL_Window* w) {
                                    (overflows ? 0 : ImGuiWindowFlags_NoScrollbar);
     if (ImGui::Begin("BlueWake settings", &open, flags)) {
         ImGui::SetWindowFontScale(scale / g_font_scale);
+        bluewake_ui::heading("Play your way", "Display, controls and enhancements, all in one place.");
         // Esc normally closes it in the keyboard hook (bw_settings_key), which
         // keeps the key from SDL; one that reaches ImGui instead closes it too.
         if (ImGui::IsKeyPressed(ImGuiKey_Escape, false))
@@ -705,7 +704,7 @@ void draw_menu(SDL_Window* w) {
         overflows = ImGui::GetScrollMaxY() > 4.0f * scale;
     }
     ImGui::End();
-    ImGui::PopStyleVar(4);
+    bluewake_ui::end_theme();
     if (!open)
         set_menu_open(false);
 }
