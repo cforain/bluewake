@@ -26,9 +26,12 @@ personal-module build or controller/audio acceptance. Parallels is not needed fo
 
 The October 1 stability follow-up also passes native app linking and the 16-reader environment-cache
 regression at `60be199` in [CI run 36805880425](https://github.com/chrissotraidis/bluewake/actions/runs/36805880425).
-The source-only workflow now opts into `BLUEWAKE_WINDOWS_REGRESSION_TESTS`, building CTest targets
-for that cache test and the shared FPS classifier/worker-counter checks. This expanded configuration
-must pass its own run; it does not imply Windows gameplay or audio acceptance.
+The source-only workflow opts into `BLUEWAKE_WINDOWS_REGRESSION_TESTS`; native app linking and both
+the cache and shared FPS classifier/worker-counter checks pass at `830bf7d` in
+[CI run 36808815002](https://github.com/chrissotraidis/bluewake/actions/runs/36808815002).
+The workflow now also builds the pinned runtime's existing interpolation matching/blending/pacing
+regression suite. That newly registered target passes on Mac but needs its own native Windows CI
+result. These checks do not imply Windows gameplay or audio acceptance.
 
 The fork's later Windows-only code-generator optimizations and experimental 60 Hz simulation are
 not imported here. Local Windows PGO training and full Windows gameplay remain follow-up gates.

@@ -79,9 +79,40 @@ that attempt as a pass.
 The native source-only workflow subsequently **passes at `60be199`**, including the full app link
 and 16-reader cache regression:
 [CI run 36805880425](https://github.com/chrissotraidis/bluewake/actions/runs/36805880425).
-The next change adds opt-in CMake/CTest regression targets for both the cache and the shared FPS
-classifier/worker-counter arithmetic, so these run under the actual Windows compatibility layer.
-That new configuration needs its own CI result; the earlier pass is not proof of it.
+The expanded opt-in CMake/CTest configuration also **passes at `830bf7d`**, including native app
+linking and both the cache and shared FPS classifier/worker-counter tests under the Windows
+compatibility layer: [CI run 36808815002](https://github.com/chrissotraidis/bluewake/actions/runs/36808815002).
+These remain source-only checks, not Direct3D gameplay or output-device audio acceptance.
+
+## Interpolation and graphics regression coverage
+
+The pinned runtime includes a standalone matching/blending/pacing regression suite that its CMake
+did not register. BlueWake now builds and runs that existing suite against the linked runtime on
+Mac and in the opt-in Windows regression configuration. It covers camera-cut rejection, frame
+matching, blended transforms, pacing/drop recovery and mode changes, including 120-to-60 recovery.
+The suite passes locally, bringing the registered BlueWake host checks to **25 passing CTests**.
+The new Windows target needs its own native CI result; the `830bf7d` pass predates it.
+
+Five existing graphics/frontend/trace tests and five render-worker ordering, backpressure, sync,
+shutdown and frame-slot tests also pass. They need no personal game input or GPU. They are useful
+regression coverage, not proof of correct whole-game pictures or hardware performance.
+
+A bounded native Metal run restores the same Outset room-44 state, uses 960x720, 1x scale, Smooth
+Motion and no live input, and verifies cached derived pipeline state by re-deriving it on each hit
+(`DOL_GXCORE_DERIVED_VERIFY=1`). At normal exit after 1,400 retraces, it reports **2,781,228 verified
+comparisons and zero mismatches**. All 2,869,165 submitted draws are planned with zero rejected or
+failed draws, vertex-decode failures, missing projections, payload overruns or unresolved arrays.
+The state restore also reports 150 fields and no missing fields/mismatches. This checks cache
+equivalence in one live scene, not pixel equivalence, all shader features or a speed improvement;
+verification itself adds work. Personal inputs and captures stay local.
+
+An eight-frame raw GX capture did **not** pass the existing `--against-stats` replay comparison:
+seven compared frames differed, with a first-frame draw count of 6,842 replay versus 2,699 recorded.
+Restored-state CP/register initialization and legacy-versus-current renderer statistics are leads,
+not established causes. The capture is not accepted as a faithful optimization baseline, and the
+comparison was not relaxed. A seeded/from-boot capture and a current-renderer-equivalent comparison
+are needed before drawing performance conclusions from replay. Live cache verification above is
+independent of this failed capture.
 
 ## Gameplay profiling, not an FPS claim
 

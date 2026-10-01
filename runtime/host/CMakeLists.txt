@@ -151,6 +151,17 @@ target_link_libraries(bluewake_fps_watch_test PRIVATE gxruntime)
 target_include_directories(bluewake_fps_watch_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_test(NAME bluewake_fps_watch_test COMMAND bluewake_fps_watch_test)
 
+# The pinned runtime ships matching/blending/pacing regressions, but does not
+# register this standalone suite in its own CMake. Exercise the actual linked
+# implementation without a disc, graphics device or private fixtures.
+if(TARGET GXRuntime::aurora AND TARGET GXRuntime::gxcore)
+    add_executable(bluewake_frame_interp_test
+        ${GXRUNTIME_DIR}/graphics/aurora/tests/frame_interp_test.cpp)
+    target_link_libraries(bluewake_frame_interp_test PRIVATE gxruntime GXRuntime::aurora GXRuntime::gxcore)
+    add_test(NAME bluewake_frame_interp_test COMMAND bluewake_frame_interp_test)
+    set_tests_properties(bluewake_frame_interp_test PROPERTIES TIMEOUT 30)
+endif()
+
 add_executable(bluewake_save_state_test ../../tests/save_state_test.c src/save_state.c)
 target_include_directories(bluewake_save_state_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(bluewake_save_state_test PRIVATE z)

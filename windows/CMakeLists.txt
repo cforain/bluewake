@@ -196,6 +196,14 @@ if(BLUEWAKE_WINDOWS_REGRESSION_TESTS)
     set_target_properties(bluewake_fps_watch_test PROPERTIES LINKER_LANGUAGE CXX)
     add_test(NAME bluewake_fps_watch_test COMMAND bluewake_fps_watch_test)
     set_tests_properties(bluewake_windows_getenv_cache_test bluewake_fps_watch_test PROPERTIES TIMEOUT 15)
+
+    add_executable(bluewake_frame_interp_test
+        ${GXRUNTIME_DIR}/graphics/aurora/tests/frame_interp_test.cpp)
+    target_include_directories(bluewake_frame_interp_test PRIVATE ${BLUEWAKE_COMPAT_INCLUDES})
+    target_compile_options(bluewake_frame_interp_test PRIVATE ${BLUEWAKE_COMPAT_FORCE_INCLUDE})
+    target_link_libraries(bluewake_frame_interp_test PRIVATE gxruntime GXRuntime::aurora GXRuntime::gxcore bluewake_posix_compat)
+    add_test(NAME bluewake_frame_interp_test COMMAND bluewake_frame_interp_test)
+    set_tests_properties(bluewake_frame_interp_test PROPERTIES TIMEOUT 30)
 endif()
 
 # The app folder: the executable, its runtime DLLs (SDL3, Dawn and the DXC
