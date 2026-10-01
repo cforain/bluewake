@@ -98,6 +98,30 @@ There are 498 low-queue pushes out of 159,873, so this is not a clean audio-stut
 other project simulators remain active. Successful queueing/resume still does not prove audible
 speaker output, the affected reporter's build, Windows or physical-device playback.
 
+### Legacy Better Wind Waker enabled, then full opening transition
+
+The existing personal Mac module exports the legacy mod API but **no** new option-table API.
+With `betterww` explicitly enabled, its log confirms 25 variant chunks and 76 writes applied.
+A fresh-card HLE run again reaches the narrated intro at retrace 806 and stops normally at
+3,600 retraces (2,732,774 guest blocks, PC `0x80307ef4`). Its 1,918,984 stereo frames are
+byte-identical to the earlier unmodified HLE capture, including hash `81DF89AD`. This tests an
+additional actual mod configuration; it is not validation of the new fifteen-option module.
+
+A longer headless run of that same enabled legacy module uses scheduled A presses and completes
+the opening at 13,891, reaches the play scene at 13,915, and stops normally at 22,000 retraces,
+16,656,560 guest blocks, PC `0xc1ab1614`. Background/sea draw callbacks run after the transition,
+and the trace reaches a neutral player procedure with no active event/message before later A
+presses reopen dialogue. The captured audio has 11,732,312 stereo frames and nonzero samples.
+This is scripted guest-transition evidence, not rendered pictures, human control or speaker
+acceptance. No comparative performance result is inferred while other builds are active.
+
+The current fifteen-option/16:10 generated source is now being compiled in a **separate** native
+arm64 Mac module build, at O2 with the existing three O1 fallback sources and two build jobs.
+The known module is not replaced. This is untrained personal validation, not a completed PGO
+build or ready-to-install module. After successful linking, compare mod-disabled, Better Wind
+Waker defaults and disabled-instant-text intro captures before making an audio or option claim.
+`skip_intro_movie` is off by default in the source option table; it must remain off in those tests.
+
 ## Windows cache race fixed
 
 The Windows per-call-site environment cache formerly read and published a `volatile` pointer.
