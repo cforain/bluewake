@@ -15,3 +15,5 @@ jobs:
         run: python3 tests/test_sample_owners.py
       - name: Preserve one-game profiling isolation
         run: python3 tests/test_one_game_guard.py
+      - name: Preserve synthetic Mac launcher cards
+        run: python3 tests/test_mac_launcher.py

@@ -21,6 +21,8 @@
 #         slot 1: gameplay on Outset at retrace ~705 instead of ~20,400.
 #         WALK=1 holds the stick from retrace 900 (WALK_X/WALK_Y, default 0/-127;
 #         0/127 runs Link back down the pier with the camera turning).
+# Existing test cards replaced by a fresh run or CARD= are retained in
+# OUT_DIR/card-previous.XXXXXX/test.card. No previous card is deleted.
 # RENDERER=headless and PACE=0 override the window and real-time pacing.
 # ASPECT=16:10|16:9 widescreen (4:3 default), WINDOW=WxH, FULLSCREEN=1, SCALE=N.
 # HZ=120: Smooth Motion at 120 frames a second (three in-between frames a game frame).
@@ -33,10 +35,11 @@
 # a point), MOUSE_INVERT_Y=1 to look down when moving the mouse forward.
 # DUMP_FROM/DUMP_TO: game frames (presents, not retraces) whose real and
 # in-between images are written to OUT_DIR/dump (see frame_interp_report.py).
-set -u
+set -eu
 if [ $# -lt 3 ]; then sed -n '2,38p' "$0"; exit 2; fi
 # The main checkout (build/ lives there), also when run from a git worktree.
 ROOT=$(dirname "$(git -C "$(dirname "$0")" rev-parse --path-format=absolute --git-common-dir)")
+bash "$ROOT/scripts/one_game_guard.sh"
 out=$1; interp=$2; retraces=$3; route=${4:-title}; dump_from=${5:-}; dump_to=${6:-}
 host=${7:-$ROOT/build/mac-interp/host/host/bluewake_host}
 # The newest module with the mods (scripts/mods/build_mods.sh): Better Wind
@@ -48,7 +51,16 @@ for m in composite-1610 composite-options; do
 done
 composite=${COMPOSITE:-$default_composite}
 mkdir -p "$out"
-[ "$route" = load ] || rm -f "$out/test.card"
+out=$(cd "$out" && pwd -P)
+preserve_card() {
+  if [ -e "$out/test.card" ]; then
+    local previous
+    previous=$(mktemp -d "$out/card-previous.XXXXXX")
+    mv "$out/test.card" "$previous/test.card"
+    printf 'Previous test card preserved: %s/test.card\n' "$previous" >&2
+  fi
+}
+[ "$route" = load ] || preserve_card
 env_args=(
   BLUEWAKE_ROOT="$ROOT" BLUEWAKE_RENDERER="${RENDERER:-aurora}"
   BLUEWAKE_DOL="$ROOT/build/device/game/main.dol" BLUEWAKE_DISC="$ROOT/build/personal/GZLE01.iso"
@@ -74,7 +86,12 @@ if [ "$route" = load ]; then
   # The card is kept between runs of the same OUT_DIR (your progress); the Outset
   # save is copied in only when there is none yet, or when CARD= names one.
   if [ -n "${CARD:-}" ] || [ ! -f "$out/test.card" ]; then
-    cp "${CARD:-$ROOT/build/mac-interp/saves/outset-start.card}" "$out/test.card"
+    card=${CARD:-$ROOT/build/mac-interp/saves/outset-start.card}
+    [ -f "$card" ] || { printf 'Missing source card: %s\n' "$card" >&2; exit 2; }
+    if ! [ "$card" -ef "$out/test.card" ]; then
+      preserve_card
+      cp "$card" "$out/test.card"
+    fi
   fi
   script=""
   # A through the title and file select (the play scene is up by retrace 705),

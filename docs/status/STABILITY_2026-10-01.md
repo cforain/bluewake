@@ -20,6 +20,22 @@ Earlier serial cache A/B/B/A runs were individually completed before the next be
 no-FPS-gain conclusion is unchanged. The guard checks already-running processes, not an atomic
 cross-agent launch lock; do not dispatch concurrent game launches.
 
+## Mac launcher retains previous cards
+
+`scripts/mac/run_host.sh` previously deleted an existing output card for every non-load route,
+and an explicit `CARD=` load overwrote the output card. It now moves a replaced card into a unique
+`card-previous.XXXXXX/test.card` backup under the same output directory. Ordinary loads still reuse
+the existing card; a source that is already the output card is not moved or copied onto itself.
+A missing source stops before modifying an existing card. The launcher checks the one-game guard
+before creating output and resolves relative output directories before its final directory change.
+Failed shell steps now stop instead of falling through to a game launch.
+
+Eight synthetic tests use temporary fixture cards, a fake host and mocked process lists. Fresh,
+reused, replaced, same-file and missing-source paths, relative directories, busy-game refusal and
+new-game/save routes pass. No game process, disc, translated module or real player save is used.
+The tests are registered in repository CI. This is launcher/save-preservation evidence, not new
+gameplay or physical-device acceptance.
+
 ## Intro audio report
 
 [The fork's issue #1](https://github.com/elliotttate/Wind-Waker-Recomp/issues/1) reports missing
