@@ -49,7 +49,7 @@ Its steady-state path remains one cached atomic read, not a CRT environment scan
 The synthetic regression forces 16 readers to allocate before any publishes, then checks identical
 returned pointers and contents, cached absence, independent call sites, copied-value lifetime after
 an environment change, and allocation-failure retry. Optimized and ThreadSanitizer runs pass on
-macOS. All 23 registered BlueWake host CTests pass, including this test. The Windows source-only
+macOS. All 24 registered BlueWake host CTests pass, including this test and the FPS classifier. The Windows source-only
 workflow also compiles/runs the same test with native clang/MSVC; its result is recorded separately
 after CI completes. No Windows gameplay claim follows from this test.
 The first native CI attempt linked the app but rejected the new standalone test under `-Werror`
@@ -70,9 +70,26 @@ personal state and no live input:
 - An isolated FIFO-worker-disabled run sustained roughly 45-47 retraces/second near its end, with
   no graphics-drain wait but 100% game-thread busy time. That moves graphics work onto the guest
   thread; it is not a demonstrated general optimization and is not made the default.
+- With the FIFO worker on and Smooth Motion off, the same scene runs near 60 retraces / 30 game
+  presents per second after startup. This isolates interpolation/extra presentation as a lead, not
+  a proven root cause: foreground/occlusion and repeat-order effects still need controlled A/B.
+
+## FPS diagnostic corrected
+
+The Smooth Motion-off run was reporting healthy 29-31 FPS at full simulation speed as
+`reason=presents late`: the old logger unconditionally expected 60 shown FPS. It now reads the live
+interpolation setting and uses 95% of the selected 30/60/120 mode as its presentation threshold.
+The target is included in each dip line. Nine synthetic cases cover normal output, real slow game
+speed, rejected interpolation, late presents and out-of-range step clamping.
+
+A rebuilt native Metal repeat with Smooth Motion off completes normally. Healthy 30 FPS/full-speed
+periods no longer log `presents late`; actual sub-95% dips still log `target=30` and slow-game reasons.
+The native Mac host and iOS/tvOS app targets compile/link after this shared change; all 24 registered
+BlueWake CTests pass. Physical device installation, Windows gameplay and 120 Hz display acceptance
+are not implied. Neither the selected mode nor any player's stored settings was changed.
 
 These runs reveal a repeatability/scheduling or graphics-translation problem worth investigating.
 Do not subtract inclusive sampled owner shares to infer self time. Next: repeat the worker A/B with
-controlled foreground/occlusion, collect FIFO-worker and draw-plan costs, compare Smooth Motion off,
+controlled foreground/occlusion, collect FIFO-worker and draw-plan costs, confirm the Smooth Motion A/B,
 and validate the chosen change against scene pictures, audio and saved-state equivalence. Native
 Windows Direct3D play and longer physical-device/thermal runs remain unverified.

@@ -9,7 +9,7 @@
 #include <string.h>
 #include <time.h>
 
-// Once a second of wall time, when fewer than kDipBelow frames reached the
+// Once a second of wall time, when fewer than 95% of the selected FPS reached the
 // screen: what the game and the in-between frames did in that second, and
 // where Link was, so the places where Smooth Motion does not hold 60 can be
 // found and fixed. A scene change's fast-forward (nothing to see) is skipped.
@@ -22,7 +22,29 @@ enum {
     kEventMode = 0x803C9EA2u,     // g_dComIfG_gameInfo.play.mEvtCtrl's mode
 };
 
-static const double kDipBelow = 57.0;
+// Read the live setting, not getenv: desktop/mobile menus can change it at runtime.
+bool aurora_get_frame_interpolation(void);
+int aurora_get_frame_interp_steps(void);
+
+static double target_fps(bool smooth, int steps) {
+    if (!smooth)
+        return 30.0; // the retail simulation without in-between frames
+    if (steps < 1) steps = 1;
+    if (steps > 3) steps = 3;
+    return 30.0 * (steps + 1);
+}
+
+const char* bluewake_fps_watch_reason(double shown, double speed, bool smooth,
+                                    int steps, unsigned long long frames,
+                                    unsigned long long interpolated) {
+    if (shown >= target_fps(smooth, steps) * 0.95)
+        return NULL;
+    if (speed < 0.97)
+        return "game below full speed";
+    if (smooth && frames > 0u && (double)interpolated / (double)frames < 0.9)
+        return "frames not interpolated";
+    return "presents late";
+}
 
 static CPUState* g_cpu;
 static bool g_enabled = true;
@@ -118,7 +140,10 @@ void bluewake_fps_watch_retrace(void) {
     const u32 link = mem_read32(g_cpu, kPlayerPointer);
     const bool skip = bluewake_fast_load_fast_forward() || now.shown == g_last.shown || speed > 1.05 ||
                       link < 0x80000000u || link >= 0x81800000u;
-    if (!skip && shown < kDipBelow) {
+    const bool smooth = aurora_get_frame_interpolation();
+    const int steps = aurora_get_frame_interp_steps();
+    const char* reason = bluewake_fps_watch_reason(shown, speed, smooth, steps, frames, interpolated);
+    if (!skip && reason != NULL) {
         CPUState* cpu = g_cpu;
         char stage[9] = {0};
         for (u32 i = 0; i < 8u; ++i)
@@ -130,21 +155,16 @@ void bluewake_fps_watch_retrace(void) {
             y = read_f32(cpu, player + kPos + 4u);
             z = read_f32(cpu, player + kPos + 8u);
         }
-        // What held it under 60: the game itself below full speed (the
-        // emulation or the GX worker), or game frames shown without an
-        // in-between frame (Smooth Motion judged them a cut, or off).
-        const char* reason = speed < 0.97                                ? "game below full speed"
-                             : frames > 0u && interpolated * 10u < frames * 9u ? "frames not interpolated"
-                                                                               : "presents late";
         ++g_dips;
         fprintf(stderr,
                 "[fps-dip] retrace=%llu shown=%.1f game=%llu speed=%.0f%% interpolated=%llu/%llu "
                 "draws/frame=%llu rejected=%.1f%% unmatched=%.1f%% busy=%.0f%% waits: gx=%.0fms present=%.0fms "
-                "gpu=%.0fms stage=%s room=%d event=%u pos=%.0f,%.0f,%.0f reason=%s\n",
+                "gpu=%.0fms stage=%s room=%d event=%u pos=%.0f,%.0f,%.0f target=%.0f reason=%s\n",
                 g_retrace, shown, game, speed * 100.0, interpolated, frames, frames ? draws / frames : 0ull,
                 draws ? 100.0 * (double)rejected / (double)draws : 0.0,
                 draws ? 100.0 * (double)unmatched / (double)draws : 0.0, busy, gx_ms, present_ms, gpu_ms, stage,
-                (int)(signed char)mem_read8(cpu, kStayRoom), mem_read8(cpu, kEventMode), x, y, z, reason);
+                (int)(signed char)mem_read8(cpu, kStayRoom), mem_read8(cpu, kEventMode), x, y, z,
+                target_fps(smooth, steps), reason);
     }
     g_last = now;
     g_last_wall_us = wall;

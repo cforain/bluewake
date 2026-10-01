@@ -35,7 +35,7 @@ otherwise that mod is safely skipped with a rebuild message, without changing th
 ## Checks performed here
 
 - iOS app-only build and native Apple Silicon Mac host build pass.
-- All 23 registered BlueWake host tests pass, including a new fast-transition test covering black
+- All 24 registered BlueWake host tests pass, including a new fast-transition test covering black
   menus, fade ordering, return to rendering, timeout, and disabled settings.
 - Save-state container tests cover roundtrip, malformed/truncated fields without partial writes,
   unsupported versions, missing END, duplicate chunks and trailing bytes. Address/undefined-behavior
@@ -148,6 +148,8 @@ remapping is retained on iOS; desktop and Apple TV remapping still need their ow
 and hardware checks. Intro-audio reports need targeted reproduction before changing DSP behavior.
 The focused stability loop now checks fresh-save intro PCM in HLE/LLE and original/fast transitions,
 profiles rendered Outset, and fixes a concurrent first-read race in Windows' environment cache.
+The FPS diagnostic now respects the live 30/60/120 presentation setting instead of reporting healthy
+30 FPS play with Smooth Motion off as a late-present failure. This is a logging fix, not an FPS gain.
 See the [October 1 stability ledger](status/STABILITY_2026-10-01.md) for evidence and remaining gates.
 
 Next priorities from that review:
