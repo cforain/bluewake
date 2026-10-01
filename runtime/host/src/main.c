@@ -1,6 +1,7 @@
 #include "gxruntime/boot.h"
 #include "gxruntime/aurora_backend.h"
 #include "gxruntime/headless_backend.h"
+#include "feature_dispatch.h"
 #include "gxruntime/guest_memory_dirty.h"
 #include "gxruntime/loader.h"
 #include "gxruntime/platform.h"
@@ -1822,10 +1823,7 @@ static bool host_chassis_edge_service(void* user, CPUState* cpu, u32 address) {
 #if BLUEWAKE_ENABLE_DEVELOPER_TRACING
     host_trace_bgm_stream(cpu, address);
 #endif
-    bluewake_mouse_camera_dispatch(cpu, address);
-    bluewake_climb_dispatch(cpu, address);
-    bluewake_quick_doors_dispatch(cpu, address);
-    bluewake_draw_tags_dispatch(cpu, address);
+    bluewake_feature_dispatch(cpu, address);
     if (bluewake_jump_button_dispatch(cpu, address))
         return true;
     if (__builtin_expect(cpu == NULL || g_turn_census_enabled ||

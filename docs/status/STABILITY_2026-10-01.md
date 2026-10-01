@@ -221,6 +221,51 @@ The sample parser now accepts both macOS main-thread labels (`com.apple.main-thr
 `: Main Thread`) without counting worker stacks as game-thread work. Three synthetic fixtures
 guard both labels and refusal to guess an unidentified thread; they also run in repository CI.
 
+## Measured dispatch optimization
+
+The fixed-address mouse, climb, quick-door and draw-tag hooks now share one unsigned range check
+before their individual dispatch checks. Calls outside the fixed GZLE01 hook interval skip those
+checks and armed-flag reads. Hook order is unchanged. Jump stays outside this filter because it
+can observe a dynamic player-procedure call; interrupts, exceptions, aliases and actor search are
+also unchanged. This is a small host change, not a generator or simulation-rate change.
+
+The source-only regression compares the original dispatch sequence with the filtered sequence at
+every aligned MEM1 address for all eight combinations of the three armed/enable flags, plus range
+edges and unrelated/mirrored addresses. Hook counts and order agree. All **26 Mac host CTests pass**;
+the final shared source also compiles/links in the native iOS and tvOS app targets. The new fifth
+Windows regression is included in source-only CI; native validation is pending for this change.
+
+Retired-instruction comparisons use the same Outset room-44 state, 960x720, 1x scale, FIFO worker
+enabled, no live input and isolated copied card/SRAM. Smooth Motion and audio stretching are off
+only for these timing runs, not in player settings. Each pair subtracts a 1,800-retrace run from
+a 2,800-retrace run to exclude fixed startup work. Every lower/upper run stops normally at the
+same respective guest blocks/PC and draw totals (5,754,709 / 13,019,891), with no rejected/failed draws.
+Runs are serial and unsampled; `/usr/bin/time -l` supplies retired instructions.
+
+| Fixed workload, instructions per additional retrace | Control | Candidate | Reduction |
+| --- | ---: | ---: | ---: |
+| Existing donor-derived pipeline cache, off then on | 331,385,424 | 327,224,983 | 1.26% |
+| New dispatch filter, control then candidate, cache on | 327,224,983 | 324,077,636 | 0.96% |
+| Dispatch repeat, candidate then control, cache on | 326,725,860 | 324,093,609 | 0.81% |
+
+The first row measures already-integrated contributor work, not a new cache implementation. The
+two dispatch comparisons support a modest CPU-work reduction in this scene. Background work and
+presentation pacing remain uncontrolled; none establishes an FPS gain, Windows/iPad performance
+or whole-game acceptance. These percentages are not added together as a general speed claim.
+
+With Smooth Motion enabled again, control and candidate save the same restored workload at
+retrace 1,501 and stop normally at 1,600, with 454,689 guest blocks and 4,310,921 planned draws.
+All nine guest/host payload chunks are byte-identical. The raw GX chunks differ at 63 bytes in
+21 resolved host-pointer fields: eight texture ranges, twelve TMEM-TLUT ranges and the copy range.
+Offsets are attributed using `offsetof` against the actual runtime headers; every pointer has the
+same relocation delta and **all other GX bytes agree**, including the entire sink payload. Raw
+snapshots are retained unchanged. This is state/register/work-count evidence, not pixel equivalence.
+
+A fresh final-candidate HLE intro run reaches the narrated scene and stops normally at 3,600
+retraces. Its 1,918,984 stereo PCM frames remain byte-identical to the earlier HLE baseline
+(hash `81DF89AD`). The dispatch change therefore does not alter this tested intro's generated
+audio; speaker audibility and the reporter's affected build remain separate unresolved gates.
+
 These runs reveal a repeatability/scheduling or graphics-translation problem worth investigating.
 Do not subtract inclusive sampled owner shares to infer self time. Next: repeat the worker A/B with
 controlled foreground/occlusion, collect FIFO-worker and draw-plan costs, confirm the Smooth Motion A/B,

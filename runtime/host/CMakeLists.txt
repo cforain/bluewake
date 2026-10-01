@@ -151,6 +151,12 @@ target_link_libraries(bluewake_fps_watch_test PRIVATE gxruntime)
 target_include_directories(bluewake_fps_watch_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_test(NAME bluewake_fps_watch_test COMMAND bluewake_fps_watch_test)
 
+add_executable(bluewake_feature_dispatch_test ../../tests/feature_dispatch_test.c)
+target_link_libraries(bluewake_feature_dispatch_test PRIVATE gxruntime)
+target_include_directories(bluewake_feature_dispatch_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_test(NAME bluewake_feature_dispatch_test COMMAND bluewake_feature_dispatch_test)
+set_tests_properties(bluewake_feature_dispatch_test PROPERTIES TIMEOUT 30)
+
 # The pinned runtime ships matching/blending/pacing regressions, but does not
 # register this standalone suite in its own CMake. Exercise the actual linked
 # implementation without a disc, graphics device or private fixtures.
