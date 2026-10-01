@@ -262,6 +262,11 @@ target_include_directories(bluewake_audio_capture_test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_test(NAME bluewake_audio_capture_test COMMAND bluewake_audio_capture_test)
 
+add_executable(bluewake_audio_dma_stereo_test ../../tests/audio_dma_stereo_test.c)
+target_include_directories(bluewake_audio_dma_stereo_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_compile_options(bluewake_audio_dma_stereo_test PRIVATE -Wall -Wextra -Werror)
+add_test(NAME bluewake_audio_dma_stereo_test COMMAND bluewake_audio_dma_stereo_test)
+
 add_executable(bluewake_ipl_sram_test
     ../../tests/ipl_sram_test.c
     src/ipl_sram.c)

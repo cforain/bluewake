@@ -81,7 +81,8 @@ With fast defaults it records prepare for `0xC0000024` at retrace 896, a valid s
 untraced baseline: 1,918,984 stereo frames, hash `81DF89AD`.
 
 The requested AFC was extracted privately from the same personal disc and decoded locally with
-FFmpeg. Comparing the captured 30-32 second window against that track gives sample-level
+FFmpeg. Comparing the captured 30-32 second window against that track after averaging the two
+channels gives mono sample-level
 correlations of 0.999999 (HLE fast), 0.984158 (LLE fast), and 0.999998 (HLE original transitions).
 The 30-59 second RMS envelopes correlate at 0.987479, 0.945278 and 0.971072 respectively.
 This is specific music evidence, not just a nonzero-samples test. It does not establish playback
@@ -91,12 +92,36 @@ is committed or uploaded.
 
 A subsequent rendered native Metal/HLE run with a fresh card/SRAM, no stored settings and wall
 pacing reaches the same narrated-intro milestone at retrace 806 and exits normally at 2,400
-retraces. Its guest PCM also matches the expected track at 0.999999 sample correlation in the
+retraces. Its guest PCM also matches the expected track at 0.999999 mono sample correlation in the
 30-32 second window. SDL reports successful playback start at its 40 ms prebuffer and remains
 playing with nonzero buffers during the intro, without output-open/start/queue errors in the log.
 There are 498 low-queue pushes out of 159,873, so this is not a clean audio-stutter acceptance run;
 other project simulators remain active. Successful queueing/resume still does not prove audible
 speaker output, the affected reporter's build, Windows or physical-device playback.
+
+### Audio DMA stereo order (candidate validation)
+
+A subsequent channel-preserving comparison reveals that the existing guest capture has reversed
+stereo relative to the decoded disc stream. Direct stereo correlations are 0.804205 (HLE fast),
+0.790786 (LLE fast), 0.701972 (HLE original fades), and 0.804205 (rendered HLE). Reversing the
+reference channels gives 0.999999, 0.983971, 0.999997 and 0.999999 at the same offsets. The earlier
+mono correlations still identify the music, but do not establish channel-order correctness.
+
+[Dolphin's mixer](https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/AudioCommon/Mixer.cpp)
+identifies audio DMA as big-endian R,L and pushes the second sample as left. BlueWake's host
+previously copied those samples unchanged into both its WAV capture and the runtime's PCM path,
+which also preserved that order before the platform sink. The candidate host normalizes each pair
+to L,R once, before capture and playback. It changes only the temporary DMA buffer, not guest RAM,
+DSP execution, timing, gain, sample rate or option defaults. The pinned runtime remains unchanged.
+This fixes an identified stereo-order path defect; it is **not** a reproduced missing-music fix.
+
+A shared synthetic test covers every 16-bit sample value, signed extrema, pair reversal, canaries
+and malformed sizes. It is registered in Mac CTest, native Windows source-only CI and Mac sanitizer
+CI. Compilation/execution of the new C test and live corrected-channel captures remain pending.
+The existing optimized personal module compile continues unchanged; its sequential validation
+queue now builds the new test before CTest and compares all three option configurations with both
+mono and stereo metrics. The private comparison helper also passes synthetic alignment/gain/DC,
+antiphase stereo, single-channel and constant-signal checks. No capture or game data is published.
 
 ### Legacy Better Wind Waker enabled, then full opening transition
 

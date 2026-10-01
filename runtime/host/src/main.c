@@ -19,6 +19,7 @@
 #include "aram_dma.h"
 #include "actor_search_budget.h"
 #include "audio_capture.h"
+#include "audio_dma_stereo.h"
 #include "ipl_sram.h"
 #include "card_runtime.h"
 #include "edge_intercepts.h"
@@ -4678,12 +4679,16 @@ static bool host_graphics_guest_resolve_uncached(
 static bool host_audio_dma_read_guest(void* user, u32 source_address,
                                       u8* data, u32 size) {
     CPUState* cpu = (CPUState*)user;
-    if (cpu == NULL || data == NULL || source_address > cpu->ram_size ||
+    if (cpu == NULL || data == NULL || size % 4u != 0u || source_address > cpu->ram_size ||
         size > cpu->ram_size - source_address)
         return false;
     const u32 guest_address = 0x80000000u | source_address;
     for (u32 i = 0; i < size; i++)
         data[i] = mem_read8(cpu, guest_address + i);
+    // Normalize the guest's R,L DMA order once, before both WAV capture and
+    // the runtime's PCM decoder/platform sink. Never change guest RAM.
+    if (!bluewake_audio_dma_rl_to_lr(data, size))
+        return false;
     if (!bluewake_audio_capture_append_be16_stereo(
             &g_audio_capture, data, size,
             dol_audio_dma_sample_rate(&g_audio_dma)) &&

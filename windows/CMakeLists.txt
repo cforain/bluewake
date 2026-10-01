@@ -182,6 +182,10 @@ target_link_libraries(bluewake_disc_extract PRIVATE bluewake_posix_compat bcrypt
 
 if(BLUEWAKE_WINDOWS_REGRESSION_TESTS)
     enable_testing()
+    add_executable(bluewake_audio_dma_stereo_test ${BLUEWAKE_REPO_ROOT}/tests/audio_dma_stereo_test.c)
+    target_include_directories(bluewake_audio_dma_stereo_test PRIVATE ${BLUEWAKE_HOST_SRC})
+    target_compile_options(bluewake_audio_dma_stereo_test PRIVATE -Wall -Wextra -Werror)
+    add_test(NAME bluewake_audio_dma_stereo_test COMMAND bluewake_audio_dma_stereo_test)
     add_executable(bluewake_bmg_patch_test ${BLUEWAKE_REPO_ROOT}/tests/bmg_patch_test.c)
     target_include_directories(bluewake_bmg_patch_test PRIVATE ${BLUEWAKE_HOST_SRC})
     target_compile_options(bluewake_bmg_patch_test PRIVATE -Wall -Wextra -Werror)
