@@ -2,12 +2,10 @@
 """Owner shares from a `sample` capture of the play window.
 
 `scripts/bench.sh` runs headless and never executes the Aurora configuration
-path, so renderer-side changes are invisible to it; and the rendered tier's
-wall-clock fps varies more between runs (33.6% to 41.0% of authentic) than most
-renderer effects are worth. A sampled *share* is a ratio of samples inside one
-process, so machine load moves numerator and denominator together and largely
-cancels. That makes it the instrument for renderer work until a better one
-exists (docs/status/PLAN_2026-09-18.md, M6).
+path, so renderer-side changes are invisible to it. Sampled shares help locate
+work, but scheduling, pacing and workload changes can bias them. They are not
+retired-instruction counts or proof of an FPS improvement. Compare matched
+workloads and retain normal-stop and work-count checks.
 
 Usage: scripts/sample_owners.py SAMPLE.txt [--depth N] [--top N]
 
@@ -79,7 +77,7 @@ def main():
     print("top owners at depth <= %d (share of main thread):" % args.depth)
     seen = {}
     for depth, count, name, binary in rows:
-        if depth == 0:
+        if depth == 0 or depth > args.depth:
             continue
         key = (name, binary)
         if key not in seen:

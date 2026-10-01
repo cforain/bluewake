@@ -220,6 +220,12 @@ guest dispatch, using normal-stop/work-count guards and a reproducible workload.
 The sample parser now accepts both macOS main-thread labels (`com.apple.main-thread` and
 `: Main Thread`) without counting worker stacks as game-thread work. Three synthetic fixtures
 guard both labels and refusal to guess an unidentified thread; they also run in repository CI.
+The CLI's `--depth` previously labelled its output without filtering deeper frames. It now applies
+the limit before owner deduplication, so a deep first occurrence cannot hide a shallower eligible
+one. Three additional CLI fixtures cover exclusion, inclusion and a zero-depth request (six parser
+tests total). Re-reading an existing private capture at depth two excludes its depth-three guest
+leaves as requested. Previously reported top-of-stack counts are independent of this owner filter;
+sampled owner shares remain inclusive and are not used as an FPS or retired-instruction claim.
 
 ## Measured dispatch optimization
 
