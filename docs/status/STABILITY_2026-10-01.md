@@ -137,7 +137,9 @@ returning wall-clock time for an unknown ID.
 A new native Windows regression releases 16 readers together, checks 160,000 monotonic reads,
 nanosecond normalization and bounds against direct QPC samples, and checks realtime/CPU clocks,
 null output and unsupported-ID errors. The source and test cross-compile/link with LLVM-MinGW on
-Mac; execution under native clang/MSVC CI is a separate pending gate. This test is not a Windows
+Mac. Native clang/MSVC CI also **passes at `74da8ee`**, with the full app link and all four
+regressions: [CI run 36810799124](https://github.com/chrissotraidis/bluewake/actions/runs/36810799124).
+This test is not a Windows
 ThreadSanitizer run or a measured FPS improvement.
 
 ## Gameplay profiling, not an FPS claim
@@ -183,6 +185,21 @@ one includes a brief minimize/restore check. Other project simulators/background
 active, and the earlier slow runs also logged gained focus without subsequent focus loss. Therefore
 focus alone is **not** an established cause and these are not controlled before/after benchmarks.
 No worker-priority, App Nap, global interpolation or quality change has been made.
+
+A subsequent four-run cache-disabled/enabled/enabled/disabled comparison uses the same restored
+scene, window/scale/interpolation, copied card, no live input, 2,800-retrace stop and ten-second
+sample procedure. All four exit normally at 1,366,321 guest blocks, PC `0x802d837c`, with exactly
+13,019,891 planned draws and no rejected/failed draws. Both cache-enabled runs log 12,607,611 hits
+and 412,280 misses (96.83% hits). The sample tool's **top-of-stack** table records 895/891 samples
+in `build_draw_plan_into` with caching off versus 682/707 with it on; these are sampled instruction
+locations, not instructions retired or an inclusive-parent subtraction.
+
+Post-startup VI-rate medians are 59.9/59.75/58.9/59.9, with 7/10/9/10 one-second samples below 57.
+Pacing caps both configurations and background load remains uncontrolled. This supports the
+existing cache's intended cost reduction in this scene, but **not** a reliable FPS win, a newly
+implemented optimization, whole-game equivalence or a reason to change player defaults. The next
+discriminator is per-retrace CPU/instruction cost across the remaining graphics translation and
+guest dispatch, using normal-stop/work-count guards and a reproducible workload.
 
 The sample parser now accepts both macOS main-thread labels (`com.apple.main-thread` and
 `: Main Thread`) without counting worker stacks as game-thread work. Three synthetic fixtures

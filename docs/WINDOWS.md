@@ -32,8 +32,10 @@ the cache and shared FPS classifier/worker-counter checks pass at `830bf7d` in
 The pinned runtime's existing interpolation matching/blending/pacing suite also passes natively,
 with the full app link and the other two tests, at `ec6e797` in
 [CI run 36810248709](https://github.com/chrissotraidis/bluewake/actions/runs/36810248709).
-A subsequent monotonic-clock initialization fix adds a fourth native regression; its execution is
-pending separately. These checks do not imply Windows gameplay or audio acceptance.
+The subsequent monotonic-clock initialization fix, its concurrent-clock regression, the other
+three tests and the full app link also pass natively at `74da8ee` in
+[CI run 36810799124](https://github.com/chrissotraidis/bluewake/actions/runs/36810799124).
+These checks do not imply Windows gameplay or audio acceptance.
 
 The fork's later Windows-only code-generator optimizations and experimental 60 Hz simulation are
 not imported here. Local Windows PGO training and full Windows gameplay remain follow-up gates.
