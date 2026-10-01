@@ -1,4 +1,8 @@
 /* Synthetic-only: no disc, preferences, saves or translated game code. */
+#if defined(_WIN32) && !defined(_CRT_SECURE_NO_WARNINGS)
+/* Match the runtime's CRT policy: this test intentionally calls getenv. */
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #ifdef NDEBUG
 #undef NDEBUG
 #endif
@@ -29,9 +33,10 @@ static void yield_thread(void) {
 static char* test_strdup(const char* source) {
     if (fail_copy)
         return NULL;
-    char* copy = malloc(strlen(source) + 1);
+    const size_t bytes = strlen(source) + 1;
+    char* copy = malloc(bytes);
     assert(copy != NULL);
-    strcpy(copy, source);
+    memcpy(copy, source, bytes);
     if (race_mode) {
         __atomic_add_fetch(&copies, 1, __ATOMIC_RELEASE);
         /* Every contender allocates before any may publish its answer. */

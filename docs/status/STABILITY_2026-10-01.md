@@ -26,6 +26,13 @@ speaker output, or reproduce the report on Windows/iOS or a newly rebuilt Better
 No speculative DSP change has been made. The next gate is comparison against an isolated Dolphin
 reference and a rendered/output-device reproduction with the reporter's settings.
 
+Initial Dolphin captures are not accepted as a narrated-intro reference: their replay has not been
+shown to reach the same scene, and late-window RMS correlation is low (0.42-0.45). A fixed-timing
+button movie did not include name-entry Start; replaying the recorded BlueWake pad trace also did
+not yield a verified scene match. Capture processes were stopped after their bounded runs; the
+files are retained privately, not treated as proof of an audio mismatch or fix. Use scene-confirmed
+reference playback before interpreting the comparison.
+
 The game's source prepares `JA_STRM_DEMO_01_01` at opening timer 40 only when the overlap is no
 longer peeking, then calls stream play at state 2. That is a diagnostic lead, not an established
 BlueWake bug. Sources: [opening state machine](https://github.com/zeldaret/tww/blob/main/src/d/d_s_open_sub.cpp),
@@ -45,6 +52,10 @@ an environment change, and allocation-failure retry. Optimized and ThreadSanitiz
 macOS. All 23 registered BlueWake host CTests pass, including this test. The Windows source-only
 workflow also compiles/runs the same test with native clang/MSVC; its result is recorded separately
 after CI completes. No Windows gameplay claim follows from this test.
+The first native CI attempt linked the app but rejected the new standalone test under `-Werror`
+because its CRT deprecation policy did not match the runtime's. The harness now uses the same
+`_CRT_SECURE_NO_WARNINGS` policy and a length-bounded memcpy; native CI is rerun rather than counting
+that attempt as a pass.
 
 ## Gameplay profiling, not an FPS claim
 
