@@ -37,14 +37,19 @@ three tests and the full app link also pass natively at `74da8ee` in
 [CI run 36810799124](https://github.com/chrissotraidis/bluewake/actions/runs/36810799124).
 These checks do not imply Windows gameplay or audio acceptance.
 
-The current source qualification (`3574a0c`, runtime `0568fedd`) builds the native
-Windows host and passes all 58 source-only regressions in
-[CI run 37065036052](https://github.com/chrissotraidis/bluewake/actions/runs/37065036052).
+The current source qualification (`6b64f45`, runtime `0568fedd`, merged in #38)
+builds the native Windows host and passes all 58 runtime regressions plus 24
+builder training/cache checks in
+[CI run 37071417006](https://github.com/chrissotraidis/bluewake/actions/runs/37071417006).
 This includes the new PE/runtime and I8/RGB565 texture-encoding checks, and the
 actual host save-failure fixture. The earlier `3392854` baseline passed 56 tests;
 the newer host adds the Pictobox fix qualified on Mac in the reconciliation ledger.
 This covers app linking and the registered regression suites, not a complete
 player-owned-disc build, Direct3D gameplay, audio or physical controllers.
+
+Remaining native acceptance needs an x86-64 Windows PC with a Direct3D 12 GPU.
+A Windows ARM64 VM running x64 applications can provide separately labelled
+compatibility evidence, but cannot establish native x64 performance parity.
 
 The candidate includes prepaid blocks, fixed CPU/RAM storage, inline floating
 point, gather helpers, direct calls and certified native replacements as explicit

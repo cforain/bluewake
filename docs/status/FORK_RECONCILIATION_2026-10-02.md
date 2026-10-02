@@ -171,7 +171,7 @@ The current candidate's lock and builder profile both select maintained runtime
 Its product code is unchanged from `2218107d`; the follow-up makes the runtime
 save-state test path portable to Windows. Patches through 0139 preserve BlueWake's safety changes, the later donor
 post-texture correction, and PE token/capture readback. The previous fresh
-player build and paused PadMint workspace remain fixed at runtime `18ba3b64`. Existing native
+player build and completed PadMint workspace remain fixed at runtime `18ba3b64`. Existing native
 module/scene evidence below remains tied to its stated `c2905b7a` runtime. The translator remains
 `b8b534591cba8ca7cd43943a655ee6e2591cf5de`. Ordinary modules use ABI 3;
 fixed-CPU modules declare ABI 4; fixed-CPU plus module-owned RAM declares ABI 5.
@@ -1074,18 +1074,20 @@ No issue is closed or externally commented on by this work.
 ## Next actions and retained work
 
 The [current goal loop](../GOAL_LOOP.md#critical-path-and-exit-evidence) defines
-execution order: finish source/candidate identity review, complete the retained
-player-build paths when storage permits, close available Mac gameplay checks,
-qualify native Windows on confirmed hardware, then make the migration decision
-using matched performance and the platform matrix. Do not rerun accepted Mac
+execution order: source consolidation and retained PadMint assembly are complete;
+finish device install/save/reload/upgrade, remaining Mac gameplay checks and native
+Windows qualification, then make the migration decision using matched performance
+and the platform matrix. Do not rerun accepted Mac
 Pictobox or queued camera paths without a relevant change. Native Windows
 Pictobox, physical controls/audio, sustained play and device acceptance remain
 open. Source integration and review can proceed while hardware checks await
 availability; neither source merging nor CI closes those gameplay gates.
 
-The retained PadMint build has resumed at `3392854` after storage recovery,
-with the original 593 objects and four profiles recorded for reuse verification.
-Retain its exact identity and qualify the later maintained candidate separately. The
+The retained PadMint build completed at `3392854`, with all 662 objects and four
+profiles present at its last resume verified byte-identical afterward. There is
+no live compilation to poll or restart. The current compatibility-update candidate
+is signed but not installed. Retain both packages' exact identities and qualify
+device behavior separately. The
 [proposed migration notice](FORK_RECONCILIATION_EVIDENCE_2026-10-02.md#migration-proposal-not-published-to-the-donor)
 remains unposted until migration is accepted. Runtime's maintained integration
 target is `bluewake-next`, not the unrelated default `codex/galaxypad-integration`.
