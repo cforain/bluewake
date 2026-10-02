@@ -66,11 +66,12 @@ unless they address an established migration blocker; track later changes apart.
    source-only progress from `main` and update the private continuation. Summarize
    closed gates and external dependencies rather than counting probes or PRs.
 
-The October 3 instant-text pair `instant-text-ae5ceqfa` completed but never
-opened dialogue: both cases show idle Link and have identical captured frames.
-The enabled case patches message data, which is implementation evidence only.
-Its gameplay result is **inconclusive due to setup**, not a pass or game defect.
-Do not repeat that unchanged route.
+The October 3 Windfall instant-text setup did not open dialogue. A corrected
+fresh-intro state now supplies a discriminating check: at the same retrace, Off
+reveals Aryll's sentence gradually while On shows it complete immediately.
+`instant-text-dialogue-pair-y5_5t7i3` passes with both copied cards/settings and
+the source state unchanged. Keep this bounded first-dialogue result; do not
+repeat the earlier Windfall or item-menu setups. Other options remain open.
 
 The retained PadMint build is running again after storage recovered beyond
 200 GiB. Check its existing live handle and logs; do not launch another writer.

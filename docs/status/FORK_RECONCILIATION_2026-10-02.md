@@ -63,10 +63,17 @@ timestamps changed. The current resume hashes those objects and four profiles,
 and the owned process has a 10-GiB free-space stop guard.
 Final assembly, reuse verification and device qualification remain pending.
 
-The instant-text pair `instant-text-ae5ceqfa` remains inconclusive: both
-2,700-retrace runs exit zero and preserve cards/settings, but never open dialogue;
-all seven off/on captured frames are identical. The enabled message-patch logs
-are implementation evidence only. Establish dialogue before another A/B check.
+The earlier Windfall instant-text setup never opened dialogue and remains
+inconclusive; a later item-menu probe is also not discriminating because item
+text already appears immediately. The corrected fresh-intro setup now closes
+**bounded Mac instant-text acceptance**: `instant-text-dialogue-pair-y5_5t7i3`
+loads the same state at retrace 16,800 in two processes, with only instant text
+changed. At retrace 17,749, Off shows the first character while On shows Aryll's
+complete sentence. Later Off reaches the same complete text. Both processes
+exit zero and preserve the copied card, settings and source state. This covers
+the first dialogue, not every message or every option. Host `9706637` / runtime
+product `2218107d` is unchanged in current main; the selected `0568fedd` runtime
+delta is test-only. Private comparison frames and receipts remain local.
 
 ## Windows player-build follow-up
 
@@ -281,7 +288,7 @@ on #3. All four are now merged into `bluewake-next`; all public checkpoints are 
 | Disc picker / launcher; Apple Silicon Mac | main `561ddbf`, `7a2ac23`, `5eaa981` | Developer host route exists; donor bundled-game packaging is intentionally excluded | Fresh `3392854` personal Mac owned-disc build, signed relocatable package, save/reload and local upgrade pass within the recorded scope; reproducible final-candidate packaging and broader qualification remain open |
 | Camera, right-stick aiming/zoom/collision; desktops | main `887c26d`, windows `9511241` | Latest SDL queue timing integrated with window-scoped filtering; prior BlueWake camera/menu code retained | Integrated; SDL queue regression and bounded real Mac capture/orbit/wheel/release pass; queued pitch and water/wall collision also pass; reliable physical vertical input, controller and other-platform acceptance remain open |
 | Jump, sprint, quick doors, transitions; Apple/Windows | main `22fa284`, `d55ce11`, `2c9f16c`, `df62ae0` | Integrated; Apple touch controls use existing editor, new options remain opt-in | Fresh Mac bounded progression and scheduled-input jump/sprint on/off pass; full options, real controls and other platforms remain open |
-| Fifteen Better Wind Waker options, 16:10; all claimed targets | main `b6f87e0`; DolRecomp `b8b5345` | Integrated; same verified base-source digest; new options require module rebuild, legacy fallback retained | Fresh Mac player module exports all 15 option metadata entries matching the manifest; relevant option gameplay and other platforms remain open. Instant-text off/on route did not open dialogue and is inconclusive |
+| Fifteen Better Wind Waker options, 16:10; all claimed targets | main `b6f87e0`; DolRecomp `b8b5345` | Integrated; same verified base-source digest; new options require module rebuild, legacy fallback retained | Fresh Mac player module exports all 15 option metadata entries matching the manifest; relevant option gameplay and other platforms remain open. Instant text now passes a same-state first-dialogue Off/On comparison on Mac; other options/platforms remain open |
 | Desktop save states and climbing | main `b39bd0d`, windows `3ba8599`, `1510ed1` | Integrated; #12 adds checked/atomic serialization; states experimental, climbing off | Current Mac module F5/F9 and game save/reload pass across processes; climbing and other claimed platforms remain open; no new Apple touch state UI claimed |
 | Controller face layouts/navigation | donor reports #2/#8/#14; existing SDL controls | #12 adds A/B and X/Y swaps, navigation/game-input isolation and virtual-controller checks | Integrated; real Switch Pro/Xbox/8BitDo hot-plug/menu/closing-input checks open; arbitrary remap is separate scope |
 | Prepared-block/global-register module optimizations; Windows | `f319afa`, `8435ec7`, `16fabda`; scripts/windows transformers and cmake/composite helpers | Generic prepaid-block transform and portable strict A/B fixture imported; fixed-CPU preparation from `4b6b268` added separately with a declared module ABI and explicit builder opt-in. Both default off; module-owned MEM1 is integrated separately in #19, native batches are now imported separately | Open; isolate generic transforms from native/decomp work, private generated-code correctness and matched before/after performance |
