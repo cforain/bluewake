@@ -73,9 +73,10 @@ the clean-built `27c02a1` / `0568fedd` app-only shell with that exact module.
 All app payload and module bytes are preserved, with separate embedded app
 and module provenance. Its ZIP/Mach-O checks pass. This manual update candidate
 is not another completed PadMint run or a clean build of current main.
-Signing/install, device run/save/reload, in-place preservation and matched
-performance remain open. The retained clean build and its original package
-remain intact.
+Signing now passes deep/strict verification using the prior working development
+certificate, profile and entitlements. The candidate is not installed. Device
+run/save/reload, in-place preservation and matched performance remain open.
+The retained clean build and its original package remain intact.
 
 The earlier Windfall instant-text setup never opened dialogue and remains
 inconclusive; a later item-menu probe is also not discriminating because item
@@ -102,10 +103,17 @@ cards/settings and the original seed are unchanged.
 
 Private cases: `climbing-route-probe-ctmh3yz4` and
 `climbing-controls-askc5ins`. This accepts plain-wall grab, drain, the Off
-control and exhaustion release on Mac. Ground refill/regrab, hanging drain,
-separately composited HUD appearance, physical controls and other platforms
-remain unverified. The captures show the game render; they do not establish the
-host's stamina-wheel overlay.
+control and exhaustion release on Mac. A further neutral-stick check,
+`climbing-hang-probe-9ypp1ssu`, keeps Link attached to the stone arch: each
+0.10 of stamina takes 90 player frames, versus 36 while climbing, matching
+the intended 40% hanging drain. Exhaustion at frame 1521 releases him at
+frame 1522. The process exits zero and preserves the card/settings and seed.
+The separate `climbing-hud-probe-lm6rqrl1` run also passes: a native-window
+screenshot of the exact current app while Link hangs shows the partly depleted
+green stamina wheel beside him. That process exits zero with copied card,
+settings and source seed unchanged. This establishes the host overlay's visible
+appearance in this scene; the earlier game-only captures could not do so.
+Ground refill/regrab, physical controls and other platforms remain unverified.
 
 ## Windows player-build follow-up
 
