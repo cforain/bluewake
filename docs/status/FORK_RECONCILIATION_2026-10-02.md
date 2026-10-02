@@ -75,6 +75,24 @@ the first dialogue, not every message or every option. Host `9706637` / runtime
 product `2218107d` is unchanged in current main; the selected `0568fedd` runtime
 delta is test-only. Private comparison frames and receipts remain local.
 
+## Additional bounded Mac climbing acceptance
+
+The unchanged current Mac product source now has a plain-wall gameplay check.
+With a copied Windfall save and the same forward-input route, climbing On grabs
+the stone arch wall and enters the game's climb procedure (`0x3F`), draining
+the default 12-second stamina value from 1.00 to 0.68. Climbing Off stays in the
+water at the same wall. With an explicit one-second stamina setting, the same
+wall grab drains to zero, logs exhaustion at player frame 699, releases at
+frame 700 and falls into the water. All three processes exit zero; copied
+cards/settings and the original seed are unchanged.
+
+Private cases: `climbing-route-probe-ctmh3yz4` and
+`climbing-controls-askc5ins`. This accepts plain-wall grab, drain, the Off
+control and exhaustion release on Mac. Ground refill/regrab, hanging drain,
+separately composited HUD appearance, physical controls and other platforms
+remain unverified. The captures show the game render; they do not establish the
+host's stamina-wheel overlay.
+
 ## Windows player-build follow-up
 
 The earlier ledger explicitly left Windows local PGO unimplemented. The source
@@ -289,7 +307,7 @@ on #3. All four are now merged into `bluewake-next`; all public checkpoints are 
 | Camera, right-stick aiming/zoom/collision; desktops | main `887c26d`, windows `9511241` | Latest SDL queue timing integrated with window-scoped filtering; prior BlueWake camera/menu code retained | Integrated; SDL queue regression and bounded real Mac capture/orbit/wheel/release pass; queued pitch and water/wall collision also pass; reliable physical vertical input, controller and other-platform acceptance remain open |
 | Jump, sprint, quick doors, transitions; Apple/Windows | main `22fa284`, `d55ce11`, `2c9f16c`, `df62ae0` | Integrated; Apple touch controls use existing editor, new options remain opt-in | Fresh Mac bounded progression and scheduled-input jump/sprint on/off pass; full options, real controls and other platforms remain open |
 | Fifteen Better Wind Waker options, 16:10; all claimed targets | main `b6f87e0`; DolRecomp `b8b5345` | Integrated; same verified base-source digest; new options require module rebuild, legacy fallback retained | Fresh Mac player module exports all 15 option metadata entries matching the manifest; relevant option gameplay and other platforms remain open. Instant text now passes a same-state first-dialogue Off/On comparison on Mac; other options/platforms remain open |
-| Desktop save states and climbing | main `b39bd0d`, windows `3ba8599`, `1510ed1` | Integrated; #12 adds checked/atomic serialization; states experimental, climbing off | Current Mac module F5/F9 and game save/reload pass across processes; climbing and other claimed platforms remain open; no new Apple touch state UI claimed |
+| Desktop save states and climbing | main `b39bd0d`, windows `3ba8599`, `1510ed1` | Integrated; #12 adds checked/atomic serialization; states experimental, climbing off | Current Mac module F5/F9 and game save/reload pass across processes; plain-wall climbing On/Off, drain and exhaustion release now pass on Mac; remaining climbing behaviors and other platforms remain open; no new Apple touch state UI claimed |
 | Controller face layouts/navigation | donor reports #2/#8/#14; existing SDL controls | #12 adds A/B and X/Y swaps, navigation/game-input isolation and virtual-controller checks | Integrated; real Switch Pro/Xbox/8BitDo hot-plug/menu/closing-input checks open; arbitrary remap is separate scope |
 | Prepared-block/global-register module optimizations; Windows | `f319afa`, `8435ec7`, `16fabda`; scripts/windows transformers and cmake/composite helpers | Generic prepaid-block transform and portable strict A/B fixture imported; fixed-CPU preparation from `4b6b268` added separately with a declared module ABI and explicit builder opt-in. Both default off; module-owned MEM1 is integrated separately in #19, native batches are now imported separately | Open; isolate generic transforms from native/decomp work, private generated-code correctness and matched before/after performance |
 | Inline floating-point interpreter operations; Windows | `4b6b268`; `inline_fp.h`, chunk header preparation | Separate `--inline-fp` opt-in, off by default; no game-native replacements or ABI change | Open; Corrected helper: arm64/Rosetta and native Windows checks pass; 30,000 module cases and 6,000-retrace arm64 boot match. Optimized module/performance/gameplay open |
