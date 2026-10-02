@@ -54,14 +54,28 @@ code and private inputs, and the release content gate pass. Its local SHA-256 is
 The later #38 changes affect Windows only. This is an unsigned local shell,
 not a published build or physical-device result.
 
-The frozen PadMint `3392854` build has resumed with its exact CLI `de13bd7`,
-runtime `18ba3b64`, app-only shell and owned-disc inputs after free space recovered
-to over 200 GiB. The four-job resume preserved all 593 prior objects and added 69; it was
-normally interrupted to switch to eight jobs after the app-only build finished.
-All 662 objects were retained. Profile bytes are unchanged; two profile
-timestamps changed. The current resume hashes those objects and four profiles,
-and the owned process has a 10-GiB free-space stop guard.
-Final assembly, reuse verification and device qualification remain pending.
+The frozen PadMint **`3392854` / runtime `18ba3b64` / CLI `de13bd7`
+full personal iOS build is complete**. It used the player's disc, fresh local
+training and the matching app-only shell. ZIP structure, embedded provenance,
+module/profile hashes and SDK-27 scene-configuration callback checks pass.
+The eight-job resume preserved all 662 retained objects and four profiles
+byte-for-byte and finished with 822 objects; two profile timestamps changed.
+The executable's code/data match the input shell. Re-signing/removing its
+signature changes only `__LINKEDIT.vmsize`; the rest of its bytes match.
+The publication gate correctly rejects the personal IPA for translated game
+code. Nothing was uploaded or released. This closes this frozen build's
+assembly and interruption/resume acceptance, not physical-device acceptance.
+
+The completed module's 941 compiler dependencies include none of the files
+changed by the later runtime repair; the module recipe/source-preparation
+paths are also unchanged. A **local compatibility-update candidate** combines
+the clean-built `27c02a1` / `0568fedd` app-only shell with that exact module.
+All app payload and module bytes are preserved, with separate embedded app
+and module provenance. Its ZIP/Mach-O checks pass. This manual update candidate
+is not another completed PadMint run or a clean build of current main.
+Signing/install, device run/save/reload, in-place preservation and matched
+performance remain open. The retained clean build and its original package
+remain intact.
 
 The earlier Windfall instant-text setup never opened dialogue and remains
 inconclusive; a later item-menu probe is also not discriminating because item
@@ -319,7 +333,7 @@ on #3. All four are now merged into `bluewake-next`; all public checkpoints are 
 | Save durability, failed startup/audio recovery; all claimed targets | Current reports; donor initial mechanisms | #12 adds stronger atomic card/settings/state writes, lock/recovery, crash logs, launch marker, sink audio recovery; retained over donor files | Integrated; real error/restart/output-device/upgrade acceptance open, no power-loss guarantee |
 | Apple identity, touch, saves, settings, tvOS | BlueWake contributions incl. Ian MacFarlane #3, #6, #8 | Preserve existing Apple shell and BlueWake styling; tvOS remains preview with separate hardware/storage gates | Integrated; latest iPhone/iPad candidate acceptance open; TV parity only where claimed, no physical TV evidence |
 | Source build from owned USA rev-0 disc | BlueWake shell builder; donor Windows builder | Clean owned-disc iOS baseline passes at `95adeed`; fresh Mac `3392854` translation/training/O2/package and bounded save/reload/upgrade pass. Current host overlay is separate. Windows local PGO is merged in #38; actual owned-disc training acceptance remains open | Open; fresh output, pinned public sources, validation/translation/mods/train/compile/package, interruption/resume, local personal run/save/reload |
-| PadMint | `padmint.json`, docs/PADMINT_HANDOFF.md; actual selected PadMint adapter/revision must be refreshed | Manifest: experimental iOS on Apple Silicon, macOS planned; no Windows/tvOS adapter claim | Open; earlier `95adeed` assembly passes. At frozen `3392854` / CLI 0.2.9, source generation and training pass, compilation is running again with 662 objects retained at the latest resume. Final assembly/provenance, maintained-candidate qualification, signing/install, device save/reload and matched performance remain open |
+| PadMint | `padmint.json`, docs/PADMINT_HANDOFF.md; actual selected PadMint adapter/revision must be refreshed | Manifest: experimental iOS on Apple Silicon, macOS planned; no Windows/tvOS adapter claim | Open; earlier `95adeed` assembly passes. At frozen `3392854` / CLI 0.2.9, source generation, training, compilation, final assembly/provenance and actual interrupted-build reuse pass. The separate current-shell update candidate passes package checks; signing/install, device save/reload and matched performance remain open |
 | Public app-only candidate and compatibility | BlueWake `--app-only` / `--app` model | Donor game-containing distribution excluded; keep own-disc modules local | Baseline and candidate runtime app-only audits pass. Compatible old-module update vs rebuild and physical acceptance open; no publication |
 | Consecutive non-advancing dispatch bound; desktop modules | Existing BlueWake loop, found during #21 assertion audit | #22 makes the counter per-call and resets after progress; stuck guest still yields on ninth non-advancing successor | Open; Release and ASan/UBSan regression, strict module boot and all 38 native Windows checks pass; optimized/performance/gameplay acceptance open |
 

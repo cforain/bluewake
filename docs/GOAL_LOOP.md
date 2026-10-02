@@ -39,7 +39,7 @@ identified coverage gap. Documentation-only changes do not invalidate binaries.
 | Priority / work package | Next action and completion evidence | Current dependency |
 | --- | --- | --- |
 | 1. Source consolidation and candidate identity | Source landing is complete: BlueWake #37 and runtime #1–#4 are merged with exact tree equality to the tested commits. The live donor heads add documentation and a line-ending cleanup only. New changes start from BlueWake `main` / runtime `bluewake-next`; qualify the final package identity separately. | Closed for the recorded donor source; no hardware prerequisite for collaboration. |
-| 2. Complete the player build paths | Resume the retained `3392854` PadMint workspace without repinning; verify reused objects/profiles, final assembly and provenance. Then qualify the maintained candidate's reproducible app/update path and determine whether changed module inputs require a rebuild. The current `27c02a1` / `0568fedd` app-only shell already builds and passes ZIP/provenance/content checks. Finish signing, device run/save/reload and in-place data-preserving upgrade. Do not count the older workspace as a clean build of the newer candidate. | Resumed at the exact original revisions after free space exceeded 200 GiB, retaining 662 objects and four profiles for comparison; previous profile bytes were verified unchanged. A disk guard stops this build below 10 GiB. Physical-device coordination remains pending. |
+| 2. Complete the player build paths | The retained `3392854` PadMint assembly/provenance and interrupted-build reuse now pass. Qualify the maintained candidate's reproducible app/update path and determine whether changed module inputs require a rebuild. The current `27c02a1` / `0568fedd` app-only shell already builds and passes ZIP/provenance/content checks. Finish signing, device run/save/reload and in-place data-preserving upgrade. Do not count the older workspace as a clean build of the newer candidate. | The build completed with all 662 retained objects and four profiles byte-identical. A separate current-shell/retained-module compatibility candidate passes package checks. Physical-device coordination remains pending. |
 | 3. Finish local Mac gameplay coverage | Use isolated copied saves and the existing identified app for the remaining option/climbing checks. Establish the relevant gameplay action before an off/on comparison. Complete real mouse/controller input, audible intro/scripted music, and a representative 30-minute gameplay route with actual progression, settings, save/reload and scene transitions. | Small functional checks can proceed. Real controller/audio acceptance needs the relevant input/output observation. Sustained performance needs an uncontended host. |
 | 4. Native Windows player acceptance | On confirmed x64 hardware, build the owned-disc O2 module and run native Direct3D. Cover disc import/recovery, fullscreen/restart, settings, controls/haptics, saves/states/upgrade, Pictobox, startup and scripted-music reports. Record app/module/source identities and distinguish reproduction from a claimed fix. | Hardware/controller availability unconfirmed. CI is green but cannot close these checks. Do not restart Parallels or take a shared device. |
 | 5. Performance and migration decision | Use matched original-30-Hz configurations and scenes, compare correctness plus frame-time tails/stalls, and complete sustained play on each claimed target. Review the single platform matrix, tested instructions, issue dispositions and proposed donor notice against those results. | Quiet hardware and completed player candidates required. Historical 22.8% Outset gain is bounded, not final performance parity. No redirect, donor closure or public release. |
@@ -73,10 +73,13 @@ reveals Aryll's sentence gradually while On shows it complete immediately.
 the source state unchanged. Keep this bounded first-dialogue result; do not
 repeat the earlier Windfall or item-menu setups. Other options remain open.
 
-The retained PadMint build is running again after storage recovered beyond
-200 GiB. Check its existing live handle and logs; do not launch another writer.
-Two unrelated simulator tests remain busy, so this is not a quiet performance
-window. Preserve other tasks and all accepted artifacts.
+The retained PadMint build completed successfully; session31108 is terminal.
+Do not restart it. Verification and current-shell update receipts are under
+`build/reconciliation/padmint-resume-zy6khxs9` and
+`build/reconciliation/current-ios-personal-update`. Preserve the frozen build
+and all original packages. Windows VM is suspended; paired iPad availability
+and a Windows test machine have been requested. Shared-device coordination
+and a quiet performance window are still required.
 
 ### Retained state and completion boundary
 
