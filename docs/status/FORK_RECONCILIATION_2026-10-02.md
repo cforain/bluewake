@@ -113,7 +113,14 @@ screenshot of the exact current app while Link hangs shows the partly depleted
 green stamina wheel beside him. That process exits zero with copied card,
 settings and source seed unchanged. This establishes the host overlay's visible
 appearance in this scene; the earlier game-only captures could not do so.
-Ground refill/regrab, physical controls and other platforms remain unverified.
+The return route in `climbing-refill-probe-3jm0nm_9` also restores stamina from
+0.71 to 1.00 after Link reaches ground; the ground capture is reviewed and the
+process exits zero with copied data unchanged. The harness used an unsupported
+short-duration variable, so the actual trace correctly reports the default
+12-second setting. This is normal ground-refill evidence, not recovery after
+exhaustion. Later grab attempts are brief and do not establish a sustained
+second climb. Exhaustion recovery/regrab, physical controls and other platforms
+remain unverified.
 
 ## Windows player-build follow-up
 

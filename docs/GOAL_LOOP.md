@@ -85,8 +85,9 @@ The current iOS compatibility candidate is signed and passes deep/strict
 verification; it has not been installed. Mac climbing now passes the neutral-stick
 hanging check as well: stamina drains at 40% of the climbing rate, then exhaustion
 releases Link. The current app's native-window capture also shows the partly
-depleted green stamina wheel beside him. Preserve these results; ground
-refill/regrab and physical controls remain separate checks.
+depleted green stamina wheel beside him. Normal ground refill is also observed
+on the return route. Preserve these results; recovery/regrab after exhaustion
+and physical controls remain separate checks.
 
 ### Retained state and completion boundary
 
