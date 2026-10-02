@@ -5,7 +5,8 @@
 Make BlueWake the maintained home for the approved consolidation with Elliott.
 The [reconciliation ledger](status/FORK_RECONCILIATION_2026-10-02.md) owns the
 feature inventory, platform matrix and evidence. Source consolidation is merged
-into `main` at `b5433b3`; runtime is merged into `bluewake-next` at `c74d1034`.
+into `main` at `b5433b3`, with Windows local training follow-up #38 merged
+at `97bdfb7`; runtime is merged into `bluewake-next` at `c74d1034`.
 New development can proceed entirely in BlueWake. Finish the
 player paths and gameplay qualification before recommending cutover. Historical
 v56/v55/Route B campaigns below do not control this goal.
@@ -18,7 +19,9 @@ v56/v55/Route B campaigns below do not control this goal.
   attribution. Continue from `main`; do not create another import stack.
 - Current maintained runtime is `0568fedd`; its product code matches
   `2218107d` (the follow-up only fixes a Windows test output path). Translator
-  stays `b8b5345`. Windows host linking and all 58 source regressions pass.
+  stays `b8b5345`. Windows host linking, all 58 source regressions and 24 Windows builder
+  contract/cache checks pass at #38 head `6b64f45`. A full Windows owned-disc
+  build and native gameplay remain unverified.
 - The frozen clean Mac player build is BlueWake `3392854` / runtime `18ba3b64`.
   Its owned-disc translation, local training, O2 compilation, signed relocatable
   package, bounded restart/resume, game save/separate reload, settings, states,
@@ -36,7 +39,7 @@ identified coverage gap. Documentation-only changes do not invalidate binaries.
 | Priority / work package | Next action and completion evidence | Current dependency |
 | --- | --- | --- |
 | 1. Source consolidation and candidate identity | Source landing is complete: BlueWake #37 and runtime #1–#4 are merged with exact tree equality to the tested commits. The live donor heads add documentation and a line-ending cleanup only. New changes start from BlueWake `main` / runtime `bluewake-next`; qualify the final package identity separately. | Closed for the recorded donor source; no hardware prerequisite for collaboration. |
-| 2. Complete the player build paths | Resume the retained `3392854` PadMint workspace without repinning; verify reused objects/profiles, final assembly and provenance. Then qualify the maintained candidate's reproducible app/update path and determine whether changed module inputs require a rebuild. Finish signing, device run/save/reload and in-place data-preserving upgrade. Do not count the older workspace as a clean build of the newer candidate. | Resumed at the exact original revisions after free space exceeded 200 GiB, retaining 593 objects and four profiles for comparison. A disk guard stops this build below 10 GiB. Physical-device coordination remains pending. |
+| 2. Complete the player build paths | Resume the retained `3392854` PadMint workspace without repinning; verify reused objects/profiles, final assembly and provenance. Then qualify the maintained candidate's reproducible app/update path and determine whether changed module inputs require a rebuild. The current `27c02a1` / `0568fedd` app-only shell already builds and passes ZIP/provenance/content checks. Finish signing, device run/save/reload and in-place data-preserving upgrade. Do not count the older workspace as a clean build of the newer candidate. | Resumed at the exact original revisions after free space exceeded 200 GiB, retaining 662 objects and four profiles for comparison; previous profile bytes were verified unchanged. A disk guard stops this build below 10 GiB. Physical-device coordination remains pending. |
 | 3. Finish local Mac gameplay coverage | Use isolated copied saves and the existing identified app for the remaining option/climbing checks. Establish the relevant gameplay action before an off/on comparison. Complete real mouse/controller input, audible intro/scripted music, and a representative 30-minute gameplay route with actual progression, settings, save/reload and scene transitions. | Small functional checks can proceed. Real controller/audio acceptance needs the relevant input/output observation. Sustained performance needs an uncontended host. |
 | 4. Native Windows player acceptance | On confirmed x64 hardware, build the owned-disc O2 module and run native Direct3D. Cover disc import/recovery, fullscreen/restart, settings, controls/haptics, saves/states/upgrade, Pictobox, startup and scripted-music reports. Record app/module/source identities and distinguish reproduction from a claimed fix. | Hardware/controller availability unconfirmed. CI is green but cannot close these checks. Do not restart Parallels or take a shared device. |
 | 5. Performance and migration decision | Use matched original-30-Hz configurations and scenes, compare correctness plus frame-time tails/stalls, and complete sustained play on each claimed target. Review the single platform matrix, tested instructions, issue dispositions and proposed donor notice against those results. | Quiet hardware and completed player candidates required. Historical 22.8% Outset gain is bounded, not final performance parity. No redirect, donor closure or public release. |

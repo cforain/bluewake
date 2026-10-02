@@ -3,7 +3,8 @@
 **In progress.** Chris and Elliott have agreed to consolidate development in
 BlueWake. This migration directly imports Elliott's enhancements, preserves his
 authorship and credits combined implementations with co-author trailers.
-Source integration is merged into `main` through cumulative PR #37; required
+Source integration is merged into `main` through cumulative PR #37 and
+Windows player-builder follow-up #38; required
 performance, player-build and gameplay acceptance remains open. No release,
 fork redirect, issue closure or migration acceptance is authorized. Personal
 modules, generated source, discs, profiles, builds, saves and captures stay local.
@@ -46,10 +47,20 @@ parity. Those remaining explicit goal requirements stay below. No public build,
 donor closure or redirect is included. Do not make Elliott wait for hardware
 qualification before developing on the maintained source.
 
+A clean iOS app-only build of main `27c02a1` with runtime `0568fedd` completed
+all 738 build steps. ZIP integrity, source/package provenance, absence of game
+code and private inputs, and the release content gate pass. Its local SHA-256 is
+`a50286c83799b60fd39dfcd6505ceea3185247625388b59da48bf7bd53d572c0`.
+The later #38 changes affect Windows only. This is an unsigned local shell,
+not a published build or physical-device result.
+
 The frozen PadMint `3392854` build has resumed with its exact CLI `de13bd7`,
 runtime `18ba3b64`, app-only shell and owned-disc inputs after free space recovered
-to over 200 GiB. Its 593 existing objects and four profile files were hashed
-before resuming, and the owned process has a 10-GiB free-space stop guard.
+to over 200 GiB. The four-job resume preserved all 593 prior objects and added 69; it was
+normally interrupted to switch to eight jobs after the app-only build finished.
+All 662 objects were retained. Profile bytes are unchanged; two profile
+timestamps changed. The current resume hashes those objects and four profiles,
+and the owned process has a 10-GiB free-space stop guard.
 Final assembly, reuse verification and device qualification remain pending.
 
 The instant-text pair `instant-text-ae5ceqfa` remains inconclusive: both
@@ -70,12 +81,18 @@ executed-function evidence, and preserves the previous profile on failed trainin
 Final compilation and provenance use the validated local profile. Packaging also
 includes Elliott's `msvcp140_atomic_wait.dll` runtime dependency when available.
 
-Seven synthetic training/packaging checks and 17 existing prepared-source cache
-checks pass locally. These cover instrumentation/link flags, paths with spaces,
+This follow-up is merged as [PR #38](https://github.com/chrissotraidis/bluewake/pull/38)
+at `97bdfb7`; its tree equals tested head `6b64f45`. Elliott is credited as
+co-author. Seven synthetic training/packaging checks and 17 existing
+prepared-source cache checks pass locally and on Windows. These cover instrumentation/link flags, paths with spaces,
 profile rejection/preservation/reuse, source/option invalidation, isolated
-playback setup and runtime-DLL packaging. Native Windows CI and a complete
-owned-disc Windows run remain pending for this follow-up; fixtures do not replace
-that player-build result.
+playback setup and runtime-DLL packaging. Native Windows
+[run 37071417006](https://github.com/chrissotraidis/bluewake/actions/runs/37071417006)
+also compiles/links the application and passes all 58 runtime regressions.
+The first expanded CI run exposed CRLF-only synthetic fixtures; explicitly
+writing LF makes the fixtures match actual translator output. A complete
+owned-disc Windows training/build/gameplay run remains unverified; these checks
+do not replace that result.
 
 ## Fixed baseline and selected dependencies
 
@@ -276,8 +293,8 @@ on #3. All four are now merged into `bluewake-next`; all public checkpoints are 
 | Overload suspension and display-rate interpolation, up to 240 | `f70305c`; runtime `63489547`; UI `4fedbfc` | Runtime and Mac/Windows display settings source integrated in #16; three/seven-step regressions and rate/preference policy pass; 30 Hz logic and interpolation off remain defaults | Open; Off/120/Off/relaunch UI persistence passes on Mac; real display changes, pacing, slow-game workloads, images and matched performance remain open |
 | Save durability, failed startup/audio recovery; all claimed targets | Current reports; donor initial mechanisms | #12 adds stronger atomic card/settings/state writes, lock/recovery, crash logs, launch marker, sink audio recovery; retained over donor files | Integrated; real error/restart/output-device/upgrade acceptance open, no power-loss guarantee |
 | Apple identity, touch, saves, settings, tvOS | BlueWake contributions incl. Ian MacFarlane #3, #6, #8 | Preserve existing Apple shell and BlueWake styling; tvOS remains preview with separate hardware/storage gates | Integrated; latest iPhone/iPad candidate acceptance open; TV parity only where claimed, no physical TV evidence |
-| Source build from owned USA rev-0 disc | BlueWake shell builder; donor Windows builder | Clean owned-disc iOS baseline passes at `95adeed`; fresh Mac `3392854` translation/training/O2/package and bounded save/reload/upgrade pass. Current host overlay is separate. Windows local PGO is now implemented in the follow-up; actual owned-disc training acceptance remains open | Open; fresh output, pinned public sources, validation/translation/mods/train/compile/package, interruption/resume, local personal run/save/reload |
-| PadMint | `padmint.json`, docs/PADMINT_HANDOFF.md; actual selected PadMint adapter/revision must be refreshed | Manifest: experimental iOS on Apple Silicon, macOS planned; no Windows/tvOS adapter claim | Open; earlier `95adeed` assembly passes. At frozen `3392854` / CLI 0.2.9, source generation and training pass, compilation is stopped with 593 objects retained. Final assembly/provenance, maintained-candidate qualification, signing/install, device save/reload and matched performance remain open |
+| Source build from owned USA rev-0 disc | BlueWake shell builder; donor Windows builder | Clean owned-disc iOS baseline passes at `95adeed`; fresh Mac `3392854` translation/training/O2/package and bounded save/reload/upgrade pass. Current host overlay is separate. Windows local PGO is merged in #38; actual owned-disc training acceptance remains open | Open; fresh output, pinned public sources, validation/translation/mods/train/compile/package, interruption/resume, local personal run/save/reload |
+| PadMint | `padmint.json`, docs/PADMINT_HANDOFF.md; actual selected PadMint adapter/revision must be refreshed | Manifest: experimental iOS on Apple Silicon, macOS planned; no Windows/tvOS adapter claim | Open; earlier `95adeed` assembly passes. At frozen `3392854` / CLI 0.2.9, source generation and training pass, compilation is running again with 662 objects retained at the latest resume. Final assembly/provenance, maintained-candidate qualification, signing/install, device save/reload and matched performance remain open |
 | Public app-only candidate and compatibility | BlueWake `--app-only` / `--app` model | Donor game-containing distribution excluded; keep own-disc modules local | Baseline and candidate runtime app-only audits pass. Compatible old-module update vs rebuild and physical acceptance open; no publication |
 | Consecutive non-advancing dispatch bound; desktop modules | Existing BlueWake loop, found during #21 assertion audit | #22 makes the counter per-call and resets after progress; stuck guest still yields on ninth non-advancing successor | Open; Release and ASan/UBSan regression, strict module boot and all 38 native Windows checks pass; optimized/performance/gameplay acceptance open |
 
