@@ -159,6 +159,12 @@ class Builder:
         self.logs.mkdir(parents=True, exist_ok=True)
         log = self.logs / f"{name}.log"
         environment = dict(env or self.env or os.environ)
+        command = list(command)
+        if command[:1] == ["cmake"] and "-S" in command and platform.machine().lower() == "arm64":
+            # Windows on ARM builds the x64 game: say so, or CMake takes this ARM64 PC's
+            # processor for the target and libraries pick ARM code for the x64 compiler
+            # (libpng: "NEON intrinsics not available").
+            command += ["-DCMAKE_SYSTEM_NAME=Windows", "-DCMAKE_SYSTEM_PROCESSOR=AMD64"]
         if ninja:
             environment["NINJA_STATUS"] = "[%f/%t] "
         start = time.monotonic()
@@ -274,12 +280,6 @@ class Builder:
             if sep and key:
                 env[key] = value
         env["PATH"] = str(install / "VC/Tools/Llvm/x64/bin") + os.pathsep + env.get("PATH", "")
-        if env.get("PROCESSOR_ARCHITECTURE", "").upper() == "ARM64":
-            # Windows on ARM: CMake takes the target processor from this variable, so the
-            # x64 build would otherwise pick ARM code (libpng's NEON: "NEON intrinsics not
-            # available") for the x64 compiler.
-            env["PROCESSOR_ARCHITECTURE"] = "AMD64"
-            env.pop("PROCESSOR_ARCHITEW6432", None)
         print(f"Visual Studio: {install}")
         return env
 

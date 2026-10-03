@@ -194,6 +194,21 @@ class ProgressEventTest(unittest.TestCase):
             self.assertTrue(all(e["schema_version"] == 1 for e in events))
             self.assertEqual(events[-1]["exit_code"], 4)
 
+    def test_cmake_on_windows_on_arm_targets_x64(self):
+        # An ARM64 Windows PC builds the x64 game; CMake must not take the PC's processor.
+        with tempfile.TemporaryDirectory(prefix="windows arm ") as folder:
+            builder = bw.Builder(SimpleNamespace(out=Path(folder), jobs=1, **dict.fromkeys(OPTIONS, False)))
+            for machine, expected in (("ARM64", True), ("AMD64", False)):
+                seen = []
+                def popen(argv, **kw):
+                    seen.append(argv)
+                    return SimpleNamespace(wait=lambda timeout=None: 0)
+                with patch.object(bw.platform, "machine", return_value=machine),                         patch.object(bw.subprocess, "Popen", popen):
+                    builder.run("configure", ["cmake", "-S", "src", "-B", "out"], env={})
+                    builder.run("compile", ["cmake", "--build", "out"], env={})
+                self.assertEqual("-DCMAKE_SYSTEM_PROCESSOR=AMD64" in seen[0], expected, machine)
+                self.assertNotIn("-DCMAKE_SYSTEM_PROCESSOR=AMD64", seen[1])
+
 
 if __name__ == "__main__":
     unittest.main()
