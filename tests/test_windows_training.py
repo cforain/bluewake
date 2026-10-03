@@ -48,6 +48,7 @@ class TrainingTest(unittest.TestCase):
         self.assertIn("-DCOMPOSITE_OPTIMIZATION_LEVEL=0", config)
         self.assertIn("-DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld -fprofile-instr-generate", config)
         self.b.profile = self.root / "profile with spaces.profdata"
+        self.b.cold_sources = lambda: None  # tiering reads real counts; not what this checks
         self.b.compile_module()
         config = calls[2][1]
         self.assertIn("-DCOMPOSITE_OPTIMIZATION_LEVEL=2", config)
