@@ -77,7 +77,7 @@
         }
       ],
       "output": "ipa",
-      "check": "bluewake-ipa"
+      "check": "ipa"
     },
     "macos": {
       "hosts": {
