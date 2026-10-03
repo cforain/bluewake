@@ -713,6 +713,19 @@ static u64 perf_now_us(clockid_t clock) {
 /* For the iOS shell's FPS display and per-second log: the guest retrace count
    (60 a second is full speed) and the emulation thread's CPU time. Read from
    the same thread that advances them. */
+// Windows builds prepare Wind Waker Recomp's optimization set by default
+// (scripts/windows/build.py), so there an optimization the module offers is used
+// unless its variable is 0; elsewhere it stays an opt-in (1). A module prepared
+// without one does not offer it and keeps the translated path.
+static bool host_feature_wanted(const char* name) {
+    const char* value = getenv(name);
+#if defined(_WIN32)
+    if (value == NULL || value[0] == '\0')
+        return true;
+#endif
+    return value != NULL && strcmp(value, "1") == 0;
+}
+
 unsigned long long bluewake_host_retrace_count(void) { return g_host_retrace_count; }
 // Pipelines Aurora has created so far, for fps_watch's per-second shader-compile count.
 unsigned bluewake_host_pipelines_created(void) { return aurora_get_stats()->createdPipelines; }
@@ -7633,7 +7646,8 @@ int main(int argc, char** argv) {
         const char* direct_env = getenv("BLUEWAKE_DIRECT_CALLS");
         const char* direct_trace = getenv("BLUEWAKE_DIRECT_CALL_TRACE");
         g_direct_call_trace = direct_trace != NULL && strcmp(direct_trace, "1") == 0;
-        const bool want = direct_env != NULL && strcmp(direct_env, "1") == 0 &&
+        (void)direct_env;
+        const bool want = host_feature_wanted("BLUEWAKE_DIRECT_CALLS") &&
                           getenv("BLUEWAKE_PER_BLOCK_TURNS") == NULL &&
                           dlsym(lib, "bluewake_set_edge_service") != NULL;
         const bool enabled = direct_calls != NULL && direct_calls(
@@ -7649,40 +7663,35 @@ int main(int argc, char** argv) {
     {
         typedef int (*NativeJ3DFn)(bool, bool (*)(void*, const CPUState*, u32), void*);
         NativeJ3DFn native_j3d = (NativeJ3DFn)dlsym(lib, "bluewake_composite_native_j3d_v1");
-        const char* native_env = getenv("BLUEWAKE_NATIVE_J3D");
-        const bool want = native_env != NULL && strcmp(native_env, "1") == 0;
+        const bool want = host_feature_wanted("BLUEWAKE_NATIVE_J3D");
         const bool enabled = native_j3d != NULL && native_j3d(want, host_can_skip_observation, NULL);
         fprintf(stderr, "[chassis] native-j3d=%s\n", enabled ? "on" : "off");
     }
     {
         typedef int (*NativeGameMathFn)(bool, bool (*)(void*, const CPUState*, u32), void*);
         NativeGameMathFn native_game_math = (NativeGameMathFn)dlsym(lib, "bluewake_composite_native_game_math_v1");
-        const char* native_env = getenv("BLUEWAKE_NATIVE_GAME_MATH");
-        const bool want = native_env != NULL && strcmp(native_env, "1") == 0;
+        const bool want = host_feature_wanted("BLUEWAKE_NATIVE_GAME_MATH");
         const bool enabled = native_game_math != NULL && native_game_math(want, host_can_skip_observation, NULL);
         fprintf(stderr, "[chassis] native-game-math=%s\n", enabled ? "on" : "off");
     }
     {
         typedef int (*NativeSkinFn)(bool, bool (*)(void*, const CPUState*, u32), void*);
         NativeSkinFn native_skin = (NativeSkinFn)dlsym(lib, "bluewake_composite_native_skin_v1");
-        const char* native_env = getenv("BLUEWAKE_NATIVE_SKIN");
-        const bool want = native_env != NULL && strcmp(native_env, "1") == 0;
+        const bool want = host_feature_wanted("BLUEWAKE_NATIVE_SKIN");
         const bool enabled = native_skin != NULL && native_skin(want, host_can_skip_observation, NULL);
         fprintf(stderr, "[chassis] native-skin=%s\n", enabled ? "on" : "off");
     }
     {
         typedef int (*NativeVecFn)(bool, bool (*)(void*, const CPUState*, u32), void*);
         NativeVecFn native_vec = (NativeVecFn)dlsym(lib, "bluewake_composite_native_vec_v1");
-        const char* native_env = getenv("BLUEWAKE_NATIVE_VEC");
-        const bool want = native_env != NULL && strcmp(native_env, "1") == 0;
+        const bool want = host_feature_wanted("BLUEWAKE_NATIVE_VEC");
         const bool enabled = native_vec != NULL && native_vec(want, host_can_skip_observation, NULL);
         fprintf(stderr, "[chassis] native-vec=%s\n", enabled ? "on" : "off");
     }
     {
         typedef int (*NativeMathFn)(bool, bool (*)(void*, const CPUState*, u32), void*);
         NativeMathFn native_math = (NativeMathFn)dlsym(lib, "bluewake_composite_native_math_v1");
-        const char* native_env = getenv("BLUEWAKE_NATIVE_MATH");
-        const bool want = native_env != NULL && strcmp(native_env, "1") == 0;
+        const bool want = host_feature_wanted("BLUEWAKE_NATIVE_MATH");
         const bool enabled = native_math != NULL && native_math(want, host_can_skip_observation, NULL);
         fprintf(stderr, "[chassis] native-math=%s\n", enabled ? "on" : "off");
     }
@@ -7693,7 +7702,7 @@ int main(int argc, char** argv) {
     const BluewakeGatherMode gather_mode = bluewake_gather_pipe_configure(
         set_gather_word, set_gather_bytes, dol_platform_gx_write,
         dol_platform_gx_write_bytes_available() ? dol_platform_gx_write_bytes : NULL,
-        getenv("BLUEWAKE_GATHER_PIPE"), getenv("BLUEWAKE_GATHER_PIPE_BATCH"),
+        host_feature_wanted("BLUEWAKE_GATHER_PIPE") ? "1" : "0", getenv("BLUEWAKE_GATHER_PIPE_BATCH"),
         g_gx_fifo_trace || BLUEWAKE_EDGE_CENSUS);
     fprintf(stderr, "[chassis] gather-pipe=%s\n",
             gather_mode == BLUEWAKE_GATHER_BATCH ? "batch" :

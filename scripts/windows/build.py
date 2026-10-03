@@ -1134,6 +1134,15 @@ Saves, settings and session logs: %APPDATA%\\BlueWake
 """
 
 
+# The optimizations Wind Waker Recomp's Windows builder always prepares (fixed
+# CPU and RAM storage, inline floating point and gather-pipe writes, inlined
+# register saves, prepaid blocks, direct calls and the certified natives). The
+# app enables each one only where the module it loads was prepared with it.
+WINDOWS_DEFAULT_OPTIMIZATIONS = ("fixed_cpu", "fixed_mem1", "inline_fp", "gather_pipe", "inline_gpr",
+                                 "prepared_blocks", "direct_calls", "native_j3d", "native_vec", "native_math",
+                                 "native_skin", "native_game_math")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("disc", type=Path, help="your GZLE01 revision 0 disc image (.iso, .gcm, .rvz, ...)")
@@ -1178,6 +1187,9 @@ def main():
     parser.add_argument("--native-math", action="store_true",
                         help="prepare certified native matrix functions; off by default, compatible host opt-in required")
     parser.add_argument("--console", action="store_true", help="build BlueWake.exe as a console program")
+    parser.add_argument("--conservative", action="store_true",
+                        help="build the plain translation, without the optimizations prepared by default "
+                             "(the individual --... options then add them one at a time)")
     parser.add_argument("--no-app-pgo", action="store_true",
                         help="build the app without its committed optimization profile and ThinLTO")
     parser.add_argument("--accept-new-composite", action="store_true",
@@ -1186,6 +1198,11 @@ def main():
                         help="stop after generating the source: checks tools, disc and translation in minutes")
     parser.add_argument("--check-only", action="store_true", help="check tools, dependencies and the disc only")
     args = parser.parse_args()
+    # Wind Waker Recomp's Windows builds prepare all of these every time; BlueWake
+    # matches that by default. --conservative builds the plain translation.
+    if not args.conservative:
+        for name in WINDOWS_DEFAULT_OPTIMIZATIONS:
+            setattr(args, name, True)
     if args.inline_gpr and not args.direct_calls:
         parser.error("--inline-gpr requires --direct-calls")
     if args.fixed_mem1 and not args.fixed_cpu:
