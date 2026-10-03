@@ -79,7 +79,9 @@
         "{jobs}"
       ],
       "modes": {
-        "full": [],
+        "full": [
+          "--no-train"
+        ],
         "source-only": [
           "--source-only"
         ]
