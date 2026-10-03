@@ -1,6 +1,6 @@
 # Wind Waker Recomp is moving to BlueWake
 
-Updated October 3, 2026.
+Updated October 3, 2026 (evening).
 
 Elliott Tate's [Wind-Waker-Recomp](https://github.com/elliotttate/Wind-Waker-Recomp) and BlueWake are
 combining into one project. BlueWake is where development continues. This page tracks what is done
@@ -12,7 +12,7 @@ New bug reports, feature requests and pull requests should go to
 ## Done
 
 - Elliott's Windows port, rendering, camera, controls, settings, save state and performance
-  work through his v0.4.0 release is merged into BlueWake `main` ([#37](https://github.com/chrissotraidis/bluewake/pull/37),
+  work through his v0.4.0 release, and his later Windows branch, is merged into BlueWake `main` ([#37](https://github.com/chrissotraidis/bluewake/pull/37),
   [#38](https://github.com/chrissotraidis/bluewake/pull/38)). His commits keep his authorship, and
   jointly adapted changes credit him as co-author.
 - The shared runtime lives in [chrissotraidis/RecompCore](https://github.com/chrissotraidis/RecompCore),
@@ -31,8 +31,8 @@ New bug reports, feature requests and pull requests should go to
 | Item | Owner | Status |
 | --- | --- | --- |
 | Windows build and gameplay on real hardware | Elliott | Not started. Building and playing from your own disc on Windows has not been tested yet. [Checklist](WINDOWS_ACCEPTANCE.md). |
-| Elliott's work after v0.4.0 | BlueWake, reviewed by Elliott | His newer Windows branch adds a crash fix for loading save states, steadier Smooth Motion pacing, faster shader compilation, lighter graphics work and wider speed training. Not yet in BlueWake; importing it is part of the [stability plan](status/STABILITY_PLAN_2026-10-03.md). |
-| Random slowdowns | BlueWake | Player logs point to CPU-side graphics work in heavy scenes, Smooth Motion pausing after short hitches, and shader compilation. Plan, findings and log triage: [stability plan](status/STABILITY_PLAN_2026-10-03.md). |
+| Elliott's work after v0.4.0 | BlueWake | Merged in [#40](https://github.com/chrissotraidis/bluewake/pull/40) and [#43](https://github.com/chrissotraidis/bluewake/pull/43): the save-state crash fix, steadier Smooth Motion pacing, shaders compiled on several threads and before play, the ubershader (Windows), lighter graphics work, Smooth Motion for cloth and colours, the wider speed training and the faster tiered build. Still to wire in: his second set of nine native functions, which BlueWake routes through its opt-in native options. |
+| Random slowdowns | BlueWake | Logs now name the cause of each slow second and show when Smooth Motion is paused. On the iPad, single hitches no longer turn Smooth Motion off (before: off 35 of 40 seconds in the test). Next: measure the reported scenes. [Stability plan](status/STABILITY_PLAN_2026-10-03.md). |
 | Elliott's recent uncommitted fixes | Elliott | To arrive as BlueWake pull requests. |
 | Move open issues | Elliott | 26 open issues in Wind-Waker-Recomp (October 3) are to be recreated here with links back. GitHub cannot transfer issues between repositories owned by different accounts. The [stability plan](status/STABILITY_PLAN_2026-10-03.md) sorts them by whether they affect BlueWake. |
 | Move open pull requests | Elliott and authors | Wind-Waker-Recomp [#17](https://github.com/elliotttate/Wind-Waker-Recomp/pull/17) (center window on startup), [#15](https://github.com/elliotttate/Wind-Waker-Recomp/pull/15) (FPS overlay position) and [#13](https://github.com/elliotttate/Wind-Waker-Recomp/pull/13) (Android port) are to be reopened against BlueWake, keeping their authors. The Android port is new platform work, reviewed separately. |
