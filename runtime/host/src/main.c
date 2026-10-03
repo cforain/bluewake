@@ -863,8 +863,15 @@ static void perf_note_retrace(u64 retrace) {
     if (gap > 50000u) hitches++;
     const u64 wall = now - window_start;
     if (wall < 1000000u) return;
-    const u64 elapsed = wall > window_held ? wall - window_held : 1u;
     const u64 cpu_now = perf_now_us(CLOCK_THREAD_CPUTIME_ID);
+    if (window_held * 2u > wall) {
+        // Mostly held (a menu, the background): the window says nothing about speed.
+        window_start = now;
+        window_cpu = cpu_now;
+        window_retraces = worst = hitches = window_held = 0;
+        return;
+    }
+    const u64 elapsed = wall - window_held;
     fprintf(stderr,
             "[perf] retrace=%llu rate=%.1f worst_ms=%.1f hitches=%llu busy=%.0f%%\n",
             (unsigned long long)retrace, (double)window_retraces * 1e6 / (double)elapsed,
