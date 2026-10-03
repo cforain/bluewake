@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -175,6 +176,23 @@ class TrainingTest(unittest.TestCase):
             self.b.args.fixed_mem1 = True;self.assertNotEqual(original, self.b.training_fingerprint());self.b.args.fixed_mem1 = False
             host.write_text("new");self.assertNotEqual(original, self.b.training_fingerprint());host.write_text("old")
             self.b.git = lambda *a: "runtime2";self.assertNotEqual(original, self.b.training_fingerprint())
+
+
+class ProgressEventTest(unittest.TestCase):
+    def test_each_command_reports_start_and_end_for_padmint(self):
+        # PadMint reads OUT/logs/progress.jsonl, as the Mac builder's run_stage.py writes it.
+        with tempfile.TemporaryDirectory(prefix="windows progress ") as folder:
+            args = SimpleNamespace(out=Path(folder), jobs=1, **dict.fromkeys(OPTIONS, False))
+            builder = bw.Builder(args)
+            builder.run("probe", [sys.executable, "-c", "print('[3/7] compiling')"], env=dict(os.environ))
+            with self.assertRaises(bw.BuildError):
+                builder.run("broken", [sys.executable, "-c", "raise SystemExit(4)"], env=dict(os.environ))
+            events = [json.loads(line) for line in (Path(folder) / "logs/progress.jsonl").read_text().splitlines()]
+            self.assertEqual([(e["event"], e["stage"]) for e in events],
+                             [("stage_started", "probe"), ("stage_completed", "probe"),
+                              ("stage_started", "broken"), ("stage_failed", "broken")])
+            self.assertTrue(all(e["schema_version"] == 1 for e in events))
+            self.assertEqual(events[-1]["exit_code"], 4)
 
 
 if __name__ == "__main__":

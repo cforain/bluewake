@@ -146,6 +146,14 @@ class Builder:
         self.profile = None
 
     # --- helpers -------------------------------------------------------
+    def report(self, name, event, started, **fields):
+        """One progress event in OUT/logs/progress.jsonl, as scripts/builder/run_stage.py
+        writes on the Mac: PadMint shows them while the build runs."""
+        record = dict(schema_version=1, event=event, stage=name,
+                      elapsed_seconds=round(time.monotonic() - started), **fields)
+        with open(self.logs / "progress.jsonl", "a") as stream:
+            stream.write(json.dumps(record) + "\n")
+
     def run(self, name, command, *, env=None, cwd=None, ninja=False):
         """Run a command with a complete log and progress every 15 seconds."""
         self.logs.mkdir(parents=True, exist_ok=True)
@@ -155,6 +163,7 @@ class Builder:
             environment["NINJA_STATUS"] = "[%f/%t] "
         start = time.monotonic()
         print(f"  {name} (log: {log})", flush=True)
+        self.report(name, "stage_started", start)
         with open(log, "wb") as stream:
             process = subprocess.Popen([str(c) for c in command], cwd=cwd or ROOT, stdout=stream,
                                        stderr=subprocess.STDOUT, env=environment)
@@ -178,14 +187,19 @@ class Builder:
                             units = re.findall(rb"\[(\d+/\d+)\]", recent.read())
                         if units:
                             detail = f", {units[-1].decode()}"
+                            done, total = units[-1].decode().split("/")
+                            self.report(name, "stage_progress", start, completed=int(done), total=int(total),
+                                        unit="build steps")
                     except OSError:
                         pass
                     elapsed = int(now - start)
                     print(f"  {name}: {elapsed // 60}m {elapsed % 60:02d}s{detail}", flush=True)
         if status != 0:
+            self.report(name, "stage_failed", start, exit_code=status)
             tail = log.read_bytes()[-4000:].decode(errors="replace")
             print(tail, file=sys.stderr)
             die(f"{name} failed (exit {status}); full log {log}")
+        self.report(name, "stage_completed", start)
         elapsed = int(time.monotonic() - start)
         if elapsed >= 60:
             print(f"  {name}: done in {elapsed // 60}m {elapsed % 60:02d}s", flush=True)
