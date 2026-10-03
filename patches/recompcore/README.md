@@ -56,3 +56,8 @@ Patch 0140 changes session logging only: GX batches between 20 and 50 ms are sum
 into one `[gx-slow-sum]` line every ten seconds, and batches of 50 ms or more keep
 their own `[gx-slow]` line. A player's 104-minute Windows log had 33,712 of the old
 lines. Evidence is in [the stability plan](../../docs/status/STABILITY_PLAN_2026-10-03.md).
+
+Patch 0141 is Elliott Tate's slow-game detector for Smooth Motion (his RecompCore
+`0bb1fef`, Wind-Waker-Recomp patch 0122), with his authorship: the median of the last
+60 frame gaps, gaps of 150 ms or more left out, two slow medians in a row. A single hitch no
+longer drops the in-between frames.

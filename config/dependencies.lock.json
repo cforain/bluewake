@@ -112,8 +112,8 @@
     {
       "id": "recompcore",
       "url": "https://github.com/chrissotraidis/RecompCore",
-      "sha": "d55ee014e4670337aa05fefa3209e444cc7a63f0",
-      "branch": "codex/bluewake-stability-logging",
+      "sha": "3f16e469c3b9a99a2f4a57c65190136258b89fb5",
+      "branch": "codex/bluewake-steady-pacing",
       "license": "GPL-3.0",
       "role": "static-recomp runtime (GXRuntime), vendored Aurora renderer at GXRuntime/graphics/aurora, Dolphin DSP donor sources, and the DolRecomp translator as the DolRecomp submodule; the product source for the iPad build (scripts/ios/build_device.sh)",
       "verified": "2026-10-03",
@@ -549,7 +549,8 @@
           "patches/recompcore/0137-preserve-post-texture-save-state.patch",
           "patches/recompcore/0138-pe-token-and-pictobox-readback.patch",
           "patches/recompcore/0139-portable-runtime-save-fixture.patch",
-          "patches/recompcore/0140-sum-routine-slow-gx-batches.patch"
+          "patches/recompcore/0140-sum-routine-slow-gx-batches.patch",
+          "patches/recompcore/0141-game-speed-from-median-frame-gaps.patch"
         ],
         "evidence": "Prior runtime candidate passes Mac/Windows regressions. Extended MEM1 aliases, endian reads/writes, reservations, journals, MEM2 and MMIO pass plain/global ASan/UBSan fixtures; full candidate and gameplay/performance acceptance remain pending.",
         "later_donor_dual_texture": {
@@ -565,7 +566,12 @@
         },
         "stability_logging": {
           "runtime": "d55ee014e4670337aa05fefa3209e444cc7a63f0",
-          "evidence": "Session-log change only: routine slow GX batches summed every ten seconds, batches of 50 ms or more logged singly. Mac Metal runs on a copied save show the summary and single hitch lines; Windows CI pending."
+          "evidence": "Session-log change only: routine slow GX batches summed every ten seconds, batches of 50 ms or more logged singly. Mac Metal runs on a copied save show the summary and single hitch lines; Windows CI passes."
+        },
+        "steady_pacing": {
+          "runtime": "3f16e469c3b9a99a2f4a57c65190136258b89fb5",
+          "donor": "elliotttate RecompCore 0bb1fefbf82a06e6640e08b9b1782637afea7650 (Wind-Waker-Recomp patch 0122), authorship retained",
+          "evidence": "Donor: six 120-200 ms game-thread holds no longer drop in-between frames on Windows; two E-cores still drop. BlueWake: frame_interp and fps_watch regressions pass on Mac; Mac before/after with BLUEWAKE_TEST_STALL awaits an uncontended machine."
         }
       }
     },

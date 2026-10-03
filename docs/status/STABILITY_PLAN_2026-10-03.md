@@ -131,3 +131,18 @@ With the pipeline seed removed, Metal compiled 125 pipelines without a single sl
 Mac a missing pipeline skips its draw rather than holding the game, so `shader-compile` is
 covered by the regression and needs the Windows run to be seen live. The copied save and seed were
 unchanged after each run.
+
+Merged October 3: BlueWake [#39](https://github.com/chrissotraidis/bluewake/pull/39) and RecompCore
+[#5](https://github.com/chrissotraidis/RecompCore/pull/5); Windows CI builds the host and passes the
+regressions, including the new causes.
+
+**Step 3 started: the first two imports.** Elliott's slow-game detector (his `0bb1fef`, patch
+0141 here) and his Dawn device lock (`31401e5`) apply cleanly with his authorship, and the
+Smooth Motion and FPS regressions pass on the Mac. A before/after comparison was not possible:
+the machine reached a load average of about 208 on 16 cores (a VM and other builds), and four
+alternating lock-off/lock-on runs of the same host were all slow (13 to 69 slow seconds a
+minute, against 2 to 3 earlier). Under that load the device lock runs looked worse, but the
+lock-off runs were slow too, so nothing is concluded. The detector is up as a draft; the device
+lock waits on its own branch (`codex/bluewake-device-lock-candidate`) because on Metal the GX
+worker may take Dawn's lock more often than on D3D12, and that must be measured on a quiet Mac
+or the iPad before it lands.
