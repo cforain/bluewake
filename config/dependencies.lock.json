@@ -112,8 +112,8 @@
     {
       "id": "recompcore",
       "url": "https://github.com/chrissotraidis/RecompCore",
-      "sha": "6c853a1d908af3d6f700510377729f5d4c2c8c31",
-      "branch": "codex/bluewake-donor-batch",
+      "sha": "e280c788dadabd18b085af0085f1558fc9ff5ecc",
+      "branch": "codex/bluewake-honest-fps",
       "license": "GPL-3.0",
       "role": "static-recomp runtime (GXRuntime), vendored Aurora renderer at GXRuntime/graphics/aurora, Dolphin DSP donor sources, and the DolRecomp translator as the DolRecomp submodule; the product source for the iPad build (scripts/ios/build_device.sh)",
       "verified": "2026-10-03",
@@ -559,7 +559,8 @@
           "patches/recompcore/0147-smooth-motion-colours-blended-in-the-in-between-frames.patch",
           "patches/recompcore/0148-gxcore-a-draw-s-vertex-constants-kept-when-its-transform-sta.patch",
           "patches/recompcore/0149-gxcore-an-ubershader-draws-what-is-still-compiling.patch",
-          "patches/recompcore/0150-gxcore-the-ubershader-on-by-default-on-d3d12-only-where-it-w.patch"
+          "patches/recompcore/0150-gxcore-the-ubershader-on-by-default-on-d3d12-only-where-it-w.patch",
+          "patches/recompcore/0151-fps-overlay-says-when-smooth-motion-is-paused.patch"
         ],
         "evidence": "Prior runtime candidate passes Mac/Windows regressions. Extended MEM1 aliases, endian reads/writes, reservations, journals, MEM2 and MMIO pass plain/global ASan/UBSan fixtures; full candidate and gameplay/performance acceptance remain pending.",
         "later_donor_dual_texture": {

@@ -22,6 +22,13 @@ struct Settings {
     bool mouse_invert_y = false;
     bool controller_swap_ab = false, controller_swap_xy = false;
     bool pad_invert_x = false, pad_invert_y = false;
+    // The fast right-stick camera (mouse_camera.h): the stick turns the view
+    // and aims directly, instead of the game's eased C-stick camera.
+    bool stick_camera = true;
+    int stick_speed = 360;      // degrees a second at full tilt
+    int stick_aim_speed = 180;  // the same when aiming
+    bool climb = false;         // climb any wall on a stamina wheel (climb.h)
+    int climb_stamina = 12;     // seconds of climbing on a full wheel
     // Elliott Tate's controller feedback: off, classic, enhanced.
     int haptics = 2;
     int haptics_strength = 80;
@@ -62,6 +69,11 @@ inline void bw_settings_keep_edits(Settings& saved, const Settings& before, cons
     if (before.mouse_invert_y != session.mouse_invert_y) saved.mouse_invert_y = session.mouse_invert_y;
     if (before.pad_invert_x != session.pad_invert_x) saved.pad_invert_x = session.pad_invert_x;
     if (before.pad_invert_y != session.pad_invert_y) saved.pad_invert_y = session.pad_invert_y;
+    if (before.stick_camera != session.stick_camera) saved.stick_camera = session.stick_camera;
+    if (before.stick_speed != session.stick_speed) saved.stick_speed = session.stick_speed;
+    if (before.stick_aim_speed != session.stick_aim_speed) saved.stick_aim_speed = session.stick_aim_speed;
+    if (before.climb != session.climb) saved.climb = session.climb;
+    if (before.climb_stamina != session.climb_stamina) saved.climb_stamina = session.climb_stamina;
     if (before.haptics != session.haptics) saved.haptics = session.haptics;
     if (before.haptics_strength != session.haptics_strength) saved.haptics_strength = session.haptics_strength;
     if (before.haptics_triggers != session.haptics_triggers) saved.haptics_triggers = session.haptics_triggers;
