@@ -56,7 +56,12 @@ class TrainingTest(unittest.TestCase):
         self.assertNotIn("-fprofile-instr-generate", " ".join(config))
 
     def test_app_configure_has_no_training_linker_flags(self):
-        self.b.run = lambda name, argv, **kw: self.assertIn("-DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld", argv)
+        # The app may use its own committed profile and ThinLTO, never the module's training flags.
+        def check(name, argv, **kw):
+            shared = [a for a in argv if str(a).startswith("-DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld")]
+            self.assertEqual(len(shared), 1)
+            self.assertNotIn("-fprofile-instr-generate", " ".join(map(str, argv)))
+        self.b.run = check
         self.b.configure_app()
 
     def test_playback_isolated_and_requires_control_and_profile(self):
@@ -86,7 +91,7 @@ class TrainingTest(unittest.TestCase):
         self.b.build_app = lambda: Path("fixture.exe")
         self.b.compile_composite = lambda *a: Path("fixture.dll")
         observed = []
-        def playback(exe, module, run, mods):
+        def playback(exe, module, run, mods, **kw):
             observed.append(mods);run.mkdir();p = run / "fixture.profraw";p.write_bytes(b"raw");return [p]
         self.b.training_run = playback
         def merge(name, argv, **kwargs):
