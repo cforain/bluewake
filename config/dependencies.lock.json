@@ -112,8 +112,8 @@
     {
       "id": "recompcore",
       "url": "https://github.com/chrissotraidis/RecompCore",
-      "sha": "886e138c5ee301712950731397ec53b086b3f430",
-      "branch": "codex/bluewake-held-time",
+      "sha": "6c853a1d908af3d6f700510377729f5d4c2c8c31",
+      "branch": "codex/bluewake-donor-batch",
       "license": "GPL-3.0",
       "role": "static-recomp runtime (GXRuntime), vendored Aurora renderer at GXRuntime/graphics/aurora, Dolphin DSP donor sources, and the DolRecomp translator as the DolRecomp submodule; the product source for the iPad build (scripts/ios/build_device.sh)",
       "verified": "2026-10-03",
@@ -551,7 +551,15 @@
           "patches/recompcore/0139-portable-runtime-save-fixture.patch",
           "patches/recompcore/0140-sum-routine-slow-gx-batches.patch",
           "patches/recompcore/0141-game-speed-from-median-frame-gaps.patch",
-          "patches/recompcore/0142-count-host-held-time.patch"
+          "patches/recompcore/0142-count-host-held-time.patch",
+          "patches/recompcore/0143-aurora-dawn-s-device-lock-so-its-threads-do-not-race-a-crash.patch",
+          "patches/recompcore/0144-aurora-pipelines-compiled-on-several-threads-and-the-draws-s.patch",
+          "patches/recompcore/0145-gxcore-a-draw-s-attribute-arrays-found-once-and-fixed-point-.patch",
+          "patches/recompcore/0146-smooth-motion-a-cloth-s-strips-blended-vertex-by-vertex.patch",
+          "patches/recompcore/0147-smooth-motion-colours-blended-in-the-in-between-frames.patch",
+          "patches/recompcore/0148-gxcore-a-draw-s-vertex-constants-kept-when-its-transform-sta.patch",
+          "patches/recompcore/0149-gxcore-an-ubershader-draws-what-is-still-compiling.patch",
+          "patches/recompcore/0150-gxcore-the-ubershader-on-by-default-on-d3d12-only-where-it-w.patch"
         ],
         "evidence": "Prior runtime candidate passes Mac/Windows regressions. Extended MEM1 aliases, endian reads/writes, reservations, journals, MEM2 and MMIO pass plain/global ASan/UBSan fixtures; full candidate and gameplay/performance acceptance remain pending.",
         "later_donor_dual_texture": {
@@ -577,6 +585,11 @@
         "held_time": {
           "runtime": "886e138c5ee301712950731397ec53b086b3f430",
           "evidence": "Logging only: DolAuroraFrameTiming.held_us and dol_aurora_held_us() count menu/background holds so [perf] and [fps-dip] leave them out. fps_watch and frame_interp regressions pass on Mac."
+        },
+        "donor_post_040": {
+          "runtime": "6c853a1d908af3d6f700510377729f5d4c2c8c31",
+          "donor": "elliotttate RecompCore 31401e5, 3be805f, 0e631be, bb63c90, 50763a2, 6d0ed15, db2c87f, 44e5c2c (Wind-Waker-Recomp patches 0121, 0123-0129), authorship retained",
+          "evidence": "Device lock, multi-threaded pipelines, GX worker reductions, Smooth Motion cloth and colours, ubershader (on by default for D3D12 only). Mac host builds; frame_interp and fps_watch regressions pass; donor measurements not repeated."
         }
       }
     },
