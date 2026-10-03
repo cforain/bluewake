@@ -27,8 +27,11 @@ That fixed revision carries [CC0-1.0](https://github.com/zeldaret/tww/blob/09de0
 The import retains its attribution. Certification scripts record hashes and
 modify only a player's locally generated source; translated bodies stay private.
 
-BlueWake is released as source only. Every app is built by its player, on their own Mac, from their own
-disc ([docs/BUILD_YOUR_OWN.md](docs/BUILD_YOUR_OWN.md)).
+BlueWake's source is published here. Mac, iPhone and iPad apps are built by each player from their own
+disc ([docs/BUILD_YOUR_OWN.md](docs/BUILD_YOUR_OWN.md)). One exception: the maintainers publish a
+ready-made Windows build on the Releases page, as Wind Waker Recomp did. It contains code translated
+from the game but no disc image, game assets, saves or console keys, and it needs the player's own
+disc. It will be taken down if the rights holder asks.
 
 ## Game content
 
@@ -37,6 +40,7 @@ Legend of Zelda: The Wind Waker*, its code, data, characters, names and imagery,
 trademark remain the property of their owners. BlueWake cannot grant rights it does not hold.
 
 This repository contains no disc image, playable game assets, saves or code translated from the game.
+The Windows release build described above is the only published file that contains translated code.
 Documentation screenshots depict the game and are not covered by BlueWake's software license. You
 supply your own legally obtained USA `GZLE01` revision 0 disc, and the app or IPA you build from it
 contains code translated from that disc (`Frameworks/gGZLE01_recomp.dylib`). That build is for your

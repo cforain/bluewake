@@ -1,6 +1,6 @@
 # Wind Waker Recomp is moving to BlueWake
 
-Updated October 3, 2026 (evening).
+Updated October 4, 2026.
 
 Elliott's [Wind-Waker-Recomp](https://github.com/elliotttate/Wind-Waker-Recomp) and BlueWake are
 combining into one project. BlueWake is where development continues. This page tracks what is done
@@ -24,6 +24,10 @@ New bug reports, feature requests and pull requests should go to
 - On a physical iPad, an in-place update kept existing saves and settings, and an actual game save
   reloaded correctly.
 - On Windows, the app builds and passes its automated tests in GitHub Actions.
+- October 4: BlueWake's [latest release](https://github.com/chrissotraidis/bluewake/releases/latest)
+  carries the Windows build from Wind Waker Recomp 0.4.0, with the same program files. It leaves out
+  `nodtool.exe`, which contains Wii encryption keys, so a Dolphin `.rvz` must be converted to ISO first.
+  Elliott's source archive for that build is attached beside it.
 - Original 30 FPS game logic stays the default. Smooth Motion and experimental 60 FPS logic are off
   unless a player turns them on.
 
@@ -41,15 +45,15 @@ New bug reports, feature requests and pull requests should go to
 | Longer gameplay session | BlueWake | About 30 minutes of real play with a controller and audio on Mac and iPad, to catch problems short checks miss. |
 | Matched performance comparison | BlueWake and Elliott | Compare BlueWake with Wind-Waker-Recomp in the same scenes, settings and hardware. |
 | Pictobox freeze | BlueWake | [#13](https://github.com/chrissotraidis/bluewake/issues/13). A fix passes on Mac. Windows confirmation is part of the checklist above. |
-| Point Wind-Waker-Recomp to BlueWake | Chris and Elliott | Done October 3: its README and issue form point here ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)). The repository description needs Elliott (admin). Archiving the fork waits until issues are moved, Windows is checked and both agree. |
+| Point Wind-Waker-Recomp to BlueWake | Chris and Elliott | Done October 3: its README and issue form point here ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)). The repository description needs Elliott (admin). Elliott to take down his release downloads now that BlueWake has the Windows build. Archiving the fork waits until issues are moved, Windows is checked and both agree. |
 
 Linux, other game regions and an Android port are later work. They are not part of this move.
 
 ## Releases
 
-Public app releases are paused until the maintainer's release audit is clear. Build BlueWake yourself
-from your own disc. Builds that contain game code are personal and must never be uploaded or shared;
-only source and app-only packages without game code may be published.
+Windows: a ready-made build is on the Releases page and needs your own disc image. Mac, iPhone and
+iPad: build BlueWake yourself from your own disc with PadMint. Builds you make yourself contain game code
+and must never be uploaded or shared.
 
 ## How to help
 
