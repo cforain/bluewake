@@ -17,7 +17,9 @@ patterns = ('*.iso', '*.gcm', '*.rvz', '*.nfs', '*.wbfs', '*.wia', '*.ciso',
             '*.p12', '*.mobileprovision', '*.provisionprofile', 'dolphin_*.bin',
             '*.ipa', '*.profraw', '*.profdata', '*.dylib', '*.dll', '*.exe')
 reviewed_profiles = {'scripts/builder/profiles/bluewake/composite-rt.profdata',
-                     'scripts/builder/profiles/bluewake/host.profdata'}
+                     'scripts/builder/profiles/bluewake/host.profdata',
+                     # The Windows app's own code (host, Aurora, libraries); no game functions.
+                     'windows/pgo/app.profdata'}
 forbidden_dirs = ('ref/', 'local-research/', 'generated/', 'build/', 'route_b/', 'patches/tww/')
 bad = [p for p in paths if p and (p.startswith(forbidden_dirs) or
        (p not in reviewed_profiles and

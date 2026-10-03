@@ -50,6 +50,7 @@
 #include "gxruntime/aurora_backend.h"
 #include "save_state.h"
 #include "desktop_theme.h"
+#include <aurora/gfx.h>
 
 extern "C" {
 // runtime/host/src/mouse_camera.h and game_options.h, declared here with plain
@@ -60,6 +61,8 @@ bool bluewake_mouse_camera_captured(void);
 void bluewake_haptics_reload(void);
 void bluewake_haptics_block(bool blocked);
 const char* bluewake_game_options_describe(uint32_t position, const char** title, bool* default_on, bool* on);
+// climb.h: the stamina wheel's state for the HUD.
+bool bluewake_climb_hud(float* fraction, bool* exhausted, float* x, float* y, float* aspect, float* alpha);
 }
 
 // Aurora's frame counters (lib/gfx/common.hpp, linked in statically), for the
@@ -121,6 +124,7 @@ void load_file() {
         else if (k == "smooth_motion_fps") d.smooth_steps = v == "display" ? -1 : std::atoi(v.c_str()) >= 120 ? 3 : 1;
         else if (k == "show_fps") d.show_fps = parse_bool(v);
         else if (k == "pause_unfocused") d.pause_unfocused = parse_bool(v);
+        else if (k == "compile_shaders_first") d.shaders_first = parse_bool(v);
         else if (k == "mouse_camera") d.mouse_camera = parse_bool(v);
         else if (k == "mouse_sensitivity") d.mouse_sensitivity = std::clamp(std::atof(v.c_str()), 0.1, 10.0);
         else if (k == "mouse_invert_y") d.mouse_invert_y = parse_bool(v);
@@ -158,6 +162,7 @@ void save_file() {
         std::fprintf(f, "window_position=%d,%d\n", d.window_x, d.window_y);
     std::fprintf(f, "render_scale=%d\nanisotropy=%d\nsmooth_motion=%d\nshow_fps=%d\npause_unfocused=%d\n",
                  d.render_scale, d.anisotropy, d.smooth_motion, d.show_fps, d.pause_unfocused);
+    std::fprintf(f, "compile_shaders_first=%d\n", d.shaders_first);
     std::fprintf(f, "smooth_motion_fps=%s\n", d.smooth_steps == -1 ? "display" : d.smooth_steps >= 3 ? "120" : "60");
     std::fprintf(f, "mouse_camera=%d\nmouse_sensitivity=%.2f\nmouse_invert_y=%d\n", d.mouse_camera,
                  d.mouse_sensitivity, d.mouse_invert_y);
@@ -480,6 +485,12 @@ void tab_display(SDL_Window* w) {
         aurora_set_pause_on_focus_lost(d.pause_unfocused);
         changed();
     }
+    if (ImGui::Checkbox("Compile shaders before playing", &d.shaders_first))
+        changed();
+    restart_note(d.shaders_first != g_launched.shaders_first);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("At start, wait until the shaders from earlier play are ready, so nothing is missing "
+                          "from the picture the first time it is drawn. Otherwise they are made while you play.");
     ImGui::Spacing();
     if (ImGui::Button("Reset the window"))
         reset_window(w);
@@ -781,6 +792,100 @@ void draw_menu(SDL_Window* w) {
         set_menu_open(false);
 }
 
+// The climbing stamina wheel (climb.c), beside Link in the game's picture: the
+// picture is the window's middle at the game's shape, or the whole window when
+// "keep the picture's shape" is off (DOL_AURORA_ASPECT_FIT=0, set at launch).
+void draw_climb_wheel() {
+    float fraction, x, y, aspect, alpha;
+    bool exhausted;
+    if (!bluewake_climb_hud(&fraction, &exhausted, &x, &y, &aspect, &alpha))
+        return;
+    static const bool fit = [] {
+        const char* v = std::getenv("DOL_AURORA_ASPECT_FIT");
+        return v == nullptr || v[0] != '0';
+    }();
+    const ImVec2 display = ImGui::GetIO().DisplaySize;
+    float w = display.x, h = display.y, x0 = 0.f, y0 = 0.f;
+    if (h <= 0.f || aspect <= 0.f)
+        return;
+    if (fit && w / h > aspect) {
+        w = h * aspect;
+        x0 = (display.x - w) * 0.5f;
+    } else if (fit) {
+        h = w / aspect;
+        y0 = (display.y - h) * 0.5f;
+    }
+    const float radius = h * 0.03f, thick = radius * 0.45f, pi = 3.14159265f;
+    const ImVec2 center(x0 + x * w + radius * 2.4f, y0 + y * h - radius * 0.6f);
+    ImDrawList* list = ImGui::GetForegroundDrawList();
+    const auto a = [alpha](float v) { return static_cast<int>(v * alpha); };
+    list->PathArcTo(center, radius, 0.f, 2.f * pi, 48);
+    list->PathStroke(IM_COL32(20, 30, 20, a(150.f)), 0, thick + 3.f);
+    if (fraction <= 0.002f)
+        return;
+    ImU32 color = IM_COL32(120, 230, 90, a(245.f));  // green
+    if (exhausted) {
+        const float pulse = 0.65f + 0.35f * std::sin(static_cast<float>(ImGui::GetTime()) * 8.f);
+        color = IM_COL32(235, 70, 50, a(245.f * pulse));  // refilling after running out
+    } else if (fraction < 0.25f) {
+        color = IM_COL32(245, 190, 60, a(245.f));  // nearly out
+    }
+    list->PathArcTo(center, radius, -0.5f * pi, -0.5f * pi + 2.f * pi * fraction, 48);
+    list->PathStroke(color, 0, thick);
+}
+
+// Compile shaders before playing: the game is held at its first present
+// (dol_aurora_set_hold, the picture redrawn under this overlay) until every
+// pipeline the cache queued at start is compiled, or two minutes have passed.
+// They compile on several threads (Aurora's pipeline cache), and while the
+// game is held it asks for nothing new. Otherwise they compile while the game
+// runs, and a draw whose pipeline is not ready yet is left out of its frame.
+bool g_shader_wait;
+Uint64 g_shader_wait_since;
+uint32_t g_shader_wait_first;
+
+bool shader_wait_hold(void*) {
+    if (!g_shader_wait)
+        return false;
+    const AuroraStats* stats = aurora_get_stats();
+    const uint32_t left = stats != nullptr ? stats->queuedPipelines : 0u;
+    if (g_shader_wait_since == 0) {
+        g_shader_wait_since = SDL_GetTicks();
+        g_shader_wait_first = left;
+    }
+    const Uint64 waited = SDL_GetTicks() - g_shader_wait_since;
+    if (left == 0u || waited > 120000) {
+        g_shader_wait = false;
+        std::fprintf(stderr, "[windows] shaders compiled before play: %u in %.1f s%s\n", g_shader_wait_first,
+                     waited / 1000.0, left != 0u ? " (stopped waiting)" : "");
+        return false;
+    }
+    return true;
+}
+
+void draw_shader_wait(SDL_Window* w) {
+    if (!g_shader_wait)
+        return;
+    const AuroraStats* stats = aurora_get_stats();
+    const uint32_t left = stats != nullptr ? stats->queuedPipelines : 0u;
+    ImGuiIO& io = ImGui::GetIO();
+    const float scale = ui_scale(w);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always,
+                            ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowBgAlpha(0.75f);
+    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
+                                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
+                                   ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    if (ImGui::Begin("##bluewake-shaders", nullptr, flags)) {
+        ImGui::SetWindowFontScale(scale / g_font_scale);
+        ImGui::Text("Compiling shaders: %u to go", left);
+        if (g_shader_wait_first > 0u)
+            ImGui::ProgressBar(1.f - static_cast<float>(left) / static_cast<float>(g_shader_wait_first),
+                               ImVec2(260.f * scale, 0.f), "");
+    }
+    ImGui::End();
+}
+
 // For the first few seconds, where the settings and fullscreen are.
 void draw_hint(SDL_Window* w) {
     const Uint64 shown = SDL_GetTicks() - g_first_frame_at;
@@ -865,6 +970,8 @@ void frame(void*) {
         ImGui::TextWrapped("Safe mode: HLE audio, mods off. Previous settings were kept in a backup when possible.");
         ImGui::End();
     }
+    draw_climb_wheel();
+    draw_shader_wait(w);
     if (g_menu_open)
         draw_menu(w);
     draw_hint(w);
@@ -1041,6 +1148,13 @@ extern "C" void bw_settings_apply_launch(void) {
 
 extern "C" void bw_settings_install(void) {
     dol_aurora_set_overlay(frame, nullptr);
+    // BLUEWAKE_SHADERS_FIRST=0/1 overrides the setting (testing).
+    const char* first = std::getenv("BLUEWAKE_SHADERS_FIRST");
+    g_shader_wait = first != nullptr && first[0] != '\0' ? first[0] != '0' : g_saved.shaders_first;
+    if (g_shader_wait) {
+        dol_aurora_set_hold(shader_wait_hold, nullptr);
+        dol_aurora_set_hold_redraw(true);
+    }
     std::atexit(save_at_exit);
 }
 
