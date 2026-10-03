@@ -58,7 +58,7 @@
             "Ninja",
             "-DCMAKE_TOOLCHAIN_FILE={ios_toolchain}",
             "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_C_FLAGS=-mcpu=apple-a13",
+            "-DCMAKE_C_FLAGS=-mcpu=apple-a13 -fno-slp-vectorize -mllvm -large-interval-freq-threshold=10",
             "-DCOMPOSITE_OPTIMIZATION_LEVEL=2",
             "-DCOMPOSITE_DIR={work}/composite-src",
             "-DGXRUNTIME_DIR={repo}/ref/recompcore/GXRuntime",
