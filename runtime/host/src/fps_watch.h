@@ -7,7 +7,9 @@
 // FPS mode: the frames shown, the game's speed, how many game frames
 // got an in-between frame, the draws rejected or unmatched, the stage, room and
 // Link's position, and why (the game below full speed, frames not
-// interpolated, or presents late). BLUEWAKE_FPS_WATCH=0 turns it off.
+// interpolated, or presents late). Smooth Motion counts as a dip whenever fewer than
+// 90% of game frames were interpolated, even if repeated frames keep the shown count
+// at the target. BLUEWAKE_FPS_WATCH=0 turns it off.
 
 void bluewake_fps_watch_attach(CPUState* cpu);
 // Once per retrace.

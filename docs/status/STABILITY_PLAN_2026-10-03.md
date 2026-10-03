@@ -178,3 +178,14 @@ Two logging gaps showed up in these runs:
 - **Time held for a menu or the background counts as a frame.** One player session's `[perf]` line
   reported a 2,213-second worst frame after the app sat in the background. Next: have the runtime
   count held time so `[perf]` and `[fps-dip]` leave it out.
+
+Merged October 3: BlueWake [#40](https://github.com/chrissotraidis/bluewake/pull/40) and RecompCore
+[#6](https://github.com/chrissotraidis/RecompCore/pull/6).
+
+**Both gaps fixed (runtime `886e138`, patch 0142).** `[fps-dip]` now counts a second whenever
+Smooth Motion is on and fewer than 90% of game frames were interpolated, and names the case where
+none were `cause=smooth-motion-paused`. The runtime counts held time; `[perf]` leaves it out of
+gaps, hitches and the rate, and `[fps-dip]` skips a second with more than 0.1 s held. On the
+overloaded Mac, a one-minute run logged 17 such seconds (for example "shown=60.9
+interpolated=0/30") that the old rule could not see, beside 24 seconds of real GX-worker overload.
+The on-screen FPS counter still counts repeated frames; showing the real state there is next.

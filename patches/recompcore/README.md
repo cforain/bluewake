@@ -61,3 +61,7 @@ Patch 0141 is Elliott Tate's slow-game detector for Smooth Motion (his RecompCor
 `0bb1fef`, Wind-Waker-Recomp patch 0122), with his authorship: the median of the last
 60 frame gaps, gaps of 150 ms or more left out, two slow medians in a row. A single hitch no
 longer drops the in-between frames.
+
+Patch 0142 counts the time the host holds the guest (a menu, the app in the background):
+`DolAuroraFrameTiming.held_us` and `dol_aurora_held_us()`, so per-second diagnostics
+leave it out. Logging only.
