@@ -417,6 +417,22 @@ int main(void) {
 
     APP_PROFILE = ROOT / "windows/pgo/app.profdata"
 
+    def app_profile_readable(self):
+        """Whether this clang reads the committed app profile. It was recorded with a newer
+        clang than some Visual Studio releases include (Visual Studio 2022 17.14 has clang 19,
+        which stops at "unsupported instrumentation profile format version"): then the app
+        is built without it, a little slower, rather than not at all."""
+        if not hasattr(self, "_app_profile_readable"):
+            profdata = Path(self.clang).with_name("llvm-profdata.exe")
+            readable = profdata.is_file() and subprocess.run(
+                [str(profdata), "show", str(self.APP_PROFILE)], env=self.env,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+            if not readable:
+                print(f"note: {self.clang_version.split(' (')[0]} cannot read the app's optimization profile "
+                      "(it was made with a newer clang); building the app without it")
+            self._app_profile_readable = readable
+        return self._app_profile_readable
+
     def configure_app(self, build=None, instrument=False):
         """The app's build, by default build/windows/app. With the committed
         profile of the app's own code (windows/pgo/app.profdata,
@@ -429,7 +445,8 @@ int main(void) {
         profile, link = "", ""
         if instrument:
             profile = link = "-fprofile-instr-generate"
-        elif self.APP_PROFILE.exists() and not getattr(self.args, "no_app_pgo", False):
+        elif self.APP_PROFILE.exists() and not getattr(self.args, "no_app_pgo", False) \
+                and self.app_profile_readable():
             # Functions changed since the profile was recorded are compiled
             # without counts (the warnings say so; they are expected).
             profile = (f"-fprofile-instr-use={self.APP_PROFILE.as_posix()} -Wno-profile-instr-unprofiled "

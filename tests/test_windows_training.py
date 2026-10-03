@@ -30,6 +30,7 @@ class TrainingTest(unittest.TestCase):
                           DOL_AURORA_FRAME_INTERP="1", LLVM_PROFILE_FILE="player.profraw")
         self.b.mods = True
         self.b.clang_version = "clang version fixture"
+        self.b.clang = str(self.root / "clang.exe")
         self.b.llvm_profdata = "llvm-profdata"
         self.b.iso = self.root / "owned-disc.iso"
         self.b.logs.mkdir()
@@ -64,6 +65,22 @@ class TrainingTest(unittest.TestCase):
             self.assertNotIn("-fprofile-instr-generate", " ".join(map(str, argv)))
         self.b.run = check
         self.b.configure_app()
+
+    def test_app_profile_only_when_this_clang_reads_it(self):
+        # Visual Studio 2022 17.14's clang 19 cannot read a profile recorded with a newer clang;
+        # the app is then built without it rather than the configure failing.
+        (self.root / "llvm-profdata.exe").write_bytes(b"fixture")
+        for code, used in ((0, True), (1, False)):
+            with self.subTest(code=code):
+                if hasattr(self.b, "_app_profile_readable"):
+                    del self.b._app_profile_readable
+                calls = []
+                self.b.run = lambda name, argv, **kw: calls.append([str(a) for a in argv])
+                with patch.object(bw.subprocess, "run", return_value=SimpleNamespace(returncode=code)):
+                    self.b.configure_app()
+                flags = next(x for x in calls[0] if x.startswith("-DCMAKE_C_FLAGS="))
+                self.assertEqual("-fprofile-instr-use=" in flags, used)
+                self.assertEqual("-flto=thin" in " ".join(calls[0]), used)
 
     def test_playback_isolated_and_requires_control_and_profile(self):
         for marker, profile, succeeds in [(False, True, False), (True, False, False), (True, True, True)]:
