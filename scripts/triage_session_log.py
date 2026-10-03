@@ -22,7 +22,9 @@ BENIGN = re.compile(r"\[panic\] vcall-after|Device lost: Device was destroyed")
 PACE = re.compile(r"in-between frames (\d+) -> (\d+)")
 CAUSES = {"gx-worker": "GX worker (GPU command conversion on the CPU)", "game-thread": "game thread",
           "shader-compile": "shader compile", "gpu-present": "GPU or presentation",
-          "render-worker": "render worker", "interp-helper": "Smooth Motion helper", "unclear": "unclear"}
+          "render-worker": "render worker", "interp-helper": "Smooth Motion helper",
+          "smooth-motion-paused": "Smooth Motion paused after a slowdown (counter still shows 60)",
+          "unclear": "unclear"}
 
 
 def field(text, name, cast=float):

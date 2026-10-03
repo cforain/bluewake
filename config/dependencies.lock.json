@@ -112,8 +112,8 @@
     {
       "id": "recompcore",
       "url": "https://github.com/chrissotraidis/RecompCore",
-      "sha": "3f16e469c3b9a99a2f4a57c65190136258b89fb5",
-      "branch": "codex/bluewake-steady-pacing",
+      "sha": "886e138c5ee301712950731397ec53b086b3f430",
+      "branch": "codex/bluewake-held-time",
       "license": "GPL-3.0",
       "role": "static-recomp runtime (GXRuntime), vendored Aurora renderer at GXRuntime/graphics/aurora, Dolphin DSP donor sources, and the DolRecomp translator as the DolRecomp submodule; the product source for the iPad build (scripts/ios/build_device.sh)",
       "verified": "2026-10-03",
@@ -550,7 +550,8 @@
           "patches/recompcore/0138-pe-token-and-pictobox-readback.patch",
           "patches/recompcore/0139-portable-runtime-save-fixture.patch",
           "patches/recompcore/0140-sum-routine-slow-gx-batches.patch",
-          "patches/recompcore/0141-game-speed-from-median-frame-gaps.patch"
+          "patches/recompcore/0141-game-speed-from-median-frame-gaps.patch",
+          "patches/recompcore/0142-count-host-held-time.patch"
         ],
         "evidence": "Prior runtime candidate passes Mac/Windows regressions. Extended MEM1 aliases, endian reads/writes, reservations, journals, MEM2 and MMIO pass plain/global ASan/UBSan fixtures; full candidate and gameplay/performance acceptance remain pending.",
         "later_donor_dual_texture": {
@@ -572,6 +573,10 @@
           "runtime": "3f16e469c3b9a99a2f4a57c65190136258b89fb5",
           "donor": "elliotttate RecompCore 0bb1fefbf82a06e6640e08b9b1782637afea7650 (Wind-Waker-Recomp patch 0122), authorship retained",
           "evidence": "Donor: six 120-200 ms game-thread holds no longer drop in-between frames on Windows; two E-cores still drop. BlueWake: frame_interp and fps_watch regressions pass on Mac; Physical M2 iPad, copied save, Smooth Motion 60, scripted 150/64/150/80 ms holds, two runs each: before (main 55bd3e7) dropped the in-between frames 4 times a run and was without them 35 of 40 s after the first hold; after (2d6a590) 0 drops, 0 of 40 s. Original saves/settings byte-identical after restoring the prior build."
+        },
+        "held_time": {
+          "runtime": "886e138c5ee301712950731397ec53b086b3f430",
+          "evidence": "Logging only: DolAuroraFrameTiming.held_us and dol_aurora_held_us() count menu/background holds so [perf] and [fps-dip] leave them out. fps_watch and frame_interp regressions pass on Mac."
         }
       }
     },

@@ -842,20 +842,28 @@ unsigned long long bluewake_host_thread_cpu_us(void) {
 }
 
 static void perf_note_retrace(u64 retrace) {
-    static u64 window_start, window_cpu, last, window_retraces, worst, hitches;
+    static u64 window_start, window_cpu, last, window_retraces, worst, hitches, last_held, window_held;
     const u64 now = perf_now_us(CLOCK_MONOTONIC);
+    // Time the host held the guest (a menu, the app in the background) is not
+    // a frame: leave it out of the gap, the hitches and the rate.
+    const u64 held = dol_aurora_held_us();
+    const u64 held_gap = held - last_held;
+    last_held = held;
     if (window_start == 0) {
         window_start = last = now;
         window_cpu = perf_now_us(CLOCK_THREAD_CPUTIME_ID);
         return;
     }
-    const u64 gap = now - last;
+    const u64 raw_gap = now - last;
+    const u64 gap = raw_gap > held_gap ? raw_gap - held_gap : 0;
+    window_held += held_gap;
     last = now;
     window_retraces++;
     if (gap > worst) worst = gap;
     if (gap > 50000u) hitches++;
-    const u64 elapsed = now - window_start;
-    if (elapsed < 1000000u) return;
+    const u64 wall = now - window_start;
+    if (wall < 1000000u) return;
+    const u64 elapsed = wall > window_held ? wall - window_held : 1u;
     const u64 cpu_now = perf_now_us(CLOCK_THREAD_CPUTIME_ID);
     fprintf(stderr,
             "[perf] retrace=%llu rate=%.1f worst_ms=%.1f hitches=%llu busy=%.0f%%\n",
@@ -864,7 +872,7 @@ static void perf_note_retrace(u64 retrace) {
             100.0 * (double)(cpu_now - window_cpu) / (double)elapsed);
     window_start = now;
     window_cpu = cpu_now;
-    window_retraces = worst = hitches = 0;
+    window_retraces = worst = hitches = window_held = 0;
 }
 // What the host credited each turn, summarised at exit. See cycle_domain.c.
 static u64 g_credit_budget_sum;

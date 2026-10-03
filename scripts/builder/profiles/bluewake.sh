@@ -34,10 +34,10 @@ PROFILE_HOST_PGO=scripts/builder/profiles/bluewake/host.profdata
 
 # RecompCore: chrissotraidis/RecompCore candidate branch codex/bluewake-mem1-alias-parity, which is
 # elliotttate/RecompCore's windows-release 9618e9d (chrissotraidis 2d60636 plus
-# patches/recompcore/0098-0113) plus BlueWake stability patches 0114-0130, reconciliation patches 0131-0139, logging patch 0140 and pacing patch 0141. DolRecomp: elliotttate's copy of
+# patches/recompcore/0098-0113) plus BlueWake stability patches 0114-0130, reconciliation patches 0131-0139, logging patches 0140 and 0142, and pacing patch 0141. DolRecomp: elliotttate's copy of
 # chrissotraidis 5c91d6e plus patches/dolrecomp/0019.
 RECOMPCORE_URL=https://github.com/chrissotraidis/RecompCore.git
-RECOMPCORE_SHA=3f16e469c3b9a99a2f4a57c65190136258b89fb5
+RECOMPCORE_SHA=886e138c5ee301712950731397ec53b086b3f430
 DOLRECOMP_SHA=b8b534591cba8ca7cd43943a655ee6e2591cf5de
 DAWN_URL=https://github.com/encounter/dawn/releases/download/v20260618.032059/dawn-ios-arm64.tar.gz
 DAWN_SHA256=ada0bafc173152d80eba7c3b2f9609a71185d5809cbd5dd3251b91a0803a7ae2

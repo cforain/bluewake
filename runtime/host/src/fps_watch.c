@@ -50,11 +50,15 @@ double bluewake_fps_watch_cpu_percent(unsigned long long current,
 const char* bluewake_fps_watch_reason(double shown, double speed, bool smooth,
                                     int steps, unsigned long long frames,
                                     unsigned long long interpolated) {
-    if (shown >= target_fps(smooth, steps) * 0.95)
+    // Smooth Motion on but most game frames shown without an in-between frame:
+    // each is presented twice, so the shown count stays at the target while the
+    // picture moves at 30. Counted even when shown looks fine.
+    const bool uninterpolated = smooth && frames > 0u && (double)interpolated / (double)frames < 0.9;
+    if (shown >= target_fps(smooth, steps) * 0.95 && !uninterpolated)
         return NULL;
     if (speed < 0.97)
         return "game below full speed";
-    if (smooth && frames > 0u && (double)interpolated / (double)frames < 0.9)
+    if (uninterpolated)
         return "frames not interpolated";
     return "presents late";
 }
@@ -87,9 +91,10 @@ static unsigned g_last_pipelines;
 
 // The session's slow seconds, summed for [perf-summary]: every ten minutes and at
 // exit, by cause and by place, so a long log says where it was slow in one line.
-enum { kCauses = 7, kPlaces = 12 };
-static const char* const kCauseNames[kCauses] = {"gx-worker",     "game-thread",   "shader-compile", "gpu-present",
-                                                 "render-worker", "interp-helper", "unclear"};
+enum { kCauses = 8, kPlaces = 12 };
+static const char* const kCauseNames[kCauses] = {"gx-worker",     "game-thread",   "shader-compile",
+                                                 "gpu-present",   "render-worker", "interp-helper",
+                                                 "smooth-motion-paused", "unclear"};
 static unsigned long long g_cause_seconds[kCauses];
 static struct {
     char stage[9];
@@ -288,7 +293,9 @@ void bluewake_fps_watch_retrace(void) {
     // Not a second with a scene change's fast-forward in it (the game ran
     // faster than real time), nor the title and file screens (no Link).
     const u32 link = mem_read32(g_cpu, kPlayerPointer);
-    const bool skip = bluewake_fast_load_fast_forward() || now.shown == g_last.shown || speed > 1.05 ||
+    // ... nor one in which the host held the guest (a menu, the background).
+    const bool held = now.held_us - g_last.held_us > 100000ull;
+    const bool skip = bluewake_fast_load_fast_forward() || now.shown == g_last.shown || speed > 1.05 || held ||
                       link < 0x80000000u || link >= 0x81800000u;
     const bool smooth = aurora_get_frame_interpolation();
     const int steps = aurora_get_frame_interp_steps();
@@ -313,8 +320,12 @@ void bluewake_fps_watch_retrace(void) {
             bluewake_fps_watch_cpu_percent(now.interp_helper_cpu_us, g_last.interp_helper_cpu_us, wall_us);
         const double render_worker =
             bluewake_fps_watch_cpu_percent(now.render_worker_cpu_us, g_last.render_worker_cpu_us, wall_us);
-        const char* cause = bluewake_fps_watch_cause(speed, busy, gx_worker, interp_helper, render_worker, gx_ms,
-                                                     present_ms, pipelines);
+        // In-between frames turned off by Smooth Motion's pacing (none at all at
+        // full speed): what the player sees is the pause, after an earlier slowdown.
+        const char* cause = strcmp(reason, "frames not interpolated") == 0 && interpolated == 0u
+                                ? "smooth-motion-paused"
+                                : bluewake_fps_watch_cause(speed, busy, gx_worker, interp_helper, render_worker,
+                                                           gx_ms, present_ms, pipelines);
         for (unsigned i = 0; i < kCauses; ++i)
             if (strcmp(kCauseNames[i], cause) == 0)
                 ++g_cause_seconds[i];

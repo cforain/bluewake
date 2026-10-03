@@ -32,6 +32,14 @@ int main(void) {
                   "presents late") == 0); // does not confuse 60 with requested 120
     assert(bluewake_fps_watch_reason(59, 1.0, true, 0, 30, 30) == NULL);
     assert(bluewake_fps_watch_reason(118, 1.0, true, 99, 30, 30) == NULL);
+    // The iPad with Smooth Motion dropped: 60 shown (each frame twice), none of the
+    // 30 game frames interpolated. Previously no dip because shown looked fine.
+    assert(strcmp(bluewake_fps_watch_reason(60, 1.0, true, 1, 30, 0), "frames not interpolated") == 0);
+    assert(strcmp(bluewake_fps_watch_reason(118, 1.0, true, 3, 30, 0), "frames not interpolated") == 0);
+    // ... and the same while the game itself was slow (the reason the frames were dropped).
+    assert(strcmp(bluewake_fps_watch_reason(51, 0.86, true, 1, 26, 0), "game below full speed") == 0);
+    // Smooth Motion off: repeated frames are expected, no dip.
+    assert(bluewake_fps_watch_reason(30, 1.0, false, 1, 30, 0) == NULL);
     // The Forsaken Fortress dips in a player's 0.4.0 log: game at 75%, GX worker
     // 95%, game thread about half, 450 ms of each second waiting on the worker.
     assert(cause_is(bluewake_fps_watch_cause(0.75, 55, 95, 0, 20, 450, 3, 0), "gx-worker"));
