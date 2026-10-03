@@ -31,13 +31,16 @@ has been combined locally with the completed module, preserving both payloads
 and separately embedding their provenance. Module compile dependencies and
 preparation sources are unchanged. This is a compatibility-update candidate,
 not a new clean current-source build or a second completed PadMint run.
-The update candidate passes deep/strict development-signature verification.
-It has not been installed; physical-device acceptance of either package is pending.
+The update candidate passes deep/strict development-signature verification and
+is installed in place on the physical M2 iPad. Existing save/settings bytes are
+preserved; bounded game save and separate-process reload of an isolated card copy
+pass. This accepts the updated shell with the completed PadMint module, not a
+second clean current-source build. Sustained play and matched performance remain open.
 
 | Route | Evidence / remaining gate |
 | --- | --- |
 | Apple Silicon Mac → iOS source-only | Actual CLI source generation passes at `3392854`; USA rev-0 disc and exact source/dependency identities verified |
-| Apple Silicon Mac → iOS full personal IPA | Earlier `95adeed` / CLI 0.2.8 complete assembly passes. At `3392854` / CLI 0.2.9, fresh 23,000-retrace training, compilation, final assembly/provenance and retained-object/profile reuse pass. The separate current-shell update candidate is signed. Device install/save/reload/upgrade and matched performance remain open |
+| Apple Silicon Mac → iOS full personal IPA | Earlier `95adeed` / CLI 0.2.8 complete assembly passes. At `3392854` / CLI 0.2.9, fresh 23,000-retrace training, compilation, final assembly/provenance and retained-object/profile reuse pass. The separate current-shell update candidate passes signing, physical iPad install, save/reload and in-place data preservation. Sustained play and matched performance remain open |
 | macOS player app | Direct BlueWake builder now produces a fresh personal app with save/reload evidence. PadMint Mac remains planned; the direct builder does not establish adapter support |
 | Windows / tvOS / Linux | No complete PadMint adapter acceptance; use each platform's explicitly documented source route or preview boundary |
 

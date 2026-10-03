@@ -73,10 +73,41 @@ the clean-built `27c02a1` / `0568fedd` app-only shell with that exact module.
 All app payload and module bytes are preserved, with separate embedded app
 and module provenance. Its ZIP/Mach-O checks pass. This manual update candidate
 is not another completed PadMint run or a clean build of current main.
-Signing now passes deep/strict verification using the prior working development
-certificate, profile and entitlements. The candidate is not installed. Device
-run/save/reload, in-place preservation and matched performance remain open.
+Signing passes deep/strict verification using the prior working development
+certificate, profile and entitlements. The candidate is now installed on the
+physical M2 iPad; bounded launch/save/reload and in-place preservation pass as
+recorded below. Sustained gameplay and matched performance remain open.
 The retained clean build and its original package remain intact.
+
+## Physical iPad update and save/reload acceptance, October 3
+
+The current-shell compatibility candidate (`27c02a1` / runtime `0568fedd`,
+completed owned-disc module `3392854` / runtime `18ba3b64`) is installed in place
+on the physical iPad Pro M2, iPadOS 27.0 build `24A437`. A local backup preserves
+all 7,161 Documents/Library files (3,109,196,007 bytes). Ten save/settings files
+were copied again with the old app stopped; all ten remain byte-identical both
+after installation and after the isolated gameplay checks. This includes the
+active Application Support card, legacy Documents card, other retained cards,
+SRAM and preferences. Existing HD textures, Better Wind Waker, camera preferences
+and Smooth Motion Off were preserved. The app reaches the visible title screen.
+
+Using a separate copy of the current active card, the game opens its Save menu,
+performs three card writes (24,576 bytes), confirms the save and returns to the
+title screen. The updated first slot has valid redundant checksums; slots two
+and three are unchanged. A separate process reloads that card, reaches the play
+scene at retrace 965, responds to scripted movement and renders Link on the
+Outset ladder at retrace 1800. Both bounded processes exit zero; the reload
+leaves the saved card unchanged. The normal app is relaunched without test
+environment overrides afterward. Private case: `ipad-acceptance-eycd2x1l`.
+
+The short post-load sample has median game rate 30.0 FPS, zero reported audio
+drops and nominal thermal state; its maximum reported worst frame is 121 ms.
+This is not sustained or matched performance acceptance. Chris's brief response
+to the touch/audio check was “its fine”; retain that as limited user feedback,
+not a controller or all-scripted-music campaign. Native Windows testing still
+requires Elliott or another tester with suitable hardware; Chris has no native
+x64 PC. A testing handoff is prepared locally but has not been sent. Full
+migration acceptance, releases and donor redirects remain pending.
 
 The earlier Windfall instant-text setup never opened dialogue and remains
 inconclusive; a later item-menu probe is also not discriminating because item
@@ -346,10 +377,10 @@ on #3. All four are now merged into `bluewake-next`; all public checkpoints are 
 | Global MEM1 / inline guest-memory accesses; Windows | `f70305c`, `6def7cd`; runtime `460b5b84`, `63489547` | Optional runtime global MEM1 rebased in #16; explicit ABI-5 module storage adoption now in a separate default-off candidate. Extended alias guard fixed in maintained runtime `c2905b7a`; inline module wrappers imported and separately qualified in #23/#24 | Open; remaining MMIO/reservations/journaling/dispatch, module compatibility and matched measurements |
 | Overload suspension and display-rate interpolation, up to 240 | `f70305c`; runtime `63489547`; UI `4fedbfc` | Runtime and Mac/Windows display settings source integrated in #16; three/seven-step regressions and rate/preference policy pass; 30 Hz logic and interpolation off remain defaults | Open; Off/120/Off/relaunch UI persistence passes on Mac; real display changes, pacing, slow-game workloads, images and matched performance remain open |
 | Save durability, failed startup/audio recovery; all claimed targets | Current reports; donor initial mechanisms | #12 adds stronger atomic card/settings/state writes, lock/recovery, crash logs, launch marker, sink audio recovery; retained over donor files | Integrated; real error/restart/output-device/upgrade acceptance open, no power-loss guarantee |
-| Apple identity, touch, saves, settings, tvOS | BlueWake contributions incl. Ian MacFarlane #3, #6, #8 | Preserve existing Apple shell and BlueWake styling; tvOS remains preview with separate hardware/storage gates | Integrated; latest iPhone/iPad candidate acceptance open; TV parity only where claimed, no physical TV evidence |
+| Apple identity, touch, saves, settings, tvOS | BlueWake contributions incl. Ian MacFarlane #3, #6, #8 | Preserve existing Apple shell and BlueWake styling; tvOS remains preview with separate hardware/storage gates | Integrated; bounded current compatibility-candidate iPad install/save/reload/data preservation passes; iPhone and sustained iPad coverage open; TV parity only where claimed, no physical TV evidence |
 | Source build from owned USA rev-0 disc | BlueWake shell builder; donor Windows builder | Clean owned-disc iOS baseline passes at `95adeed`; fresh Mac `3392854` translation/training/O2/package and bounded save/reload/upgrade pass. Current host overlay is separate. Windows local PGO is merged in #38; actual owned-disc training acceptance remains open | Open; fresh output, pinned public sources, validation/translation/mods/train/compile/package, interruption/resume, local personal run/save/reload |
-| PadMint | `padmint.json`, docs/PADMINT_HANDOFF.md; actual selected PadMint adapter/revision must be refreshed | Manifest: experimental iOS on Apple Silicon, macOS planned; no Windows/tvOS adapter claim | Open; earlier `95adeed` assembly passes. At frozen `3392854` / CLI 0.2.9, source generation, training, compilation, final assembly/provenance and actual interrupted-build reuse pass. The separate current-shell update candidate passes package checks; signing/install, device save/reload and matched performance remain open |
-| Public app-only candidate and compatibility | BlueWake `--app-only` / `--app` model | Donor game-containing distribution excluded; keep own-disc modules local | Baseline and candidate runtime app-only audits pass. Compatible old-module update vs rebuild and physical acceptance open; no publication |
+| PadMint | `padmint.json`, docs/PADMINT_HANDOFF.md; actual selected PadMint adapter/revision must be refreshed | Manifest: experimental iOS on Apple Silicon, macOS planned; no Windows/tvOS adapter claim | Open; earlier `95adeed` assembly passes. At frozen `3392854` / CLI 0.2.9, source generation, training, compilation, final assembly/provenance and actual interrupted-build reuse pass. The separate current-shell update candidate passes package checks, signing/install, physical iPad save/reload and in-place data preservation; sustained play and matched performance remain open |
+| Public app-only candidate and compatibility | BlueWake `--app-only` / `--app` model | Donor game-containing distribution excluded; keep own-disc modules local | Baseline and candidate runtime app-only audits pass. Current-shell/retained-module iPad update passes bounded physical save/reload and preservation checks; sustained qualification open; no publication |
 | Consecutive non-advancing dispatch bound; desktop modules | Existing BlueWake loop, found during #21 assertion audit | #22 makes the counter per-call and resets after progress; stuck guest still yields on ninth non-advancing successor | Open; Release and ASan/UBSan regression, strict module boot and all 38 native Windows checks pass; optimized/performance/gameplay acceptance open |
 
 Original 30 Hz game logic, Smooth Motion Off and experimental 60 Hz simulation
@@ -1075,19 +1106,22 @@ No issue is closed or externally commented on by this work.
 
 The [current goal loop](../GOAL_LOOP.md#critical-path-and-exit-evidence) defines
 execution order: source consolidation and retained PadMint assembly are complete;
-finish device install/save/reload/upgrade, remaining Mac gameplay checks and native
-Windows qualification, then make the migration decision using matched performance
+bounded iPad install/save/reload/upgrade now passes. Finish remaining Mac gameplay
+checks and native Windows qualification, then make the migration decision using matched performance
 and the platform matrix. Do not rerun accepted Mac
 Pictobox or queued camera paths without a relevant change. Native Windows
-Pictobox, physical controls/audio, sustained play and device acceptance remain
-open. Source integration and review can proceed while hardware checks await
+Pictobox, broader physical controls/audio, sustained play and matched performance
+remain open. Source integration and review can proceed while hardware checks await
 availability; neither source merging nor CI closes those gameplay gates.
 
 The retained PadMint build completed at `3392854`, with all 662 objects and four
 profiles present at its last resume verified byte-identical afterward. There is
 no live compilation to poll or restart. The current compatibility-update candidate
-is signed but not installed. Retain both packages' exact identities and qualify
-device behavior separately. The
+is signed and installed on the authorized physical M2 iPad, with actual copied-card
+save/separate reload and original-data preservation accepted. Retain both
+packages' exact identities; this compatibility update is not a new clean build.
+Chris has no native Windows PC; the prepared Elliott testing handoff remains
+unexecuted. The
 [proposed migration notice](FORK_RECONCILIATION_EVIDENCE_2026-10-02.md#migration-proposal-not-published-to-the-donor)
 remains unposted until migration is accepted. Runtime's maintained integration
 target is `bluewake-next`, not the unrelated default `codex/galaxypad-integration`.

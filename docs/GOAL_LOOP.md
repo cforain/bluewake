@@ -39,9 +39,9 @@ identified coverage gap. Documentation-only changes do not invalidate binaries.
 | Priority / work package | Next action and completion evidence | Current dependency |
 | --- | --- | --- |
 | 1. Source consolidation and candidate identity | Source landing is complete: BlueWake #37 and runtime #1–#4 are merged with exact tree equality to the tested commits. The live donor heads add documentation and a line-ending cleanup only. New changes start from BlueWake `main` / runtime `bluewake-next`; qualify the final package identity separately. | Closed for the recorded donor source; no hardware prerequisite for collaboration. |
-| 2. Complete the player build paths | The retained `3392854` PadMint assembly/provenance and interrupted-build reuse now pass. Qualify the maintained candidate's reproducible app/update path and determine whether changed module inputs require a rebuild. The current `27c02a1` / `0568fedd` app-only shell already builds and passes ZIP/provenance/content checks. Finish signing, device run/save/reload and in-place data-preserving upgrade. Do not count the older workspace as a clean build of the newer candidate. | The build completed with all 662 retained objects and four profiles byte-identical. A separate current-shell/retained-module compatibility candidate passes package checks. Physical-device coordination remains pending. |
+| 2. Complete the player build paths | The retained `3392854` PadMint assembly/provenance and interrupted-build reuse now pass. Qualify the maintained candidate's reproducible app/update path and determine whether changed module inputs require a rebuild. The current `27c02a1` / `0568fedd` app-only shell already builds and passes ZIP/provenance/content checks. Signing, physical iPad run/save/reload and in-place data-preserving upgrade now pass for that compatibility candidate; finish sustained and matched performance qualification. Do not count the older workspace as a clean build of the newer candidate. | The build completed with all 662 retained objects and four profiles byte-identical. A separate current-shell/retained-module compatibility candidate passes package checks and bounded physical iPad acceptance. All ten original critical save/settings files remain byte-identical after testing. |
 | 3. Finish local Mac gameplay coverage | Use isolated copied saves and the existing identified app for the remaining option/climbing checks. Establish the relevant gameplay action before an off/on comparison. Complete real mouse/controller input, audible intro/scripted music, and a representative 30-minute gameplay route with actual progression, settings, save/reload and scene transitions. | Small functional checks can proceed. Real controller/audio acceptance needs the relevant input/output observation. Sustained performance needs an uncontended host. |
-| 4. Native Windows player acceptance | On confirmed x64 hardware, build the owned-disc O2 module and run native Direct3D. Cover disc import/recovery, fullscreen/restart, settings, controls/haptics, saves/states/upgrade, Pictobox, startup and scripted-music reports. Record app/module/source identities and distinguish reproduction from a claimed fix. | Hardware/controller availability unconfirmed. CI is green but cannot close these checks. Do not restart Parallels or take a shared device. |
+| 4. Native Windows player acceptance | On confirmed x64 hardware, build the owned-disc O2 module and run native Direct3D. Cover disc import/recovery, fullscreen/restart, settings, controls/haptics, saves/states/upgrade, Pictobox, startup and scripted-music reports. Record app/module/source identities and distinguish reproduction from a claimed fix. | Chris has no native Windows PC. A concrete testing handoff is prepared for Elliott; execution and results remain pending. CI is green but cannot close these checks. Do not restart the suspended ARM64 VM as a substitute. |
 | 5. Performance and migration decision | Use matched original-30-Hz configurations and scenes, compare correctness plus frame-time tails/stalls, and complete sustained play on each claimed target. Review the single platform matrix, tested instructions, issue dispositions and proposed donor notice against those results. | Quiet hardware and completed player candidates required. Historical 22.8% Outset gain is bounded, not final performance parity. No redirect, donor closure or public release. |
 
 Select the highest-priority **available** missing result. Unavailable hardware
@@ -77,12 +77,17 @@ The retained PadMint build completed successfully; session31108 is terminal.
 Do not restart it. Verification and current-shell update receipts are under
 `build/reconciliation/padmint-resume-zy6khxs9` and
 `build/reconciliation/current-ios-personal-update`. Preserve the frozen build
-and all original packages. Windows VM is suspended; paired iPad availability
-and a Windows test machine have been requested. Shared-device coordination
-and a quiet performance window are still required.
+and all original packages. Chris authorized the attached physical M2 iPad; its
+Documents and Library were backed up before installing in place. Windows VM
+remains suspended; native Windows acceptance needs an external tester. A quiet
+performance window and physical controller coverage are still required.
 
-The current iOS compatibility candidate is signed and passes deep/strict
-verification; it has not been installed. Mac climbing now passes the neutral-stick
+The current iOS compatibility candidate is signed, installed and passes bounded
+physical iPad acceptance (`ipad-acceptance-eycd2x1l`): normal launch, actual game
+save on an isolated copied card, separate-process reload with rendered gameplay,
+and unchanged original saves/settings. The normal app was relaunched for Chris.
+His brief touch/audio feedback was “its fine”; sustained play, full scripted-music
+and matched performance coverage remain open. Mac climbing now passes the neutral-stick
 hanging check as well: stamina drains at 40% of the climbing rate, then exhaustion
 releases Link. The current app's native-window capture also shows the partly
 depleted green stamina wheel beside him. Normal ground refill is also observed
@@ -97,8 +102,8 @@ Primary checkout: `main`; nested runtime:
 worktrees, failed baseline, personal modules, profiles, captures, saves and
 signing material. Do not clean up unique artifacts to make a build fit.
 
-The goal stays active until required parity, player-build and gameplay checks
-have current evidence. Original 30 Hz simulation, Smooth Motion Off and
+The goal remains incomplete until required parity, player-build and gameplay
+checks have current evidence. Original 30 Hz simulation, Smooth Motion Off and
 experimental 60 Hz Off remain defaults; preserve explicit preferences.
 Public releases additionally require the private Clear audit and artifact gate.
 Publishing personal builds or donor redirects/closures is outside this goal.
