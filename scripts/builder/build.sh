@@ -54,7 +54,7 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root"
 
 iso="" game=bluewake platform=ios out="" ipa="" published_app="" app_only=0
-jobs=$(sysctl -n hw.ncpu)
+jobs=$(sysctl -n hw.ncpu 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
 identity="" profile="" install_device="" host_pgo=""
 train_pgo=auto training_save=""
 module_optimizations=none
