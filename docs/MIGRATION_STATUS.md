@@ -2,7 +2,7 @@
 
 Updated October 3, 2026 (evening).
 
-Elliott Tate's [Wind-Waker-Recomp](https://github.com/elliotttate/Wind-Waker-Recomp) and BlueWake are
+Elliott's [Wind-Waker-Recomp](https://github.com/elliotttate/Wind-Waker-Recomp) and BlueWake are
 combining into one project. BlueWake is where development continues. This page tracks what is done
 and what is still open. The [migration log](WIND_WAKER_RECOMP_MIGRATION.md) records each step and
 what was changed on Wind-Waker-Recomp.

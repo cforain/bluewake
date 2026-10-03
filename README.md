@@ -36,8 +36,8 @@
 
 ## Coming from Wind Waker Recomp?
 
-Elliott Tate's Wind Waker Recomp is moving here, and Elliott and Chris now maintain BlueWake together.
-His work is being merged with his authorship. How the move works: [migration log](docs/WIND_WAKER_RECOMP_MIGRATION.md)
+Wind Waker Recomp, Elliott's fork of BlueWake, is moving here, and Elliott and Chris now maintain BlueWake
+together. His work is being brought in with his authorship. How the move works: [migration log](docs/WIND_WAKER_RECOMP_MIGRATION.md)
 and [status](docs/MIGRATION_STATUS.md).
 
 - **Report bugs and request features in [BlueWake's issues](https://github.com/chrissotraidis/bluewake/issues)**,
@@ -341,7 +341,7 @@ receives the whole imported save, including all three slots.
 - HD texture pack authors, including
   [Hypatia](https://forums.dolphin-emu.org/Thread-hypatia-s-tloz-the-wind-waker-hd-pack-v2-0001a)
 - SunPad, whose touch control overlay BlueWake adapts
-- [Elliott Tate (@elliotttate)](https://github.com/elliotttate), for the rendering, desktop, gameplay
+- [Elliott (@elliotttate)](https://github.com/elliotttate), for the rendering, desktop, gameplay
   and performance enhancements being consolidated into BlueWake from his Wind Waker fork
 - [Ian MacFarlane (@iannotian)](https://github.com/iannotian), for the controller-first Apple TV contribution
 
