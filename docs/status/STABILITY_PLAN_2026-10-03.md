@@ -142,7 +142,39 @@ Smooth Motion and FPS regressions pass on the Mac. A before/after comparison was
 the machine reached a load average of about 208 on 16 cores (a VM and other builds), and four
 alternating lock-off/lock-on runs of the same host were all slow (13 to 69 slow seconds a
 minute, against 2 to 3 earlier). Under that load the device lock runs looked worse, but the
-lock-off runs were slow too, so nothing is concluded. The detector is up as a draft; the device
+lock-off runs were slow too, so nothing is concluded. The detector went up as a draft (measured on the iPad below); the device
 lock waits on its own branch (`codex/bluewake-device-lock-candidate`) because on Metal the GX
 worker may take Dawn's lock more often than on D3D12, and that must be measured on a quiet Mac
 or the iPad before it lands.
+
+**The detector, measured on the iPad.** The Mac stayed overloaded (load average up to 380), so
+the comparison ran on the authorized physical iPad Pro M2 (iPadOS 27.0), unaffected by the Mac's
+load. Two app-only builds, `main` `55bd3e7` (runtime `d55ee01`) and the PR branch
+`2d6a590` (runtime `3f16e46`), were each combined with the same completed personal module,
+signed with the existing development identity and installed in place after a backup of the
+app's Documents and Library (7,167 files). Each ran twice on a copied save in an isolated folder,
+with Smooth Motion 60 set for that launch only and holds of 150, 64, 150 and 80 ms ten seconds
+apart:
+
+| Build | Drops of the in-between frames | Seconds without them, after the first hold |
+| --- | --- | --- |
+| Before | 4 per run: 2 while loading, 1 after the 150 ms hold, 1 after the 64 ms hold | 35 of 40, both runs |
+| After | 0, both runs | 0 of 40, both runs |
+
+In the old build each later hold arrived before the calm period ended and restarted it, so a
+hitch every ten seconds kept Smooth Motion off for the rest of the run. That is how players can
+sit at 30 for minutes, as in the 120-second penalties in the Forsaken Fortress log. Afterwards the
+build the iPad had was reinstalled, all ten save and settings files matched the backup byte for
+byte, and BlueWake was relaunched normally. The four small test folders remain in the app's
+Documents.
+
+Two logging gaps showed up in these runs:
+
+- **The FPS count reads 60 with Smooth Motion off.** Each game frame is presented twice, so the iOS
+  `[fps]` line and the on-screen counter stay at 60 while the picture moves at 30. That matches
+  the #6 comment ("FPS counter says 60 still"). `[fps-dip]` only fires below 95% of the target
+  shown, so it missed these seconds. Next: report a second whenever Smooth Motion is on and fewer than
+  90% of game frames were interpolated, and show the real state in the overlay.
+- **Time held for a menu or the background counts as a frame.** One player session's `[perf]` line
+  reported a 2,213-second worst frame after the app sat in the background. Next: have the runtime
+  count held time so `[perf]` and `[fps-dip]` leave it out.

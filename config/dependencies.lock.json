@@ -571,7 +571,7 @@
         "steady_pacing": {
           "runtime": "3f16e469c3b9a99a2f4a57c65190136258b89fb5",
           "donor": "elliotttate RecompCore 0bb1fefbf82a06e6640e08b9b1782637afea7650 (Wind-Waker-Recomp patch 0122), authorship retained",
-          "evidence": "Donor: six 120-200 ms game-thread holds no longer drop in-between frames on Windows; two E-cores still drop. BlueWake: frame_interp and fps_watch regressions pass on Mac; Mac before/after with BLUEWAKE_TEST_STALL awaits an uncontended machine."
+          "evidence": "Donor: six 120-200 ms game-thread holds no longer drop in-between frames on Windows; two E-cores still drop. BlueWake: frame_interp and fps_watch regressions pass on Mac; Physical M2 iPad, copied save, Smooth Motion 60, scripted 150/64/150/80 ms holds, two runs each: before (main 55bd3e7) dropped the in-between frames 4 times a run and was without them 35 of 40 s after the first hold; after (2d6a590) 0 drops, 0 of 40 s. Original saves/settings byte-identical after restoring the prior build."
         }
       }
     },
