@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Summarize a BlueWake session log: setup, crashes, slowdowns and hitches.
+
+Usage: python3 scripts/triage_session_log.py session-*.log ...
+
+Reads the lines the runtime already writes ([fps-dip], [interp-pace], [perf],
+[gx-slow], [render-slow], [crash] ...) and prints a short report, so an attached
+log shows where and why the game slowed down without reading it line by line.
+"""
+import re
+import sys
+from collections import Counter
+from statistics import median
+
+# Session logs stamp each line; a raw console capture does not.
+LINE = re.compile(r"^(?:(\d\d):(\d\d):(\d\d)\.\d+ )?\[([^\]]+)\] ?(.*)$")
+SETUP = ("[windows]", "[simulation]", "[aspect]", "CPU model", "OS:", "Device:", "Using framebuffer",
+         "present mode", "Device lock", "[host] module")
+FATAL = re.compile(r"\[crash\]|\[panic\]|Device lost|exception 0x|fatal", re.IGNORECASE)
+# Not failures: a capped REL call trace labelled [panic], and the device released at exit.
+BENIGN = re.compile(r"\[panic\] vcall-after|Device lost: Device was destroyed")
+PACE = re.compile(r"in-between frames (\d+) -> (\d+)")
+
+
+def field(text, name, cast=float):
+    m = re.search(r"\b" + re.escape(name) + r"=(-?[\d.]+)", text)
+    return cast(m.group(1)) if m else None
+
+
+def bottleneck(text):
+    """Which part was saturated in an [fps-dip] second."""
+    gx_worker = re.search(r"(?:threads|workers): gx=(\d+)%", text)
+    gx_worker = int(gx_worker.group(1)) if gx_worker else 0
+    game = field(text, "busy") or 0
+    present = re.search(r"present=(\d+)ms", text)
+    gpu = re.search(r"gpu=(\d+)ms", text)
+    waits = (int(present.group(1)) if present else 0) + (int(gpu.group(1)) if gpu else 0)
+    if gx_worker >= 85:
+        return "GX worker (GPU command conversion on the CPU)"
+    if game >= 85:
+        return "game thread"
+    if waits >= 300:
+        return "GPU or presentation"
+    return "unclear"
+
+
+def report(path):
+    setup, fatal, dips, paces = [], [], [], []
+    reasons, places, causes = Counter(), Counter(), Counter()
+    gx_slow = gx_compile = render_slow = 0
+    worst_ms, hitches, first, last, previous, day = 0.0, 0, None, None, None, 0
+    with open(path, errors="replace") as log:
+        for raw in log:
+            raw = raw.rstrip("\r\n")
+            m = LINE.match(raw)
+            if not m:
+                continue
+            if m[1] is not None:
+                seconds = int(m[1]) * 3600 + int(m[2]) * 60 + int(m[3])
+                if previous is not None and seconds < previous - 3600:
+                    day += 86400
+                previous = seconds
+                seconds += day
+                first = seconds if first is None else first
+                last = seconds
+            tag, text = m[4], m[5]
+            if any(s in raw for s in SETUP) and len(setup) < 14:
+                setup.append(raw[raw.index("["):].strip()[:160])
+            if FATAL.search(raw) and not BENIGN.search(raw):
+                fatal.append(raw[:200])
+            if tag == "fps-dip":
+                reason = text.split("reason=", 1)[-1] if "reason=" in text else "?"
+                stage = re.search(r"stage=(\S+) room=(-?\d+)", text)
+                place = f"{stage[1]} room {stage[2]}" if stage else "?"
+                reasons[reason] += 1
+                places[place] += 1
+                if reason.startswith("game below"):
+                    causes[bottleneck(text)] += 1
+                dips.append(field(text, "speed") or 0)
+            elif tag == "interp-pace" and PACE.search(text):
+                paces.append(text)
+            elif tag == "perf":
+                worst_ms = max(worst_ms, field(text, "worst_ms") or 0)
+                hitches += int(field(text, "hitches") or 0)
+            elif tag == "gx-slow":
+                gx_slow += 1
+                if (field(text, "pipelines", int) or 0) or (field(text, "textures", int) or 0):
+                    gx_compile += 1
+            elif tag in ("render-slow", "present-slow"):
+                render_slow += 1
+
+    minutes = (last - first) / 60 if first is not None else 0
+    print(f"== {path}  ({minutes:.0f} min)")
+    for line in setup:
+        print("  setup:", line)
+    print(f"  fatal lines: {len(fatal)}")
+    for line in fatal[:5]:
+        print("   ", line)
+    print(f"  seconds below target FPS ([fps-dip]): {len(dips)}"
+          + (f", median game speed {median(dips):.0f}%, lowest {min(dips):.0f}%" if dips else ""))
+    for reason, n in reasons.most_common():
+        print(f"    {n:5d}  {reason}")
+    for cause, n in causes.most_common():
+        print(f"    {n:5d}  game slow, saturated: {cause}")
+    for place, n in places.most_common(6):
+        print(f"    {n:5d}  at {place}")
+    drops = [p for p in paces if int(PACE.search(p)[2]) < int(PACE.search(p)[1])]
+    print(f"  Smooth Motion lowered: {len(drops)} times, raised {len(paces) - len(drops)} times")
+    for text in Counter(re.sub(r"[\d.]+ game frames", "N game frames", p) for p in drops).most_common(3):
+        print(f"    {text[1]:5d}  {text[0][:150]}")
+    print(f"  hitches in [perf]: {hitches}, worst frame {worst_ms:.0f} ms")
+    print(f"  slow GX batches: {gx_slow} ({gx_compile} while compiling pipelines or loading textures)")
+    print(f"  slow render/present frames: {render_slow}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        sys.exit(__doc__)
+    for name in sys.argv[1:]:
+        report(name)

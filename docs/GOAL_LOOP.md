@@ -1,6 +1,52 @@
 # BlueWake Autonomous Goal-Based Implementation Loop
 
-## Current operating loop — migration acceptance, reoriented October 3, 2026
+## Current operating loop — stability and slowdowns, October 3, 2026
+
+Make BlueWake hold full speed and stay stable in the places players report, and make every
+slowdown explain itself in the session log. The [stability plan](status/STABILITY_PLAN_2026-10-03.md)
+owns the evidence, the report table and the import list. Migration acceptance (below) continues in
+parallel; its remaining gate is Elliott's Windows testing.
+
+### Starting point
+
+- BlueWake `main` holds Elliott's work through his v0.4.0 release. His later `windows-release`
+  work (`9921398`..`13355b8`, runtime patches 0121-0129 and builder changes) is not
+  imported. Track any newer donor commits separately; do not chase a moving head.
+- Player logs show two causes of "random slowdowns": the GX worker saturating in heavy scenes
+  (Forsaken Fortress exterior: game at 67-89% speed, worker at least 85% busy, GPU idle), and
+  Smooth Motion dropping its in-between frames on single hitches and holding them off for up to
+  120 s. Shader compilation adds separate hitches.
+- `scripts/triage_session_log.py` summarizes any session log: crashes, dips by cause and place,
+  Smooth Motion drops, hitches.
+
+### Critical path and exit evidence
+
+| Priority / work package | Next action and completion evidence |
+| --- | --- |
+| 1. Logging that isolates slowdowns | Aggregate `[gx-slow]`; name the saturated part in `[fps-dip]`; log settings at start and on change; add `[perf-summary]`; log iOS device and thermal state; rename the `[panic] vcall-after` trace. Done when a scripted stall, a compile hitch and a real heavy scene are each classified correctly by the log and the triage script, and a long session's log stays small. |
+| 2. Baseline measurements | Mac and iPad, original 30 Hz and Smooth Motion 60, fixed routes or states: Outset, opening bird, Aryll's abduction, Forsaken Fortress exterior, open sea. Done when each scene has game speed, dips by cause, frame-time tails and audio recorded with exact app/module identities. |
+| 3. Import Elliott's post-0.4.0 batch | Focused, credited runtime PRs on `bluewake-next`, renumbered after BlueWake's 0139: device lock, slow-game detector, pipeline threads and seed, GX worker, Smooth Motion cloth/colours, wider training and tiered compile, natives, ubershader (D3D12 first). Each: regressions, Mac capture comparison, Windows CI, module-compatibility note, step-2 scenes repeated. BlueWake's card-safety and Pictobox patches must survive. |
+| 4. Reported bugs | Reproduce before changing: scripted/intro music (#1, #12), camera flip in water (#24), dungeon map (#25), flag texture (#20), Moblin soft lock (#27). Each closes only with a before/after reproduction on the affected platform. |
+| 5. Windows confirmation | Extend Elliott's [checklist](WINDOWS_ACCEPTANCE.md) with the imported batch and the slow scenes; his results close the Windows rows. |
+
+### Iteration contract
+
+1. Read live status, the stability plan and this table. Pick the highest-priority item whose
+   prerequisites are available; name the observation that closes it.
+2. Measure or reproduce first. A slowdown claim needs the scene, settings and the log's cause; a fix
+   claim needs the same scene before and after with matched settings on the same device.
+3. Make the smallest change that addresses the established cause. Keep imports one concern per PR
+   with original authorship or co-author credit. Never enable experiments by default.
+4. Run the relevant regressions, captures and the affected scenes. Preserve failed evidence and
+   original player data; use copied saves.
+5. Record identities, results and limits in the stability plan; push validated source to `main`
+   or `bluewake-next`; update [migration status](MIGRATION_STATUS.md) when a public row changes.
+
+After three materially identical failures, change the experiment. Unavailable hardware (native
+Windows, physical controllers) is a dependency to record, not a pass. No public release until the
+private audit is Clear; personal builds and game data stay private.
+
+## Migration acceptance loop — October 3, 2026 (continuing; Windows gate with Elliott)
 
 Make BlueWake the maintained home for the approved consolidation with Elliott.
 The [reconciliation ledger](status/FORK_RECONCILIATION_2026-10-02.md) owns the
@@ -38,7 +84,7 @@ identified coverage gap. Documentation-only changes do not invalidate binaries.
 
 | Priority / work package | Next action and completion evidence | Current dependency |
 | --- | --- | --- |
-| 1. Source consolidation and candidate identity | Source landing is complete: BlueWake #37 and runtime #1–#4 are merged with exact tree equality to the tested commits. The live donor heads add documentation and a line-ending cleanup only. New changes start from BlueWake `main` / runtime `bluewake-next`; qualify the final package identity separately. | Closed for the recorded donor source; no hardware prerequisite for collaboration. |
+| 1. Source consolidation and candidate identity | Source landing is complete: BlueWake #37 and runtime #1–#4 are merged with exact tree equality to the tested commits. At the October 2 audit the live donor heads added documentation only; the later Windows work (`9921398`..`13355b8`) is tracked in the stability loop above. New changes start from BlueWake `main` / runtime `bluewake-next`; qualify the final package identity separately. | Closed for the recorded donor source; no hardware prerequisite for collaboration. |
 | 2. Complete the player build paths | The retained `3392854` PadMint assembly/provenance and interrupted-build reuse now pass. Qualify the maintained candidate's reproducible app/update path and determine whether changed module inputs require a rebuild. The current `27c02a1` / `0568fedd` app-only shell already builds and passes ZIP/provenance/content checks. Signing, physical iPad run/save/reload and in-place data-preserving upgrade now pass for that compatibility candidate; finish sustained and matched performance qualification. Do not count the older workspace as a clean build of the newer candidate. | The build completed with all 662 retained objects and four profiles byte-identical. A separate current-shell/retained-module compatibility candidate passes package checks and bounded physical iPad acceptance. All ten original critical save/settings files remain byte-identical after testing. |
 | 3. Finish local Mac gameplay coverage | Use isolated copied saves and the existing identified app for the remaining option/climbing checks. Establish the relevant gameplay action before an off/on comparison. Complete real mouse/controller input, audible intro/scripted music, and a representative 30-minute gameplay route with actual progression, settings, save/reload and scene transitions. | Small functional checks can proceed. Real controller/audio acceptance needs the relevant input/output observation. Sustained performance needs an uncontended host. |
 | 4. Native Windows player acceptance | On confirmed x64 hardware, build the owned-disc O2 module and run native Direct3D. Cover disc import/recovery, fullscreen/restart, settings, controls/haptics, saves/states/upgrade, Pictobox, startup and scripted-music reports. Record app/module/source identities and distinguish reproduction from a claimed fix. | Chris has no native Windows PC. A concrete testing handoff is prepared for Elliott; execution and results remain pending. CI is green but cannot close these checks. Do not restart the suspended ARM64 VM as a substitute. |

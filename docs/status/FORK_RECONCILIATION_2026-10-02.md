@@ -34,6 +34,13 @@ patch `81d7345f` and our authored import `94e9835c` have the same stable patch I
 No additional implementation delta was found in this refresh. Uncommitted donor
 fixes are not visible in these refs and are not claimed imported.
 
+**Refresh, October 3:** Windows has since moved to `13355b8`. Its twenty commits
+after `9921398` are implementation work (runtime patches 0121-0129: device lock,
+slow-game detector, pipeline threads, ubershader, GX worker, Smooth Motion cloth and
+colours; wider training, tiered compile, app PGO, nine natives). They are not in
+BlueWake; the [stability plan](STABILITY_PLAN_2026-10-03.md) sets their import order.
+Main is still `d102695` (v0.4.0).
+
 **Source collaboration can move to BlueWake now.** New application PRs target
 `main`; runtime PRs target maintained `bluewake-next`. Existing donor fixes should
 be identified by commit and ported as a focused delta. The 24 superseded stacked
