@@ -83,7 +83,8 @@ Missing or misleading:
    mode and ubershader at start and on every change.
 4. No end-of-session summary. Add one `[perf-summary]`: dips by cause and stage, Smooth Motion
    drops, worst frames, shader compiles.
-5. iOS logs show "macOS" and an unknown CPU. Log the device model, OS and thermal state.
+5. iOS logs show "macOS" and an unknown CPU. Log the device model and OS. (Thermal state is
+   already in the iOS `[fps]` line.)
 6. A capped module-call trace is labelled `[panic] vcall-after` in normal sessions. Rename it.
 
 ## Order of work
@@ -104,3 +105,29 @@ Missing or misleading:
 
 Defaults stay: original 30 Hz logic, Smooth Motion off, experimental 60 Hz off.
 
+## Progress
+
+**Step 1, logging (October 3, branch `codex/stability-logging`, runtime `d55ee01`).**
+
+- Elliott's `BLUEWAKE_TEST_STALL` hook is imported with his authorship (his `a6f8ea9`,
+  which also raises the Windows process priority).
+- `[fps-dip]` now ends with `pipelines=N cause=... reason=...`. Causes: `gx-worker`,
+  `shader-compile`, `gpu-present`, `render-worker`, `interp-helper`,
+  `game-thread` (the game ran slow without waiting on the others), `unclear`.
+- `[smooth-motion]` records Smooth Motion at start and on each change; `[device]` gives
+  the Apple model and OS version; `[perf-summary]` every ten minutes and at exit gives slow
+  seconds by cause and place; the capped REL trace is now `[rel-vcall]`.
+- Routine 20-50 ms GX batches are summed into `[gx-slow-sum]` every ten seconds (runtime
+  patch 0140); single lines remain for 50 ms or more.
+- `scripts/triage_session_log.py` reads all of these, and still reads older logs.
+
+Checked on the M3 Max with the frozen personal module, a copied Windfall save and Smooth Motion
+60 (the machine was busy with other builds, so these are not performance numbers): two scripted
+holds of 150 and 900 ms were each logged as `cause=game-thread` (speed 85% and 48%), and one
+natural GX hitch as `gx-worker`; the summary line and triage report agree. In the same minute
+Smooth Motion dropped its in-between frames three times: twice for the scripted holds and once for
+a single 64 ms GX batch. The single-hitch drop described above therefore happens on BlueWake too.
+With the pipeline seed removed, Metal compiled 125 pipelines without a single slow second: on the
+Mac a missing pipeline skips its draw rather than holding the game, so `shader-compile` is
+covered by the regression and needs the Windows run to be seen live. The copied save and seed were
+unchanged after each run.

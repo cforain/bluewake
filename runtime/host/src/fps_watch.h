@@ -18,6 +18,16 @@ const char* bluewake_fps_watch_reason(double shown, double speed, bool smooth,
                                     int steps, unsigned long long frames,
                                     unsigned long long interpolated);
 
+// Which part held a second below target, from the game's speed (1.0 = full),
+// that second's CPU use (percent of one core) and the game thread's waits
+// (milliseconds): "shader-compile" (it waited on the GX worker while pipelines
+// were made), "gx-worker", "gpu-present", "render-worker", "interp-helper",
+// "game-thread" (the game ran slow without waiting on the others: its own work,
+// or a hitch on its thread) or "unclear". Pure, shared with the regression.
+const char* bluewake_fps_watch_cause(double speed, double game_busy, double gx_worker, double interp_helper,
+                                    double render_worker, double gx_wait_ms, double present_ms,
+                                    unsigned pipelines);
+
 // Cumulative worker counters may reset when a worker exits or is replaced.
 double bluewake_fps_watch_cpu_percent(unsigned long long current,
                                      unsigned long long previous,

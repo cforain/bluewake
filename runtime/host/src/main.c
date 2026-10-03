@@ -714,6 +714,8 @@ static u64 perf_now_us(clockid_t clock) {
    (60 a second is full speed) and the emulation thread's CPU time. Read from
    the same thread that advances them. */
 unsigned long long bluewake_host_retrace_count(void) { return g_host_retrace_count; }
+// Pipelines Aurora has created so far, for fps_watch's per-second shader-compile count.
+unsigned bluewake_host_pipelines_created(void) { return aurora_get_stats()->createdPipelines; }
 
 /* BLUEWAKE_WALL_PACE: hold each guest retrace to its wall-clock time (NTSC,
    1001/60000 s apart). Without it the only brake on the emulation was the
@@ -13699,7 +13701,7 @@ int main(int argc, char** argv) {
             (os_panic_vcall_after_reports < 16u ||
              (!os_panic_bad_prolog_reported && cpu.pc == 0x80F01794u))) {
             fprintf(stderr,
-                    "[panic] vcall-after input=0x%08X output=0x%08X "
+                    "[rel-vcall] after input=0x%08X output=0x%08X "
                     "r3=0x%08X r12=0x%08X ctr=0x%08X lr=0x%08X dispatched=%d\n",
                     dispatch_input_pc, cpu.pc, cpu.gpr[3], cpu.gpr[12],
                     cpu.ctr, cpu.lr, dispatched);
