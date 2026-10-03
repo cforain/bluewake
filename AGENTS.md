@@ -1,5 +1,11 @@
 # Agent instructions
 
+## Contributor attribution
+
+Do not add AI tools or models as commit authors or co-authors, or add generated-by
+attribution or AI session links to commit messages and pull requests. Preserve
+human authorship and human co-author credits, including imported donor history.
+
 ## Releases paused
 
 No public releases until this repo is marked Clear in the maintainer's private release audit. Do not publish, re-publish, or restore any release, IPA, or app build, and do not add download links, until then.
