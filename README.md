@@ -34,9 +34,23 @@
 **Questions or bugs?** Join the [Discord](https://discord.gg/xwHfUD2bxW) or
 [open an issue](https://github.com/chrissotraidis/bluewake/issues).
 
-Elliott Tate's Wind-Waker-Recomp is merging into BlueWake, and development continues here. See the
-[migration status](docs/MIGRATION_STATUS.md) for what is done and what is still open. The
-measurements below describe earlier developer builds; they are not acceptance of every personal
+## Coming from Wind Waker Recomp?
+
+Elliott Tate's Wind Waker Recomp is moving here, and Elliott and Chris now maintain BlueWake together.
+His work is being merged with his authorship. How the move works: [migration log](docs/WIND_WAKER_RECOMP_MIGRATION.md)
+and [status](docs/MIGRATION_STATUS.md).
+
+- **Report bugs and request features in [BlueWake's issues](https://github.com/chrissotraidis/bluewake/issues)**,
+  not on Wind-Waker-Recomp. Say whether you use a Wind Waker Recomp release or a BlueWake build, and
+  attach your session log. Open issues there are being moved here with a link back.
+- **Your Windows saves carry over:** both keep them in `%APPDATA%\BlueWake`. Back that folder up
+  before switching.
+- **Windows:** BlueWake builds the game from your own disc on your PC ([BlueWake on Windows](docs/WINDOWS.md))
+  and does not publish ready-made apps that contain game code. Windows support is experimental while it
+  is tested.
+- **Questions:** the [Discord](https://discord.gg/xwHfUD2bxW), shared by both projects.
+
+The measurements below describe earlier developer builds; they are not acceptance of every personal
 player build. Windows and Apple TV remain experimental.
 
 ## What is BlueWake?

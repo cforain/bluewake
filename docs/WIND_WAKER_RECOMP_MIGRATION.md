@@ -1,0 +1,74 @@
+# Wind Waker Recomp migration log
+
+This page records how Elliott Tate's [Wind-Waker-Recomp](https://github.com/elliotttate/Wind-Waker-Recomp)
+is being folded into BlueWake: what was decided, what has changed and where, and what is still open.
+Current status in one table: [migration status](MIGRATION_STATUS.md).
+
+## Why
+
+Wind-Waker-Recomp began on September 30, 2026 as Elliott's personal fork of BlueWake (from BlueWake
+commit [`31b8a72`](https://github.com/chrissotraidis/bluewake/commit/31b8a722fee33457585df336093f70eea07f6382)).
+It added a Windows port, Smooth Motion, save states, wall climbing, controller haptics and many fixes, and
+its Windows builds quickly became the most used version of the project. Two repositories meant two issue
+trackers, two sets of fixes to keep in step, and players unsure where to report problems.
+
+Chris Sotraidis (BlueWake) and Elliott agreed to work on one project together: BlueWake, with Elliott as
+a maintainer with equal say. Elliott added Chris as a collaborator on Wind-Waker-Recomp so the move can be
+announced there.
+
+## What has been done
+
+| Date (JST) | Change |
+| --- | --- |
+| October 2-3 | Elliott's work through v0.4.0 merged into BlueWake with his commit authorship ([#37](https://github.com/chrissotraidis/bluewake/pull/37), [#38](https://github.com/chrissotraidis/bluewake/pull/38)) |
+| October 3 | Session logs name the cause of slowdowns; Smooth Motion no longer pauses on single hitches ([#39](https://github.com/chrissotraidis/bluewake/pull/39)-[#41](https://github.com/chrissotraidis/bluewake/pull/41)) |
+| October 3 | Elliott's later Windows branch merged: save-state crash fix, faster shader compilation, Smooth Motion for cloth, the wider training and his optimization defaults ([#43](https://github.com/chrissotraidis/bluewake/pull/43), [#45](https://github.com/chrissotraidis/bluewake/pull/45)) |
+| October 3 | Fixes for reports on his tracker: camera flipping in water, an FPS counter that read 60 while Smooth Motion was paused, and Windows menu parity ([#44](https://github.com/chrissotraidis/bluewake/pull/44)) |
+| October 3 | Wind-Waker-Recomp's README, issue form and description point to BlueWake (see below) |
+
+## Changes made on Wind-Waker-Recomp
+
+Kept small and reversible; Elliott's own text, releases and history are unchanged.
+
+- **README:** a notice at the top saying the project is moving to BlueWake, where to report bugs, that
+  open issues will be moved, and that Windows saves carry over. "Questions or bugs?" points to BlueWake.
+- **Issue form:** blank issues are off, the first option opens BlueWake's issue form, and the bug template
+  begins with a pointer to BlueWake.
+- **Repository description:** points to BlueWake (where the permissions allow; otherwise Elliott sets it).
+
+The exact commit is linked in [migration status](MIGRATION_STATUS.md).
+
+## Moving issues and pull requests
+
+GitHub cannot transfer issues between repositories owned by different accounts, so they are recreated:
+
+1. Check each open issue against BlueWake: some are already fixed or answered there (the
+   [stability plan](status/STABILITY_PLAN_2026-10-03.md) sorts them).
+2. Open it in BlueWake with its title and text, "Originally reported by @user in
+   elliotttate/Wind-Waker-Recomp#N", and the label `from-wind-waker-recomp`. Tagging the reporter
+   notifies them.
+3. Comment on the original with the new link (and, where BlueWake already has a fix, what changed and how
+   to confirm it), then close it.
+4. Pull requests: ask each author to reopen against BlueWake, keeping their authorship. If an author
+   cannot, a maintainer ports the change and credits them as co-author.
+
+Status: not started. 27 issues and 3 pull requests were open on October 3.
+
+## Still to decide or do
+
+- **Releases.** BlueWake does not publish builds that contain translated game code; players build their
+  own from their own disc ([rights](../RIGHTS_AND_LICENSES.md)). Wind-Waker-Recomp's existing releases
+  are Elliott's decision. Making the Windows build easy enough that nobody needs a prebuilt game is being
+  researched.
+- **Windows testing** of BlueWake from a player's own disc: [checklist](WINDOWS_ACCEPTANCE.md).
+- **Remaining code:** Elliott's second set of native functions, his `lean_memory` step, and his
+  latest Wind-Waker-Recomp commits (WWHD texture import, a Mac rendering fix and controller haptics work,
+  October 3).
+- **The fork afterwards:** it stays available while the move is in progress; archiving it is planned once
+  the issues are moved, Windows is checked and both maintainers agree.
+- **A joint announcement** on Discord and X inviting testers and developers.
+
+## Credits
+
+Elliott Tate's commits keep his authorship in BlueWake, and jointly adapted changes credit him as
+co-author. Contributors to either repository keep their credit when their work moves.
