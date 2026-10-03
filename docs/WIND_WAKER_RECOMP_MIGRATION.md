@@ -24,7 +24,7 @@ announced there.
 | October 3 | Session logs name the cause of slowdowns; Smooth Motion no longer pauses on single hitches ([#39](https://github.com/chrissotraidis/bluewake/pull/39)-[#41](https://github.com/chrissotraidis/bluewake/pull/41)) |
 | October 3 | Elliott's later Windows branch merged: save-state crash fix, faster shader compilation, Smooth Motion for cloth, the wider training and his optimization defaults ([#43](https://github.com/chrissotraidis/bluewake/pull/43), [#45](https://github.com/chrissotraidis/bluewake/pull/45)) |
 | October 3 | Fixes for reports on his tracker: camera flipping in water, an FPS counter that read 60 while Smooth Motion was paused, and Windows menu parity ([#44](https://github.com/chrissotraidis/bluewake/pull/44)) |
-| October 3 | Wind-Waker-Recomp's README, issue form and description point to BlueWake (see below) |
+| October 3 | Wind-Waker-Recomp's README and issue form point to BlueWake ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)) |
 
 ## Changes made on Wind-Waker-Recomp
 
@@ -34,9 +34,12 @@ Kept small and reversible; Elliott's own text, releases and history are unchange
   open issues will be moved, and that Windows saves carry over. "Questions or bugs?" points to BlueWake.
 - **Issue form:** blank issues are off, the first option opens BlueWake's issue form, and the bug template
   begins with a pointer to BlueWake.
-- **Repository description:** points to BlueWake (where the permissions allow; otherwise Elliott sets it).
+- **Repository description and website:** need repository admin access, which only Elliott has. Proposed:
+  "Moving to BlueWake: github.com/chrissotraidis/bluewake. The Wind Waker static recompilation for
+  Windows, Mac, iPhone and iPad", with the website set to BlueWake.
 
-The exact commit is linked in [migration status](MIGRATION_STATUS.md).
+Commit: [7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d),
+on top of Elliott's latest `main` commit.
 
 ## Moving issues and pull requests
 
