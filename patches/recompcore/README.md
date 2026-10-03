@@ -51,3 +51,8 @@ build pin is `18ba3b642588a33b9e8eac4aba7f713bb8d3d778`; the profile and depende
 lock are authoritative. New post-texture save states require this or a newer
 runtime; regular memory-card saves are unchanged. BlueWake lava-scene acceptance
 is still required; donor scene results are not transferred.
+
+Patch 0140 changes session logging only: GX batches between 20 and 50 ms are summed
+into one `[gx-slow-sum]` line every ten seconds, and batches of 50 ms or more keep
+their own `[gx-slow]` line. A player's 104-minute Windows log had 33,712 of the old
+lines. Evidence is in [the stability plan](../../docs/status/STABILITY_PLAN_2026-10-03.md).

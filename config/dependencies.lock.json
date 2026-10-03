@@ -112,8 +112,8 @@
     {
       "id": "recompcore",
       "url": "https://github.com/chrissotraidis/RecompCore",
-      "sha": "0568feddb332e0d9fe8a3a7cff330263f14af2f1",
-      "branch": "codex/bluewake-pe-token",
+      "sha": "d55ee014e4670337aa05fefa3209e444cc7a63f0",
+      "branch": "codex/bluewake-stability-logging",
       "license": "GPL-3.0",
       "role": "static-recomp runtime (GXRuntime), vendored Aurora renderer at GXRuntime/graphics/aurora, Dolphin DSP donor sources, and the DolRecomp translator as the DolRecomp submodule; the product source for the iPad build (scripts/ios/build_device.sh)",
       "verified": "2026-10-03",
@@ -548,7 +548,8 @@
           "patches/recompcore/0136-dual-texture-post-transform.patch",
           "patches/recompcore/0137-preserve-post-texture-save-state.patch",
           "patches/recompcore/0138-pe-token-and-pictobox-readback.patch",
-          "patches/recompcore/0139-portable-runtime-save-fixture.patch"
+          "patches/recompcore/0139-portable-runtime-save-fixture.patch",
+          "patches/recompcore/0140-sum-routine-slow-gx-batches.patch"
         ],
         "evidence": "Prior runtime candidate passes Mac/Windows regressions. Extended MEM1 aliases, endian reads/writes, reservations, journals, MEM2 and MMIO pass plain/global ASan/UBSan fixtures; full candidate and gameplay/performance acceptance remain pending.",
         "later_donor_dual_texture": {
@@ -561,6 +562,10 @@
           "runtime": "2218107dac0150151b39d736924df57e8dc75104",
           "evidence": "PE token/finish and tiled I8/RGB565 regressions pass; bounded Mac Metal regular/Deluxe photo content, album acceptance, repeat/cancel, actual game save/separate-launch photo reload and pre-fix state capture pass. Native Windows remains pending.",
           "test_portability_followup": "0568feddb332e0d9fe8a3a7cff330263f14af2f1"
+        },
+        "stability_logging": {
+          "runtime": "d55ee014e4670337aa05fefa3209e444cc7a63f0",
+          "evidence": "Session-log change only: routine slow GX batches summed every ten seconds, batches of 50 ms or more logged singly. Mac Metal runs on a copied save show the summary and single hitch lines; Windows CI pending."
         }
       }
     },

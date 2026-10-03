@@ -15,11 +15,14 @@ from statistics import median
 # Session logs stamp each line; a raw console capture does not.
 LINE = re.compile(r"^(?:(\d\d):(\d\d):(\d\d)\.\d+ )?\[([^\]]+)\] ?(.*)$")
 SETUP = ("[windows]", "[simulation]", "[aspect]", "CPU model", "OS:", "Device:", "Using framebuffer",
-         "present mode", "Device lock", "[host] module")
+         "present mode", "Device lock", "[host] module", "[device]", "[smooth-motion]")
 FATAL = re.compile(r"\[crash\]|\[panic\]|Device lost|exception 0x|fatal", re.IGNORECASE)
-# Not failures: a capped REL call trace labelled [panic], and the device released at exit.
+# Not failures: a capped REL call trace once labelled [panic], and the device released at exit.
 BENIGN = re.compile(r"\[panic\] vcall-after|Device lost: Device was destroyed")
 PACE = re.compile(r"in-between frames (\d+) -> (\d+)")
+CAUSES = {"gx-worker": "GX worker (GPU command conversion on the CPU)", "game-thread": "game thread",
+          "shader-compile": "shader compile", "gpu-present": "GPU or presentation",
+          "render-worker": "render worker", "interp-helper": "Smooth Motion helper", "unclear": "unclear"}
 
 
 def field(text, name, cast=float):
@@ -28,7 +31,10 @@ def field(text, name, cast=float):
 
 
 def bottleneck(text):
-    """Which part was saturated in an [fps-dip] second."""
+    """Which part was saturated in an [fps-dip] second (logged as cause= since October 3)."""
+    logged = re.search(r"\bcause=(\S+)", text)
+    if logged:
+        return CAUSES.get(logged[1], logged[1])
     gx_worker = re.search(r"(?:threads|workers): gx=(\d+)%", text)
     gx_worker = int(gx_worker.group(1)) if gx_worker else 0
     game = field(text, "busy") or 0
@@ -49,6 +55,7 @@ def report(path):
     reasons, places, causes = Counter(), Counter(), Counter()
     gx_slow = gx_compile = render_slow = 0
     worst_ms, hitches, first, last, previous, day = 0.0, 0, None, None, None, 0
+    thermal, summary = 0, None
     with open(path, errors="replace") as log:
         for raw in log:
             raw = raw.rstrip("\r\n")
@@ -64,7 +71,7 @@ def report(path):
                 first = seconds if first is None else first
                 last = seconds
             tag, text = m[4], m[5]
-            if any(s in raw for s in SETUP) and len(setup) < 14:
+            if any(s in raw for s in SETUP) and "settings menu" not in raw and len(setup) < 14:
                 setup.append(raw[raw.index("["):].strip()[:160])
             if FATAL.search(raw) and not BENIGN.search(raw):
                 fatal.append(raw[:200])
@@ -74,11 +81,14 @@ def report(path):
                 place = f"{stage[1]} room {stage[2]}" if stage else "?"
                 reasons[reason] += 1
                 places[place] += 1
-                if reason.startswith("game below"):
-                    causes[bottleneck(text)] += 1
+                causes[bottleneck(text)] += 1
                 dips.append(field(text, "speed") or 0)
             elif tag == "interp-pace" and PACE.search(text):
                 paces.append(text)
+            elif tag == "perf-summary":
+                summary = text
+            elif tag == "fps" and "thermal=" in text:
+                thermal = max(thermal, int(field(text, "thermal", int) or 0))
             elif tag == "perf":
                 worst_ms = max(worst_ms, field(text, "worst_ms") or 0)
                 hitches += int(field(text, "hitches") or 0)
@@ -101,7 +111,7 @@ def report(path):
     for reason, n in reasons.most_common():
         print(f"    {n:5d}  {reason}")
     for cause, n in causes.most_common():
-        print(f"    {n:5d}  game slow, saturated: {cause}")
+        print(f"    {n:5d}  saturated: {cause}")
     for place, n in places.most_common(6):
         print(f"    {n:5d}  at {place}")
     drops = [p for p in paces if int(PACE.search(p)[2]) < int(PACE.search(p)[1])]
@@ -111,6 +121,10 @@ def report(path):
     print(f"  hitches in [perf]: {hitches}, worst frame {worst_ms:.0f} ms")
     print(f"  slow GX batches: {gx_slow} ({gx_compile} while compiling pipelines or loading textures)")
     print(f"  slow render/present frames: {render_slow}")
+    if thermal:
+        print(f"  highest iOS thermal state: {thermal} (0 nominal .. 3 critical)")
+    if summary:
+        print(f"  last [perf-summary]: {summary[:300]}")
 
 
 if __name__ == "__main__":
