@@ -1,4 +1,5 @@
 #include "mouse_camera.h"
+#include "game_options.h"
 #include "jump_button.h"
 #include "settings_menu.h"
 #include "save_state.h"
@@ -519,6 +520,12 @@ void bluewake_mouse_camera_pad(DolPadState* pad) {
         // C-stick still goes through while the stick rests.
         if (sqrt(x * x + y * y) > kStickInUse)
             pad->substick_x = pad->substick_y = 0;
+    } else if (sqrt(x * x + y * y) > kStickInUse && !bluewake_game_options_invert_camera_x()) {
+        // The game's own camera has the view (swimming, the boat, a target):
+        // its C-stick turns the camera the other way from this stick's, so left
+        // and right flipped as Link went into the water (Wind-Waker-Recomp
+        // #24). Turn it this stick's way. The keyboard's C-stick is unchanged.
+        pad->substick_x = pad->substick_x == -128 ? 127 : (s8)-pad->substick_x;
     }
     if (g_stick_owns && click) {
         pad->substick_x = 0; // the click is the push up: first person

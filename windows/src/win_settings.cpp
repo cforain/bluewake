@@ -59,6 +59,8 @@ void bluewake_mouse_camera_configure(bool enabled, double sensitivity, bool inve
 void bluewake_mouse_camera_block(bool blocked);
 bool bluewake_mouse_camera_captured(void);
 void bluewake_haptics_reload(void);
+void bluewake_mouse_camera_reload(void);
+void bluewake_climb_reload(void);
 void bluewake_haptics_block(bool blocked);
 const char* bluewake_game_options_describe(uint32_t position, const char** title, bool* default_on, bool* on);
 // climb.h: the stamina wheel's state for the HUD.
@@ -132,6 +134,11 @@ void load_file() {
         else if (k == "controller_swap_xy") d.controller_swap_xy = parse_bool(v);
         else if (k == "controller_invert_x") d.pad_invert_x = parse_bool(v);
         else if (k == "controller_invert_y") d.pad_invert_y = parse_bool(v);
+        else if (k == "stick_camera") d.stick_camera = parse_bool(v);
+        else if (k == "stick_camera_speed") d.stick_speed = std::clamp(std::atoi(v.c_str()), 60, 1080);
+        else if (k == "stick_aim_speed") d.stick_aim_speed = std::clamp(std::atoi(v.c_str()), 30, 720);
+        else if (k == "climb") d.climb = parse_bool(v);
+        else if (k == "climb_stamina") d.climb_stamina = std::clamp(std::atoi(v.c_str()), 4, 30);
         else if (k == "haptics") d.haptics = v == "off" ? 0 : v == "classic" ? 1 : 2;
         else if (k == "haptics_strength") d.haptics_strength = std::clamp(std::atoi(v.c_str()), 0, 100);
         else if (k == "haptics_triggers") d.haptics_triggers = parse_bool(v);
@@ -168,6 +175,9 @@ void save_file() {
                  d.mouse_sensitivity, d.mouse_invert_y);
     std::fprintf(f, "controller_swap_ab=%d\ncontroller_swap_xy=%d\n", d.controller_swap_ab, d.controller_swap_xy);
     std::fprintf(f, "controller_invert_x=%d\ncontroller_invert_y=%d\n", d.pad_invert_x, d.pad_invert_y);
+    std::fprintf(f, "stick_camera=%d\nstick_camera_speed=%d\nstick_aim_speed=%d\n", d.stick_camera, d.stick_speed,
+                 d.stick_aim_speed);
+    std::fprintf(f, "climb=%d\nclimb_stamina=%d\n", d.climb, d.climb_stamina);
     std::fprintf(f, "haptics=%s\nhaptics_strength=%d\nhaptics_triggers=%d\n",
                  d.haptics == 0 ? "off" : d.haptics == 1 ? "classic" : "enhanced",
                  d.haptics_strength, d.haptics_triggers);
@@ -355,6 +365,26 @@ void apply_haptics() {
     bluewake_haptics_reload();
 }
 
+// The fast right-stick camera reads the controller through SDL itself, so the
+// controller's inversion (apply_controller, for the game's own C-stick) is its
+// BLUEWAKE_STICK_CAMERA_INVERT_X and _Y too (as in Elliott Tate's Windows menu).
+void apply_stick() {
+    const Settings& d = g_session;
+    _putenv_s("BLUEWAKE_STICK_CAMERA", d.stick_camera ? "1" : "0");
+    _putenv_s("BLUEWAKE_STICK_CAMERA_SPEED", std::to_string(d.stick_speed).c_str());
+    _putenv_s("BLUEWAKE_STICK_AIM_SPEED", std::to_string(d.stick_aim_speed).c_str());
+    _putenv_s("BLUEWAKE_STICK_CAMERA_INVERT_X", d.pad_invert_x ? "1" : "0");
+    _putenv_s("BLUEWAKE_STICK_CAMERA_INVERT_Y", d.pad_invert_y ? "1" : "0");
+    bluewake_mouse_camera_reload();
+}
+
+void apply_climb() {
+    const Settings& d = g_session;
+    _putenv_s("BLUEWAKE_CLIMB", d.climb ? "1" : "0");
+    _putenv_s("BLUEWAKE_CLIMB_STAMINA", std::to_string(d.climb_stamina).c_str());
+    bluewake_climb_reload();
+}
+
 void apply_live() {
     const Settings& d = g_session;
     aurora_set_frame_buffer_scale(static_cast<float>(d.render_scale));
@@ -365,6 +395,8 @@ void apply_live() {
     aurora_set_pause_on_focus_lost(d.pause_unfocused);
     bluewake_mouse_camera_configure(d.mouse_camera, d.mouse_sensitivity, d.mouse_invert_y);
     apply_controller();
+    apply_stick();
+    apply_climb();
 }
 
 void set_menu_open(bool open) {
@@ -516,12 +548,22 @@ void tab_controls() {
         changed();
     }
     ImGui::Spacing();
+    bool stick = ImGui::Checkbox("Fast right-stick camera and aiming (like the mouse; click the stick for first person)",
+                                 &d.stick_camera);
+    ImGui::BeginDisabled(!d.stick_camera);
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 16);
+    stick |= ImGui::SliderInt("Right-stick turn speed", &d.stick_speed, 120, 720, "%d degrees a second");
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 16);
+    stick |= ImGui::SliderInt("Right-stick aim speed (first person, items)", &d.stick_aim_speed, 60, 480,
+                              "%d degrees a second");
+    ImGui::EndDisabled();
     bool pad = ImGui::Checkbox("Controller: camera stick left and right inverted", &d.pad_invert_x);
     pad |= ImGui::Checkbox("Controller: camera stick up and down inverted", &d.pad_invert_y);
     pad |= ImGui::Checkbox("Swap A and B", &d.controller_swap_ab);
     pad |= ImGui::Checkbox("Swap X and Y", &d.controller_swap_xy);
-    if (pad) {
+    if (pad || stick) {
         apply_controller();
+        apply_stick();
         changed();
     }
     ImGui::Spacing();
@@ -582,6 +624,17 @@ void tab_enhancements() {
     if (ImGui::Checkbox("Quick doors", &d.quick_doors))
         changed();
     restart_note(d.quick_doors != g_launched.quick_doors);
+    if (ImGui::Checkbox("Climb any wall (experimental)", &d.climb)) {
+        apply_climb();
+        changed();
+    }
+    ImGui::BeginDisabled(!d.climb);
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 14.0f);
+    if (ImGui::SliderInt("Climbing stamina", &d.climb_stamina, 4, 30, "%d seconds")) {
+        apply_climb();
+        changed();
+    }
+    ImGui::EndDisabled();
     ImGui::Spacing();
     ImGui::TextUnformatted("Picture");
     restart_note(d.aspect != g_launched.aspect);
