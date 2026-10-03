@@ -17,7 +17,7 @@ below means source is present with bounded evidence, not that parity is accepted
 
 ## Source landed and live donor check, October 3
 
-BlueWake #37 is merged into `main` at **`b5433b3`**. Runtime #1–#4 are merged
+BlueWake #37 is merged into `main` at **`e73a218`**. Runtime #1–#4 are merged
 into maintained **`bluewake-next` at `c74d1034`**. Both merge trees equal the
 respective tested source (`406d561` and pinned `0568fedd`); no source was lost
 or replaced during landing. The exact application head passed both repository
@@ -167,7 +167,7 @@ Final compilation and provenance use the validated local profile. Packaging also
 includes Elliott's `msvcp140_atomic_wait.dll` runtime dependency when available.
 
 This follow-up is merged as [PR #38](https://github.com/chrissotraidis/bluewake/pull/38)
-at `97bdfb7`; its tree equals tested head `6b64f45`. Elliott is credited as
+at `597feef`; its tree equals tested head `6b64f45`. Elliott is credited as
 co-author. Seven synthetic training/packaging checks and 17 existing
 prepared-source cache checks pass locally and on Windows. These cover instrumentation/link flags, paths with spaces,
 profile rejection/preservation/reuse, source/option invalidation, isolated

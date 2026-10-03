@@ -5,6 +5,7 @@
 Do not add AI tools or models as commit authors or co-authors, or add generated-by
 attribution or AI session links to commit messages and pull requests. Preserve
 human authorship and human co-author credits, including imported donor history.
+The Attribution workflow enforces this with `scripts/check_attribution.py`.
 
 ## Releases paused
 

@@ -5,8 +5,8 @@
 Make BlueWake the maintained home for the approved consolidation with Elliott.
 The [reconciliation ledger](status/FORK_RECONCILIATION_2026-10-02.md) owns the
 feature inventory, platform matrix and evidence. Source consolidation is merged
-into `main` at `b5433b3`, with Windows local training follow-up #38 merged
-at `97bdfb7`; runtime is merged into `bluewake-next` at `c74d1034`.
+into `main` at `e73a218`, with Windows local training follow-up #38 merged
+at `597feef`; runtime is merged into `bluewake-next` at `c74d1034`.
 New development can proceed entirely in BlueWake. Finish the
 player paths and gameplay qualification before recommending cutover. Historical
 v56/v55/Route B campaigns below do not control this goal.

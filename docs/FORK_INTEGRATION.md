@@ -1,7 +1,7 @@
 # Source-fork integration
 
 The approved source consolidation is **merged into BlueWake `main`** through
-[PR #37](https://github.com/chrissotraidis/bluewake/pull/37), merge `b5433b3`.
+[PR #37](https://github.com/chrissotraidis/bluewake/pull/37), merge `e73a218`.
 Maintained RecompCore #1–#4 are merged into `bluewake-next` at `c74d1034`;
 that tree equals the tested/pinned `0568fedd`. Original contributor authorship
 and co-author credits are retained.
