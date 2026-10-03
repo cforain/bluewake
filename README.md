@@ -24,9 +24,11 @@
 > assets or saves. Your personal app contains code translated from your disc; you also import the
 > disc on your device.
 >
-> **Public app releases are paused.** Build privately from source using your own disc; do not
-> expect a downloadable BlueWake app. Publication requires clearance in the maintainer's private
-> release audit. See [Getting started](#getting-started) and the [candidate checklist](docs/status/RELEASE.md).
+> **Windows: download and play.** A ready-made Windows build is on the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest). It
+> contains the recompiled game code; at first launch you choose your own disc image (`.iso` or `.gcm`).
+>
+> **Mac, iPhone and iPad: build your own** from your disc with PadMint or the builder in
+> [Getting started](#getting-started). No prebuilt app with game code is provided for these.
 >
 > **AI disclosure:** BlueWake is developed with substantial AI assistance for code, testing,
 > documentation and debugging. The status log records what has actually been checked, and on what.
@@ -45,9 +47,9 @@ and [status](docs/MIGRATION_STATUS.md).
   attach your session log. Open issues there are being moved here with a link back.
 - **Your Windows saves carry over:** both keep them in `%APPDATA%\BlueWake`. Back that folder up
   before switching.
-- **Windows:** BlueWake builds the game from your own disc on your PC ([BlueWake on Windows](docs/WINDOWS.md))
-  and does not publish ready-made apps that contain game code. Windows support is experimental while it
-  is tested.
+- **Windows:** the same ready-made build as Wind Waker Recomp 0.4.0 is on BlueWake's
+  [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest). Unpack it, run `BlueWake.exe` and choose your disc image. A Dolphin `.rvz`
+  must first be converted to ISO in Dolphin (right-click the game, Convert File).
 - **Questions:** the [Discord](https://discord.gg/xwHfUD2bxW), shared by both projects.
 
 The measurements below describe earlier developer builds; they are not acceptance of every personal
@@ -114,8 +116,8 @@ You need:
 - Or an Apple TV on tvOS 17 or later, with Developer Mode on ([Apple TV build guide](docs/status/TVOS_BUILD.md))
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
-PadMint's BlueWake workflow uses an app-only release as its starting point. Public app releases
-are currently paused, so use the source builder below instead of relying on that release workflow.
+PadMint's BlueWake workflow starts from the app-only IPA on the Releases page, which is older than
+current `main`. For the latest changes, use the source builder below.
 
 **From this repository,** one command builds your own personal app from a fresh checkout:
 
@@ -137,6 +139,9 @@ Signing with your own identity and other options: [docs/status/DEVICE_BUILD.md](
 For Apple TV, use [the tvOS build guide](docs/status/TVOS_BUILD.md); it builds and installs directly with `devicectl`.
 
 ### Windows
+
+**Download:** the ready-made Windows build is on the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest): unpack it, run
+`BlueWake.exe` and choose your `.iso` or `.gcm` disc image. To build it yourself instead:
 
 An experimental native Windows x86-64 source port targets Direct3D 12, using the same disc and verified
 game source. The runtime/app compile and link pass native Windows CI; end-to-end personal-module
@@ -210,9 +215,9 @@ Waker settings and 16:10 variants; an older module does not gain those variants 
 
 ### Can I download it?
 
-Public app releases are paused. You can build a personal app from source on an Apple silicon Mac
-with your own disc (see [Getting started](#getting-started)). Never share that app: it contains
-translated game code. An app-only build without your module shows "Translated game code: Missing".
+On Windows, yes: the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest) has a ready-made build that needs your own disc image.
+On Mac, iPhone and iPad, build a personal app from source with your own disc (see
+[Getting started](#getting-started)). Never share an app you build yourself: it contains translated game code. An app-only build without your module shows "Translated game code: Missing".
 
 ### Why does it need my disc?
 
