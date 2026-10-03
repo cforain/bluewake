@@ -199,8 +199,13 @@ class Builder:
     def check_tools(self):
         if platform.system() != "Windows":
             die("this builder is for Windows; on a Mac use scripts/builder/build.sh")
-        if platform.machine().lower() not in ("amd64", "x86_64"):
-            die(f"an x86-64 PC is required (this is {platform.machine()})")
+        machine = platform.machine().lower()
+        if machine not in ("amd64", "x86_64", "arm64"):
+            die(f"an x86-64 or ARM64 Windows PC is required (this is {platform.machine()})")
+        if machine == "arm64":
+            # Windows on ARM runs x64 programs: the same x64 tools and game as on an x64 PC,
+            # under Windows' x64 emulation (slower to build and play than native x64).
+            print("Windows on ARM: building the x64 game, which runs under Windows' x64 emulation")
         if sys.version_info < (3, 10):
             die("Python 3.10 or newer is required")
         for tool in ("git", "cmake", "ninja"):
