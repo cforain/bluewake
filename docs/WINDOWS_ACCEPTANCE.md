@@ -55,13 +55,18 @@ branch is `bluewake-next`, but builds use the lock's exact commit.
 
 3. **Reported problem areas:** test Windfall Pictobox preview, shutter, cancel,
    repeat and saved-album reload; startup/settings freezes; narrated intro and
-   scripted music; and the bird/abduction slowdown. Record reproducible failures
-   with steps. A Mac result does not close the corresponding Windows check.
+   scripted music; the bird/abduction slowdown; and the camera's left and right
+   while swimming with the right stick (it should no longer flip, #24). Record
+   reproducible failures with steps. A Mac result does not close the
+   corresponding Windows check.
 
 4. **Controls and sustained play:** test keyboard/mouse and a physical controller,
    button layouts, menus, reconnect and vibration. Listen for music/effects and
    dropouts. Play at least 30 minutes with real progression and scene transitions,
-   including settings and save/reload.
+   including settings and save/reload. Try the new menu entries: fast right-stick
+   camera and its speeds, wall climbing and stamina, and "Compile shaders before
+   playing". With the FPS counter on and Smooth Motion at 60, it should say
+   "Smooth Motion paused" rather than 60 whenever the in-between frames stop.
 
 5. **Donor comparison:** compare BlueWake with your recorded Wind-Waker-Recomp
    baseline on the same machine, using the same scenes and settings: Outset, a busy
@@ -69,7 +74,12 @@ branch is `bluewake-next`, but builds use the lock's exact commit.
    Motion Off and experimental 60 Hz Off for the baseline. Record frame-time
    spikes/stalls and audio as well as averages. Keep displayed FPS distinct from
    game speed. Report any regression and investigate optional optimizations
-   separately.
+   separately. The builder now prepares your optimization set by default (fixed
+   CPU/RAM, inline helpers, prepaid blocks, direct calls, natives; `--conservative`
+   turns them off), and the session log's `[chassis]` lines show which are on.
+   Your second set of natives and `lean_memory.py` are not in BlueWake yet.
+   `python3 scripts/triage_session_log.py` summarizes a session log's slow seconds
+   by cause.
 
 ## Results to return
 
