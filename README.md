@@ -34,10 +34,10 @@
 **Questions or bugs?** Join the [Discord](https://discord.gg/xwHfUD2bxW) or
 [open an issue](https://github.com/chrissotraidis/bluewake/issues).
 
-The next stability candidate is still being validated on the draft integration branch, not main.
-The measurements below describe earlier developer builds; they are not acceptance of the latest
-changes or every personal player build. Windows and Apple TV remain experimental. See the
-[platform evidence](docs/FORK_INTEGRATION.md) for completed checks and remaining gates.
+Elliott Tate's Wind-Waker-Recomp is merging into BlueWake, and development continues here. See the
+[migration status](docs/MIGRATION_STATUS.md) for what is done and what is still open. The
+measurements below describe earlier developer builds; they are not acceptance of every personal
+player build. Windows and Apple TV remain experimental.
 
 ## What is BlueWake?
 
@@ -304,6 +304,7 @@ receives the whole imported save, including all three slots.
 
 ## Documentation
 
+- [Migration status](docs/MIGRATION_STATUS.md): the move from Wind-Waker-Recomp, and what is open
 - [Current status](docs/status/CURRENT.md): the engineering log, newest first
 - [Build your own BlueWake](docs/BUILD_YOUR_OWN.md): the player's guide
 - [BlueWake on Windows](docs/WINDOWS.md): building and playing on a Windows PC
