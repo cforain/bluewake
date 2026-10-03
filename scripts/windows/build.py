@@ -274,6 +274,12 @@ class Builder:
             if sep and key:
                 env[key] = value
         env["PATH"] = str(install / "VC/Tools/Llvm/x64/bin") + os.pathsep + env.get("PATH", "")
+        if env.get("PROCESSOR_ARCHITECTURE", "").upper() == "ARM64":
+            # Windows on ARM: CMake takes the target processor from this variable, so the
+            # x64 build would otherwise pick ARM code (libpng's NEON: "NEON intrinsics not
+            # available") for the x64 compiler.
+            env["PROCESSOR_ARCHITECTURE"] = "AMD64"
+            env.pop("PROCESSOR_ARCHITEW6432", None)
         print(f"Visual Studio: {install}")
         return env
 
