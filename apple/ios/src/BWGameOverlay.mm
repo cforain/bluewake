@@ -321,13 +321,19 @@ static void BWDumpMenu(UIMenuElement* element, int depth) {
     float shown = 0, speed = 0, worst = 0;
     bluewake_fps_read(&shown, &speed, &worst);
     const float display = bluewake_fps_display();
-    if (display > shown + 5.0f)
+    const BOOL paused = bluewake_fps_smooth_paused();
+    if (paused)
+        // Each game frame shown twice: the picture moves at the game's rate.
+        _fpsLabel.text = [NSString stringWithFormat:@"%.0f FPS (Smooth Motion paused) · %.0f%% speed · %.0f ms",
+                                                    bluewake_fps_game(), speed, worst];
+    else if (display > shown + 5.0f)
         _fpsLabel.text = [NSString stringWithFormat:@"%.0f FPS (game %.0f) · %.0f%% speed · %.0f ms", display, shown,
                                                     speed, worst];
     else
         _fpsLabel.text = [NSString stringWithFormat:@"%.0f FPS · %.0f%% speed · %.0f ms", shown, speed, worst];
-    _fpsLabel.textColor = shown < 27.0f || speed < 95.0f ? [UIColor colorWithRed:1.0 green:0.8 blue:0.3 alpha:1.0]
-                                                         : UIColor.whiteColor;
+    _fpsLabel.textColor = paused || shown < 27.0f || speed < 95.0f
+                              ? [UIColor colorWithRed:1.0 green:0.8 blue:0.3 alpha:1.0]
+                              : UIColor.whiteColor;
 }
 
 - (UIViewController*)presenter {
