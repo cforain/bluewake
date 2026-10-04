@@ -35,6 +35,7 @@
 #include <aurora/imgui.h>
 #include <dolphin/pad.h>
 #include <imgui.h>
+#include "button_remap.h"
 
 #include <algorithm>
 #include <climits>
@@ -133,6 +134,7 @@ void load_file() {
         else if (k == "mouse_sensitivity") d.mouse_sensitivity = std::clamp(std::atof(v.c_str()), 0.1, 10.0);
         else if (k == "mouse_invert_y") d.mouse_invert_y = parse_bool(v);
         else if (k == "controller_swap_ab") d.controller_swap_ab = parse_bool(v);
+        else if (k == "button_map") d.button_map = v;
         else if (k == "controller_swap_xy") d.controller_swap_xy = parse_bool(v);
         else if (k == "controller_invert_x") d.pad_invert_x = parse_bool(v);
         else if (k == "controller_invert_y") d.pad_invert_y = parse_bool(v);
@@ -179,6 +181,8 @@ void save_file() {
     std::fprintf(f, "mouse_camera=%d\nmouse_sensitivity=%.2f\nmouse_invert_y=%d\n", d.mouse_camera,
                  d.mouse_sensitivity, d.mouse_invert_y);
     std::fprintf(f, "controller_swap_ab=%d\ncontroller_swap_xy=%d\n", d.controller_swap_ab, d.controller_swap_xy);
+    if (!d.button_map.empty())
+        std::fprintf(f, "button_map=%s\n", d.button_map.c_str());
     std::fprintf(f, "controller_invert_x=%d\ncontroller_invert_y=%d\n", d.pad_invert_x, d.pad_invert_y);
     std::fprintf(f, "stick_camera=%d\nstick_camera_speed=%d\nstick_aim_speed=%d\n", d.stick_camera, d.stick_speed,
                  d.stick_aim_speed);
@@ -336,12 +340,19 @@ void reset_window(SDL_Window* w) {
 // an axis, so a mapping set elsewhere is otherwise left alone.
 void apply_controller() {
     const Settings& d = g_session;
-    if (!d.pad_invert_x && !d.pad_invert_y && !d.controller_swap_ab && !d.controller_swap_xy && !g_pad_applied)
+    BwButtonMap map;
+    const bool remapped = bw_button_map_parse(d.button_map, &map);
+    if (!d.pad_invert_x && !d.pad_invert_y && !d.controller_swap_ab && !d.controller_swap_xy && !remapped &&
+        !g_pad_applied)
         return;
     if (PADGetIndexForPort(0) < 0)
         return;
     PADRestoreDefaultMapping(0);
-    bw_apply_face_swaps(0, d.controller_swap_ab, d.controller_swap_xy);
+    // A custom layout replaces the swaps; otherwise the swaps as before.
+    if (remapped)
+        bw_apply_button_map(0, map);
+    else
+        bw_apply_face_swaps(0, d.controller_swap_ab, d.controller_swap_xy);
     const PADAxisMapping axes[4] = {
         {{SDL_GAMEPAD_AXIS_RIGHTX, d.pad_invert_x ? AXIS_SIGN_NEGATIVE : AXIS_SIGN_POSITIVE},
          SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_X_POS},
@@ -581,8 +592,21 @@ void tab_controls() {
     ImGui::EndDisabled();
     bool pad = ImGui::Checkbox("Controller: camera stick left and right inverted", &d.pad_invert_x);
     pad |= ImGui::Checkbox("Controller: camera stick up and down inverted", &d.pad_invert_y);
+    BwButtonMap map;
+    const bool remapped = bw_button_map_parse(d.button_map, &map);
+    ImGui::BeginDisabled(remapped);
     pad |= ImGui::Checkbox("Swap A and B", &d.controller_swap_ab);
     pad |= ImGui::Checkbox("Swap X and Y", &d.controller_swap_xy);
+    ImGui::EndDisabled();
+    if (ImGui::CollapsingHeader("Controller buttons")) {
+        ImGui::TextWrapped("Choose which controller button presses each GameCube button. Picking one that is "
+                           "already used swaps the two.%s", remapped ? " The swaps above are off while you use "
+                           "a custom layout." : "");
+        if (bw_button_map_ui(&map)) {
+            d.button_map = bw_button_map_format(map);
+            pad = true;
+        }
+    }
     if (pad || stick) {
         apply_controller();
         apply_stick();

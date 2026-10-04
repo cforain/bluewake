@@ -179,7 +179,8 @@ Run `build\windows\BlueWake\BlueWake.exe`.
 | Frame rate | F9 |
 
 Game controllers work through SDL (Xbox, PlayStation, Switch Pro and others). The title screen wants A to reach
-the file menu. The mouse turns the game's own camera around Link and tilts it, and a left click is A; a
+the file menu. To choose which controller button presses each GameCube button, open settings and use
+**Controls › Controller buttons** (builds from `main` after October 4, 2026). The mouse turns the game's own camera around Link and tilts it, and a left click is A; a
 cutscene, door, Z-target or first-person view takes the camera back.
 
 Command-line options (`BlueWake.exe --help`):

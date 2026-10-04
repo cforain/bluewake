@@ -68,7 +68,7 @@ Use `python3 scripts/triage_session_log.py session-*.log` on any attached log.
 | #80 HD pack shading on AMD | Try the Hypatia DDS pack on Windows, with and without it; compare with the PNG pack. |
 | #61 8BitDo GameCube controller | Check whether SDL sees it and what it maps to. |
 | #76 Forsaken Fortress soft lock | Try to reproduce on the tower with the Moblins; it may be the original game's behaviour. |
-| #65 missing music in cutscenes | With task 1's build, check the `[music-stream]` lines in an affected scene. |
+| #65, #97 missing music or sound in cutscenes | With task 1's build, check the `[music-stream]` lines in an affected scene (the intro after naming Link, and the bird scenes). The Mac plays them. |
 | #59, #72, #79, #86 slowdowns | Measure the scenes with the triage script. The #76 log already shows the Forsaken Fortress exterior limited by the GX worker (83 of 97 slow seconds). |
 
 Close an issue only when the reporter confirms the fix, or with a clear explanation.
