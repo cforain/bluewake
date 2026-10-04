@@ -37,6 +37,10 @@ belongs to Elliott (his hardware); a native Linux port is not planned (players c
   It passes the release check and PadMint's audit, and PadMint resolves and verifies it. Not yet checked
   through PadMint on a physical iPad.
 - **Windows:** the remaining work is in [WINDOWS_TASKS.md](WINDOWS_TASKS.md).
+- **Quick wins:** controller button remapping on Mac and Windows, matching the iPad (#66), and Jump and
+  Sprint starting off on the Mac as on the other platforms (#71), merged in
+  [#98](https://github.com/chrissotraidis/bluewake/pull/98). They reach players in the next Mac release and
+  Windows build.
 
 ### Each iteration
 
