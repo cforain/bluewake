@@ -17,6 +17,8 @@
 //   %APPDATA%\BlueWake\GZLE01.card             the memory card (saves)
 //   %APPDATA%\BlueWake\sram.bin                the console's settings
 //   %APPDATA%\BlueWake\logs\session-*.log      the newest eight sessions
+// Portable mode (#64): with a file named portable.txt beside BlueWake.exe, the
+// player data goes in a user folder beside it instead (BlueWake\user\...).
 // Every default is only a default: an environment variable that is already
 // set (BLUEWAKE_DISC, BLUEWAKE_CARD_PATH, ...) wins.
 #ifndef WIN32_LEAN_AND_MEAN
@@ -87,8 +89,12 @@ static void resolve_dirs(void) {
     }
     const char* override = getenv("BLUEWAKE_DATA_DIR");
     const char* appdata = getenv("APPDATA");
+    char portable[MAX_PATH * 4];
+    snprintf(portable, sizeof portable, "%sportable.txt", g_exe_dir);
     if (override != NULL && override[0] != '\0')
         snprintf(g_data_dir, sizeof g_data_dir, "%s\\", override);
+    else if (file_exists(portable))
+        snprintf(g_data_dir, sizeof g_data_dir, "%suser\\", g_exe_dir);
     else if (appdata != NULL && appdata[0] != '\0')
         snprintf(g_data_dir, sizeof g_data_dir, "%s\\BlueWake\\", appdata);
     else
@@ -449,8 +455,8 @@ static void usage(void) {
             "H/F/T/G C-stick, E/R L/R, Q Z, Return START. Game controllers work too.\n"
             "Mouse: click the game, then move it to turn the camera; Esc releases it.\n"
             "F1 or Esc settings, F11 or Alt+Enter fullscreen, F10 Smooth Motion, F9 frame rate.\n"
-            "The settings menu saves to %%APPDATA%%\\BlueWake\\settings.ini; options given here\n"
-            "win for the session.\n");
+            "The settings menu saves to %%APPDATA%%\\BlueWake\\settings.ini (with portable.txt beside\n"
+            "BlueWake.exe, to its user folder); options given here win for the session.\n");
 }
 
 static void fatal_box(const char* message) {

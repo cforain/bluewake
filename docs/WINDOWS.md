@@ -216,6 +216,11 @@ never touches it:
   wrong. Attach the relevant one to a bug report. If BlueWake crashes, the log says where.
 - Aurora's pipeline cache, so later launches start drawing sooner
 
+**Portable mode:** create an empty file named `portable.txt` next to `BlueWake.exe`, and BlueWake keeps all of
+this in a `user` folder beside it instead (builds from `main` after October 4, 2026). To bring existing saves
+along, copy the contents of `%APPDATA%\BlueWake` into that `user` folder first. An `.iso` or `.gcm` disc image
+is read where it is in either mode; only Dolphin's compressed formats are unpacked to a copy.
+
 ## How the port works
 
 The Windows host is `windows/`: a CMake project that compiles the unchanged host (`runtime/host/src`), GXRuntime
