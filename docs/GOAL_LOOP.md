@@ -50,5 +50,13 @@ causes apart.
   Confirming the cause needs a log from a Windows build of `main`.
 - **5. Linux:** the port's author was invited to open it on BlueWake without the disc in CI
   ([comment](https://github.com/elliotttate/Wind-Waker-Recomp/pull/33#issuecomment-5979167274)).
+- **3. PadMint confirmation:** done on this Mac. `padmint make bluewake ios` from the 0.2.0 release
+  finished with a personal IPA in 2 h 37 min on a busy machine ([PADMINT_HANDOFF.md](PADMINT_HANDOFF.md)).
+  [#104](https://github.com/chrissotraidis/bluewake/issues/104) asks players how it went. Installing it
+  waits for the iPad.
+- **4. Small fixes:** Windows portable mode (#64) merged in
+  [#103](https://github.com/chrissotraidis/bluewake/pull/103) and listed for a Windows check.
+- **6. Issues:** #64 answered; #65 and #97 asked to retest 0.4.0 with Smooth Motion and 60 Hz gameplay
+  off, which separates the remaining causes without a new build.
 
 Earlier loops are in [the archive](archive/GOAL_LOOP_HISTORY.md).
