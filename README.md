@@ -117,8 +117,8 @@ You need:
 - Or an Apple TV on tvOS 17 or later, with Developer Mode on ([Apple TV build guide](docs/status/TVOS_BUILD.md))
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
-PadMint's BlueWake workflow starts from the app-only IPA on the Releases page, which is older than
-current `main`. For the latest changes, use the source builder below.
+PadMint's BlueWake workflow starts from the app-only IPA on the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest)
+(0.2.0) and adds the game made from your disc. To build from the latest source instead, use the builder below.
 
 **From this repository,** one command builds your own personal app from a fresh checkout:
 

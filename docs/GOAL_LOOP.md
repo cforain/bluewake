@@ -32,8 +32,11 @@ belongs to Elliott (his hardware); a native Linux port is not planned (players c
   Windows-only. The remaining reports need a save at that point in the game, a texture pack or Windows,
   and are labeled.
 - **3. iPad Simulator:** the same source reaches control on Outset with the HUD and touch controls drawn.
-- **4. Release candidate:** a draft release, BlueWake 0.2.0 (iPad app without game code and its PadMint
-  recipe, plus the Windows 0.4.0 files), passes the release check and PadMint's audit. Waiting on Chris.
+- **4. Release:** BlueWake 0.2.0 is published ([v0.2.0](https://github.com/chrissotraidis/bluewake/releases/tag/v0.2.0)):
+  the iPad app without game code and its PadMint recipe, built from `72a241f`, plus the Windows 0.4.0 files.
+  It passes the release check and PadMint's audit, and PadMint resolves and verifies it. Not yet checked
+  through PadMint on a physical iPad.
+- **Windows:** the remaining work is in [WINDOWS_TASKS.md](WINDOWS_TASKS.md).
 
 ### Each iteration
 
