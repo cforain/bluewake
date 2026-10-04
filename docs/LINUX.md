@@ -52,14 +52,6 @@ the build, so rebuilding never touches them. The settings menu (Esc or F1) saves
 translated from your disc and `game/` holds your disc image. Never share or
 upload it.
 
-## Packaging (AppImage + auto-update)
-
-    scripts/linux/make_appimage.sh build/linux/BlueWake BlueWake-x86_64.AppImage --zsync
-
-This needs `appimagetool` on your PATH. It writes a self-contained AppImage and,
-with `--zsync`, a zsync delta beside it. Publish both under the same URL and the
-AppImage self-updates via AppImageUpdate.
-
 ## Releases
 
 A ready-made Linux build that includes the game code is published the same way as
