@@ -19,7 +19,9 @@
       "hosts": {
         "macos-arm64": "experimental",
         "linux-x86_64": "experimental",
-        "linux-arm64": "experimental"
+        "linux-arm64": "experimental",
+        "windows-x86_64": "experimental",
+        "windows-arm64": "experimental"
       },
       "tools": [
         "git",
@@ -38,6 +40,26 @@
           "command": [
             "/bin/bash",
             "{repo}/scripts/builder/build.sh",
+            "{disc}",
+            "--out",
+            "{work}",
+            "--jobs",
+            "{jobs}",
+            "--source-only"
+          ],
+          "on": [
+            "macos",
+            "linux"
+          ]
+        },
+        {
+          "stage": "translate",
+          "on": [
+            "windows"
+          ],
+          "command": [
+            "{python}",
+            "{repo}/scripts/windows/build.py",
             "{disc}",
             "--out",
             "{work}",
@@ -110,6 +132,11 @@
         "name": "python3",
         "version_args": [
           "--version"
+        ],
+        "hosts": [
+          "macos-arm64",
+          "linux-x86_64",
+          "linux-arm64"
         ]
       },
       {
@@ -149,6 +176,27 @@
           "linux-arm64"
         ],
         "note": "Install a C compiler for the disc tool, for example: sudo apt install build-essential"
+      },
+      {
+        "name": "%ProgramFiles(x86)%/Microsoft Visual Studio/Installer/vswhere.exe",
+        "label": "Visual Studio Build Tools with C++ Clang",
+        "version_args": [
+          "-latest",
+          "-products",
+          "*",
+          "-requires",
+          "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+          "Microsoft.VisualStudio.Component.VC.Llvm.Clang",
+          "-property",
+          "catalog_productDisplayVersion"
+        ],
+        "min_version": "17",
+        "player": true,
+        "note": "Install Visual Studio Build Tools 2022 (free) from https://visualstudio.microsoft.com/downloads/ with Desktop development with C++, then in Individual components add C++ Clang Compiler for Windows. Run PadMint again when it finishes.",
+        "hosts": [
+          "windows-x86_64",
+          "windows-arm64"
+        ]
       }
     ]
   },
