@@ -56,6 +56,13 @@ of their authors and keep their own terms. The repository carries only the wides
 Better Wind Waker. Personal builds translate both behaviors at those sites from the player's disc;
 the settings select which behavior runs. You add texture packs yourself.
 
+The optional Wind Waker HD texture importer (`scripts/import_wwhd_textures.py`)
+extracts artwork only from the user's local disc. Its output, discs, tickets and
+keys are personal data and must never be included in a public release. The
+vendored Wii U surface address library is AboodXD's BFRES-Tool addrlib under
+GPL-3.0-or-later; its license, copyright and pinned source are recorded in
+`scripts/wwhd/vendor/`. Format reader attribution is in `docs/WWHD_TEXTURES.md`.
+
 ## Runtime metadata
 
 `apple/ios/resources/initial_pipeline_cache.db` contains Aurora rendering-pipeline descriptions

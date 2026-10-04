@@ -3,6 +3,7 @@
 
 #include "climb.h"
 #include "draw_tags.h"
+#include "forest_water.h"
 #include "mouse_camera.h"
 #include "quick_doors.h"
 
@@ -11,10 +12,13 @@
  * Jump remains separate: its pending press can observe a dynamic proc call. */
 static inline bool bluewake_feature_observes(u32 address) {
     return bluewake_mouse_camera_observes(address) || bluewake_climb_observes(address) ||
-           bluewake_quick_doors_observes(address) || bluewake_draw_tags_observes(address);
+           bluewake_quick_doors_observes(address) || bluewake_draw_tags_observes(address) ||
+           bluewake_forest_water_observes(address);
 }
 
 static inline void bluewake_feature_dispatch(CPUState* cpu, u32 address) {
+    // Forest Water's hooks are outside the interval below (one is in a module).
+    bluewake_forest_water_dispatch(cpu, address);
     if (address - BLUEWAKE_QUICK_DOORS_ACTOR_CREATE >
         BLUEWAKE_PARTICLE_DRAW_LAST - BLUEWAKE_QUICK_DOORS_ACTOR_CREATE)
         return;

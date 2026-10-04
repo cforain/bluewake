@@ -61,6 +61,8 @@ bool bluewake_mouse_camera_captured(void);
 void bluewake_haptics_reload(void);
 void bluewake_mouse_camera_reload(void);
 void bluewake_climb_reload(void);
+// forest_water.h: BLUEWAKE_FOREST_WATER_KEEP_TREES and _30_MINUTES read again.
+void bluewake_forest_water_reload(void);
 void bluewake_haptics_block(bool blocked);
 const char* bluewake_game_options_describe(uint32_t position, const char** title, bool* default_on, bool* on);
 // climb.h: the stamina wheel's state for the HUD.
@@ -139,6 +141,8 @@ void load_file() {
         else if (k == "stick_aim_speed") d.stick_aim_speed = std::clamp(std::atoi(v.c_str()), 30, 720);
         else if (k == "climb") d.climb = parse_bool(v);
         else if (k == "climb_stamina") d.climb_stamina = std::clamp(std::atoi(v.c_str()), 4, 30);
+        else if (k == "forest_water_keep_trees") d.forest_keep_trees = parse_bool(v);
+        else if (k == "forest_water_30_minutes") d.forest_30_minutes = parse_bool(v);
         else if (k == "haptics") d.haptics = v == "off" ? 0 : v == "classic" ? 1 : 2;
         else if (k == "haptics_strength") d.haptics_strength = std::clamp(std::atoi(v.c_str()), 0, 100);
         else if (k == "haptics_triggers") d.haptics_triggers = parse_bool(v);
@@ -147,6 +151,7 @@ void load_file() {
         else if (k == "betterww") d.betterww = parse_bool(v);
         else if (k.rfind("option.", 0) == 0) d.options[k.substr(7)] = parse_bool(v);
         else if (k == "hd_textures") d.hd_textures = parse_bool(v);
+        else if (k == "texture_pack") d.texture_pack = v;
         else if (k == "lle_audio") d.lle_audio = parse_bool(v);
         else if (k == "movement_extras") d.movement_extras = parse_bool(v);
         else if (k == "fast_transitions") d.fast_transitions = parse_bool(v);
@@ -178,6 +183,10 @@ void save_file() {
     std::fprintf(f, "stick_camera=%d\nstick_camera_speed=%d\nstick_aim_speed=%d\n", d.stick_camera, d.stick_speed,
                  d.stick_aim_speed);
     std::fprintf(f, "climb=%d\nclimb_stamina=%d\n", d.climb, d.climb_stamina);
+    std::fprintf(f, "forest_water_keep_trees=%d\nforest_water_30_minutes=%d\n", d.forest_keep_trees,
+                 d.forest_30_minutes);
+    if (!d.texture_pack.empty())
+        std::fprintf(f, "texture_pack=%s\n", d.texture_pack.c_str());
     std::fprintf(f, "haptics=%s\nhaptics_strength=%d\nhaptics_triggers=%d\n",
                  d.haptics == 0 ? "off" : d.haptics == 1 ? "classic" : "enhanced",
                  d.haptics_strength, d.haptics_triggers);
@@ -236,6 +245,10 @@ void default_window(double ratio, int* w, int* h) {
 }
 
 std::string texture_folder() { return g_data_dir + "Load\\Textures\\GZLE01"; }
+// The folder the pack is loaded from: the one chosen, else texture_folder().
+std::string texture_pack_folder(const Settings& d) {
+    return d.texture_pack.empty() ? texture_folder() : d.texture_pack;
+}
 
 // --- the window -------------------------------------------------------------
 
@@ -385,6 +398,13 @@ void apply_climb() {
     bluewake_climb_reload();
 }
 
+void apply_forest_water() {
+    const Settings& d = g_session;
+    _putenv_s("BLUEWAKE_FOREST_WATER_KEEP_TREES", d.forest_keep_trees ? "1" : "0");
+    _putenv_s("BLUEWAKE_FOREST_WATER_30_MINUTES", d.forest_30_minutes ? "1" : "0");
+    bluewake_forest_water_reload();
+}
+
 void apply_live() {
     const Settings& d = g_session;
     aurora_set_frame_buffer_scale(static_cast<float>(d.render_scale));
@@ -397,6 +417,7 @@ void apply_live() {
     apply_controller();
     apply_stick();
     apply_climb();
+    apply_forest_water();
 }
 
 void set_menu_open(bool open) {
@@ -456,7 +477,8 @@ bool relaunch() {
 bool needs_restart() {
     const Settings &a = g_session, &b = g_launched;
     return a.aspect != b.aspect || a.keep_aspect != b.keep_aspect || a.betterww != b.betterww ||
-           a.options != b.options || a.hd_textures != b.hd_textures || a.lle_audio != b.lle_audio ||
+           a.options != b.options || a.hd_textures != b.hd_textures || a.texture_pack != b.texture_pack ||
+           a.lle_audio != b.lle_audio ||
            a.movement_extras != b.movement_extras || a.fast_transitions != b.fast_transitions ||
            a.quick_doors != b.quick_doors;
 }
@@ -635,6 +657,16 @@ void tab_enhancements() {
         changed();
     }
     ImGui::EndDisabled();
+    if (ImGui::Checkbox("Forest Water: keep watered trees when time runs out", &d.forest_keep_trees)) {
+        apply_forest_water();
+        changed();
+    }
+    ImGui::TextDisabled("    Forest Water still expires. Refill and carry on with the trees still to water.");
+    if (ImGui::Checkbox("Forest Water: 30-minute timer", &d.forest_30_minutes)) {
+        apply_forest_water();
+        changed();
+    }
+    ImGui::TextDisabled("    Applies the next time Link scoops Forest Water.");
     ImGui::Spacing();
     ImGui::TextUnformatted("Picture");
     restart_note(d.aspect != g_launched.aspect);
@@ -685,8 +717,19 @@ void tab_enhancements() {
     restart_note(d.hd_textures != g_launched.hd_textures);
     ImGui::SameLine();
     if (ImGui::SmallButton("Open the texture folder"))
-        open_folder(texture_folder());
-    ImGui::TextDisabled("    A Dolphin-format pack for GZLE01 (its folder of .png or .dds files) goes in that folder.");
+        open_folder(texture_pack_folder(d));
+    if (d.texture_pack.empty()) {
+        ImGui::TextDisabled("    A Dolphin-format pack for GZLE01 (its folder of .png or .dds files) goes in that folder.");
+    } else {
+        ImGui::TextDisabled("    The pack in %s", d.texture_pack.c_str());
+        restart_note(d.texture_pack != g_launched.texture_pack);
+        ImGui::Indent();
+        if (ImGui::SmallButton("Use Load\\Textures\\GZLE01 instead")) {
+            d.texture_pack.clear();
+            changed();
+        }
+        ImGui::Unindent();
+    }
 }
 
 void tab_game() {
@@ -1142,7 +1185,7 @@ extern "C" void bw_settings_apply_launch(void) {
     CreateDirectoryA((g_data_dir + "Load\\Textures").c_str(), nullptr);
     CreateDirectoryA(texture_folder().c_str(), nullptr);
     if (d.hd_textures)
-        env_default("DOL_AURORA_TEXTURE_PACK", texture_folder());
+        env_default("DOL_AURORA_TEXTURE_PACK", texture_pack_folder(d));
     if (d.lle_audio)
         env_default("BLUEWAKE_DSP_MODE", "lle");
     if (d.fullscreen)
