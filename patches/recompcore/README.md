@@ -65,3 +65,11 @@ longer drops the in-between frames.
 Patch 0142 counts the time the host holds the guest (a menu, the app in the background):
 `DolAuroraFrameTiming.held_us` and `dol_aurora_held_us()`, so per-second diagnostics
 leave it out. Logging only.
+
+Patches 0152-0155 are Elliott Tate's runtime commits of October 3 from his RecompCore
+`windows-release` (`ef3e17f`, `201e909`, `7310b79`, `e6559e0`), with his authorship: a draw's
+transform state copied only when it changed; Smooth Motion for the Mac's water and HUD (indexed meshes
+blended with their UVs, screen sprites matched by their artwork and bounds); HD replacements sampled at
+their own mip levels, so HD packs stop shimmering while the camera turns; and vertex-by-vertex blending
+kept to meshes the game wrote, so the water path costs what it did. They replace Wind-Waker-Recomp's
+working-tree patches 0113, 0140, 0160 and 0170; its lava patch 0120 is BlueWake's 0136.
