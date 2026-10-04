@@ -40,5 +40,15 @@ causes apart.
 
 - October 4: loop written. Done before it: controller button remapping on Mac and Windows (#66), Jump
   and Sprint off by default everywhere (#71), #67 closed after the reporter confirmed 0.4.0 fixed it.
+- **1. Audio logging:** done. `runtime/host/src/audio_watch.c` writes `[demo]`, `[demo-sound]` and
+  `[audio-lost]` in every build; the triage script reports them. On the Mac, a new game to control logs
+  the opening cutscene as `cues=4 sounds=4 missing=0 silent=0.4s of 104.7s`. A test feeds it a
+  fake cutscene with a missing sound and silence.
+- **2. Audio code review:** done. The audio pacing settings are the same on every platform; only the
+  Windows 0.4.0 download has native math on, Smooth Motion on by default and the 60 Hz option. How to
+  read the new lines and where each points is in [WINDOWS_TASKS.md](WINDOWS_TASKS.md#reading-the-cutscene-sound-lines-65-97).
+  Confirming the cause needs a log from a Windows build of `main`.
+- **5. Linux:** the port's author was invited to open it on BlueWake without the disc in CI
+  ([comment](https://github.com/elliotttate/Wind-Waker-Recomp/pull/33#issuecomment-5979167274)).
 
 Earlier loops are in [the archive](archive/GOAL_LOOP_HISTORY.md).

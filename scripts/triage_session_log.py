@@ -4,8 +4,9 @@
 Usage: python3 scripts/triage_session_log.py session-*.log ...
 
 Reads the lines the runtime already writes ([fps-dip], [interp-pace], [perf],
-[gx-slow], [render-slow], [music-stream], [crash] ...) and prints a short report, so an attached
-log shows where and why the game slowed down without reading it line by line.
+[gx-slow], [render-slow], [music-stream], [demo], [audio-lost], [crash] ...) and prints a short
+report, so an attached log shows where and why the game slowed down or lost its sound without
+reading it line by line.
 """
 import re
 import sys
@@ -59,6 +60,7 @@ def report(path):
     worst_ms, hitches, first, last, previous, day = 0.0, 0, None, None, None, 0
     thermal, summary = 0, None
     music = []
+    demos, lost, missing = [], [], []
     with open(path, errors="replace") as log:
         for raw in log:
             raw = raw.rstrip("\r\n")
@@ -90,6 +92,12 @@ def report(path):
                 paces.append(text)
             elif tag == "music-stream":
                 music.append(text)
+            elif tag == "demo" and text.startswith("end "):
+                demos.append(text[4:])
+            elif tag == "audio-lost":
+                lost.append(text)
+            elif tag == "demo-sound" and text.endswith("no sound"):
+                missing.append(text)
             elif tag == "perf-summary":
                 summary = text
             elif tag == "fps" and "thermal=" in text:
@@ -128,6 +136,13 @@ def report(path):
     print(f"  slow render/present frames: {render_slow}")
     print(f"  streamed music changes ([music-stream]): {len(music)}")
     for text in music[:12]:
+        print("   ", text[:150])
+    quiet = [d for d in demos if " missing=0 " not in d or float(field(d, "silent") or 0) >= 2]
+    print(f"  cutscenes ([demo]): {len(demos)}, with a missing sound or 2 s of silence: {len(quiet)}")
+    for text in quiet[:12]:
+        print("   ", text[:150])
+    print(f"  sound lost ([audio-lost]): {len(lost)}, cues with no sound ([demo-sound]): {len(missing)}")
+    for text in (lost + missing)[:12]:
         print("   ", text[:150])
     if thermal:
         print(f"  highest iOS thermal state: {thermal} (0 nominal .. 3 critical)")

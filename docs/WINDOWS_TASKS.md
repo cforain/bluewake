@@ -26,6 +26,7 @@ lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 | Jump and Run off by default (0.4.0 has them always on) | #71 | A new install has no jump on Space or the left bumper; F1 › Mods › Jump and Run turns both on after a restart. |
 | Smooth Motion off by default, and the "Smooth Motion paused" counter | #79 | A new install runs at 30 FPS; turning Smooth Motion on shows the counter when it pauses. |
 | `[music-stream]` log line | #65, #97 | A session log shows the line when the intro music starts. |
+| Cutscene sound log: `[demo]`, `[demo-sound]`, `[audio-lost]` | #65, #97 | Play to the first cutscene; the log has a `[demo] end` line with `cues`, `sounds` and `missing`. |
 
 ## 1. A Windows build from BlueWake `main`
 
@@ -82,7 +83,25 @@ Use `python3 scripts/triage_session_log.py session-*.log` on any attached log.
 | #80 HD pack shading on AMD | Try the Hypatia DDS pack on Windows, with and without it; compare with the PNG pack. |
 | #61 8BitDo GameCube controller | Check whether SDL sees it and what it maps to. |
 | #76 Forsaken Fortress soft lock | Try to reproduce on the tower with the Moblins; it may be the original game's behaviour. |
-| #65, #97 missing music or sound in cutscenes | With task 1's build, check the `[music-stream]` lines in an affected scene (the intro after naming Link, and the bird scenes). The Mac plays them. |
+| #65, #97 missing music or sound in cutscenes | Play an affected scene (the intro after naming Link, the bird scenes) with task 1's build and read the `[demo] end` line for it (see below). The Mac plays them: the opening cutscene logs `cues=4 sounds=4 missing=0 silent=0.4s of 104.7s`. |
 | #59, #72, #79, #86 slowdowns | Measure the scenes with the triage script. The #76 log already shows the Forsaken Fortress exterior limited by the GX worker (83 of 97 slow seconds). |
 
 Close an issue only when the reporter confirms the fix, or with a clear explanation.
+
+### Reading the cutscene sound lines (#65, #97)
+
+Every build writes one `[demo] end` line per cutscene, and `[audio-lost]` when a cutscene, or the intro
+story's streamed music, goes silent for 6 seconds.
+
+| What the log shows | What it means | Where to look |
+| --- | --- | --- |
+| `cues=0` on a cutscene that should have sound | The cutscene never asked for its sounds: its sound track didn't run. | Settings that change game timing: the experimental 60 Hz gameplay and the native math in Wind Waker Recomp 0.4.0 (`BLUEWAKE_NATIVE_MATH=1`). Both are off in `main`. |
+| `missing` above 0, with `[demo-sound] ... no sound` lines | The cutscene asked, but the game couldn't start the sound, usually because its sound data wasn't loaded in time. | Slow disc or ARAM reads; compare the slow seconds (`[fps-dip]`) around the cue. |
+| `sounds` equal to `cues` but `[audio-lost]` or a long `silent=` | The sounds started but nothing reached the speakers. | The audio output: Smooth Motion (on by default in 0.4.0, off in `main`), and drops when the game falls behind real time. |
+| No `[music-stream]` line with `state=4` during the intro | The streamed music never started playing. | Reading `Audiores/Stream/*.afc` from the disc image. |
+
+On Mac, iPad and Windows `main`, the audio pacing settings are the same (`BLUEWAKE_WALL_PACE=1`,
+`DOL_AUDIO_NO_THROTTLE=1`, `BLUEWAKE_CLOCK=now`), so they don't explain a Windows-only problem by
+themselves. What differs on the 0.4.0 download is the native math, Smooth Motion's default and the
+60 Hz option. A Windows build from `main` turns those off, so if the cutscenes have sound there, one
+of them was the cause.
