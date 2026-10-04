@@ -25,7 +25,7 @@ announced there.
 | October 3 | Elliott's later Windows branch merged: save-state crash fix, faster shader compilation, Smooth Motion for cloth, the wider training and his optimization defaults ([#43](https://github.com/chrissotraidis/bluewake/pull/43), [#45](https://github.com/chrissotraidis/bluewake/pull/45)) |
 | October 3 | Fixes for reports on his tracker: camera flipping in water, an FPS counter that read 60 while Smooth Motion was paused, and Windows menu parity ([#44](https://github.com/chrissotraidis/bluewake/pull/44)) |
 | October 4 | BlueWake publishes the Windows build ([#47](https://github.com/chrissotraidis/bluewake/pull/47)); Elliott's October 3 work merged ([#50](https://github.com/chrissotraidis/bluewake/pull/50), [#52](https://github.com/chrissotraidis/bluewake/pull/52)); rules for contributors and bots in AGENTS.md ([#53](https://github.com/chrissotraidis/bluewake/pull/53)) |
-| October 4 | 28 open issues recreated in BlueWake and the 3 open pull request authors invited over (see below) |
+| October 4 | The 28 open issues moved to BlueWake (27 recreated, one already there) and the 3 open pull request authors invited over (see below) |
 | October 3 | Wind-Waker-Recomp's README and issue form point to BlueWake ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)); the notice was then reworded to use first names only ([e4e1401](https://github.com/elliotttate/Wind-Waker-Recomp/commit/e4e14010b5c942d09eab0efd6b57454a734b80cf)) |
 
 ## Changes made on Wind-Waker-Recomp
@@ -61,7 +61,7 @@ GitHub cannot transfer issues between repositories owned by different accounts, 
 4. Pull requests: ask each author to reopen against BlueWake, keeping their authorship. If an author
    cannot, a maintainer ports the change and credits them as co-author.
 
-Status: done October 4. The 28 issues open then are BlueWake
+Status: done October 4. Of the 28 issues open then, 27 are BlueWake
 [#54-#80](https://github.com/chrissotraidis/bluewake/issues?q=label%3Afrom-wind-waker-recomp), and #19
 was already BlueWake #13. The three pull request authors have been asked to reopen against BlueWake.
 
