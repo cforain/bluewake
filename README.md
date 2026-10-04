@@ -119,6 +119,7 @@ You need:
 
 PadMint's BlueWake workflow starts from the app-only IPA on the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest)
 (0.2.0) and adds the game made from your disc. To build from the latest source instead, use the builder below.
+If you try it, please say how it went in [#104](https://github.com/chrissotraidis/bluewake/issues/104), whether it worked or not.
 
 **From this repository,** one command builds your own personal app from a fresh checkout:
 
