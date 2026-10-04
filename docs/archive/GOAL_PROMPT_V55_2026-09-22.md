@@ -4,8 +4,8 @@
 workstream here, as the user asked it to, and the choice follows from the
 measurement the previous loop finished rather than from preference. The governing
 specification is [PRD.md](PRD.md), the operating procedure is
-[GOAL_LOOP.md](GOAL_LOOP.md), the decision that this loop executes is
-[status/ROUTE_DECISION_2026-09-22.md](status/ROUTE_DECISION_2026-09-22.md), and the
+[GOAL_LOOP.md](../GOAL_LOOP.md), the decision that this loop executes is
+[status/ROUTE_DECISION_2026-09-22.md](../status/ROUTE_DECISION_2026-09-22.md), and the
 previous workstream page is [GOAL_PROMPT_V54_2026-09-22.md](GOAL_PROMPT_V54_2026-09-22.md).
 
 ## Why this is the next workstream, in one number

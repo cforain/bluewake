@@ -2,7 +2,7 @@
 
 **User-started and not blocked by the user; write the loop and go.** The governing
 specification is [PRD.md](PRD.md), the operating procedure is
-[GOAL_LOOP.md](GOAL_LOOP.md), and the previous workstream page is
+[GOAL_LOOP.md](../GOAL_LOOP.md), and the previous workstream page is
 [GOAL_PROMPT_V51_2026-09-21.md](GOAL_PROMPT_V51_2026-09-21.md). What the PRD demands
 that this loop is measured against, restated once so it is not re-derived:
 
@@ -24,7 +24,7 @@ presentation is every other retrace, which is what the PRD calls authentic.
 
 The per-block constant was the whole of v51's workstream and it is now closed by
 measurement rather than by argument. The internals are in
-[status/CURRENT.md](status/CURRENT.md); the shape of it is:
+[status/CURRENT.md](../status/CURRENT.md); the shape of it is:
 
 | increment | measured | digest |
 | --- | --- | --- |

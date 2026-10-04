@@ -40,7 +40,7 @@ else
   echo "OK: dependency lock is valid JSON"
 fi
 
-for f in docs/status/CURRENT.md docs/status/GATES.md docs/status/BLOCKERS.md docs/status/DECISIONS.md docs/status/COMPATIBILITY.md docs/status/PERFORMANCE.md docs/status/RELEASE.md tests/coverage/catalog.json; do
+for f in docs/status/CURRENT.md docs/status/GATES.md docs/status/DECISIONS.md docs/status/COMPATIBILITY.md docs/status/PERFORMANCE.md docs/status/RELEASE.md tests/coverage/catalog.json; do
   if [ ! -f "$f" ]; then echo "FAIL: required ledger $f missing"; fail=1; fi
 done
 

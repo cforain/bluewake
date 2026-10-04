@@ -181,7 +181,7 @@ and left-stick click. Jump uses the game's ledge jump and respects its movement 
 
 The rendering, camera, movement, transition and game-option additions come from
 [elliotttate's source fork](https://github.com/elliotttate/Wind-Waker-Recomp), with original commit
-authorship retained. [Integration status](docs/FORK_INTEGRATION.md) distinguishes BlueWake's checks
+authorship retained. [Integration status](docs/archive/FORK_INTEGRATION.md) distinguishes BlueWake's checks
 from the fork's reported measurements. Rebuild your personal game module for the new Better Wind
 Waker settings and 16:10 variants; an older module does not gain those variants from an app update.
 
@@ -332,8 +332,8 @@ receives the whole imported save, including all three slots.
 - [The Builder](docs/BUILDER.md): how the build works, and reusing it for other ports
 - [Device build](docs/status/DEVICE_BUILD.md): signing, installing and build options
 - [Mods](docs/MODS.md): the three mods and how code mods are built
-- [History](docs/HISTORY.md): the project's earlier README, from macOS prototype to iPad
-- [Porting history](docs/PORTING_HISTORY.md) and [legal and provenance](docs/research/LEGAL_AND_PROVENANCE.md)
+- [History](docs/archive/HISTORY.md): the project's earlier README, from macOS prototype to iPad
+- [Porting history](docs/archive/PORTING_HISTORY.md) and [legal and provenance](docs/research/LEGAL_AND_PROVENANCE.md)
 
 ## Community and support
 

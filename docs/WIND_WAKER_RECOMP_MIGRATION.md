@@ -59,10 +59,10 @@ Status: not started. 27 issues and 3 pull requests were open on October 3.
 
 ## Still to decide or do
 
-- **Releases.** BlueWake does not publish builds that contain translated game code; players build their
-  own from their own disc ([rights](../RIGHTS_AND_LICENSES.md)). Wind-Waker-Recomp's existing releases
-  are Elliott's decision. One way to make the Windows build easy without publishing game code is written
-  up as a [proposal](PROPOSALS.md); nothing is decided until Elliott and Chris agree.
+- **Releases.** Decided October 4: BlueWake publishes the ready-made Windows build on its
+  [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest), the same as Wind-Waker-Recomp 0.4.0. Mac, iPhone and iPad stay on PadMint
+  ([rights](../RIGHTS_AND_LICENSES.md)). Elliott to take down Wind-Waker-Recomp's release downloads and
+  point players here.
 - **Windows testing** of BlueWake from a player's own disc: [checklist](WINDOWS_ACCEPTANCE.md).
 - **Remaining code:** Elliott's second set of native functions, his `lean_memory` step, and his
   newest Wind-Waker-Recomp commits on October 3 (WWHD texture import, Mac rendering fixes, smooth HUD

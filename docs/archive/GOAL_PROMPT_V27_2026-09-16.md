@@ -7,7 +7,7 @@
 > with the keyboard without a crash, and time-to-playable is under five minutes,
 > with the five governing product numbers holding on this host.
 
-**This document supersedes docs/GOAL_PROMPT_V25_2026-09-15.md.** v25 reported
+**This document supersedes docs/archive/GOAL_PROMPT_V25_2026-09-15.md.** v25 reported
 v24's win and the two harness defects it exposed. Those are now closed and one
 more run has been taken. This document reports where the product actually stands
 and defines the only work left.

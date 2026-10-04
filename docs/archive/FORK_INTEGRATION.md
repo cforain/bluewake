@@ -24,7 +24,7 @@ where an adaptation combines work. Do not re-import the completed stack.
 
 Windows source builds and all 58 native source regressions pass, but complete
 owned-disc Windows gameplay/controller/audio/performance acceptance remains open.
-The [reconciliation ledger](status/FORK_RECONCILIATION_2026-10-02.md) records
+The [reconciliation ledger](../status/FORK_RECONCILIATION_2026-10-02.md) records
 exact feature, build and gameplay limits. The frozen clean Mac player baseline
 is `3392854` / runtime `18ba3b64`; the later Pictobox host is `9706637` /
 `2218107d`, with the test-only runtime follow-up `0568fedd`. The retained PadMint
@@ -170,7 +170,7 @@ The connected-device inventory contains no physical Apple TV. Ian reported title
 Apple TV 4K; this integration has no independent physical TV gameplay, audio, controller or saves
 acceptance. The retagged Dawn dependency, purgeable tvOS Caches data and lack of a couch-friendly
 in-game settings/backup shell remain explicit developer-preview limits. PadMint remains iOS only.
-See [Apple TV build](status/TVOS_BUILD.md). No personal build or game data is published.
+See [Apple TV build](../status/TVOS_BUILD.md). No personal build or game data is published.
 
 ## Contribution path
 
@@ -186,7 +186,7 @@ The focused stability loop now checks fresh-save intro PCM in HLE/LLE and origin
 profiles rendered Outset, and fixes a concurrent first-read race in Windows' environment cache.
 The FPS diagnostic now respects the live 30/60/120 presentation setting instead of reporting healthy
 30 FPS play with Smooth Motion off as a late-present failure. This is a logging fix, not an FPS gain.
-See the [October 1 stability ledger](status/STABILITY_2026-10-01.md) for evidence and remaining gates.
+See the [October 1 stability ledger](../status/STABILITY_2026-10-01.md) for evidence and remaining gates.
 
 Next priorities from that review:
 

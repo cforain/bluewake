@@ -11,8 +11,8 @@
 **Platform order amended 2026-09-23 by the user:** iPadOS is the active target
 now, tested in the iOS simulator one device at a time before any hardware run.
 Scope, gates and the definition of done are unchanged. Record:
-[status/IPADOS_REORIENTATION_2026-09-23.md](status/IPADOS_REORIENTATION_2026-09-23.md).
-Evidence as of 2026-09-24 night (details in [status/CURRENT.md](status/CURRENT.md)): the
+[status/IPADOS_REORIENTATION_2026-09-23.md](../status/IPADOS_REORIENTATION_2026-09-23.md).
+Evidence as of 2026-09-24 night (details in [status/CURRENT.md](../status/CURRENT.md)): the
 iPad simulator app imports the user's disc on first run, boots through the title into
 controllable Outset play with SunPad touch controls, a hardware keyboard or a controller, saves
 and reloads through the game's own pause menu (acceptance script), plays the game's stereo mix
@@ -26,7 +26,7 @@ coverage catalog, and speed headroom for fanless devices.
 
 **Prepared:** 2026-08-21
 
-**Companion:** [GOAL_LOOP.md](GOAL_LOOP.md)
+**Companion:** [GOAL_LOOP.md](../GOAL_LOOP.md)
 
 ## 1. Document authority
 
@@ -1422,7 +1422,7 @@ BlueWake is complete only when all are true:
 ## 20. Primary references
 
 - BlueWake reassessment:
-  `docs/FEASIBILITY_REASSESSMENT_2026-08-13.md`
+  `docs/archive/FEASIBILITY_REASSESSMENT_2026-08-13.md`
 - Wind Waker decompilation: <https://github.com/zeldaret/tww>
 - Current official progress page: <https://zeldaret.github.io/tww/>
 - DolRecomp: <https://github.com/ExpansionPak/DolRecomp>

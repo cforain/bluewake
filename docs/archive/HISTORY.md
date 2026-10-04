@@ -1,6 +1,6 @@
 # BlueWake project history
 
-This is the README as it stood before the source preview (September 27, 2026), kept verbatim as a record of how the project got here. It is historical: the current state is in the [README](../README.md) and [docs/status/CURRENT.md](status/CURRENT.md). Relative links below were written for the repository root.
+This is the README as it stood before the source preview (September 27, 2026), kept verbatim as a record of how the project got here. It is historical: the current state is in the [README](../../README.md) and [docs/status/CURRENT.md](../status/CURRENT.md). Relative links below were written for the repository root.
 
 ---
 
@@ -46,35 +46,35 @@ village at 58-60 retraces a second (the densest view at 51-54), in stereo, with 
 keyboard and controller input, and matches Dolphin across the title, menus, text, the walk, the
 village and gameplay audio. The device build compiles and is ready to sign; the next step is a
 physical iPad run. Where it stands and how to install it:
-[docs/status/IPAD_STATE_2026-09-24.md](docs/status/IPAD_STATE_2026-09-24.md).
+[docs/status/IPAD_STATE_2026-09-24.md](../status/IPAD_STATE_2026-09-24.md).
 
 As of **September 25, 2026**, a fresh checkout builds the device app from the user's own disc image
 with one command, `scripts/ios/build_device.sh DISC.iso`, using only published sources: the
 RecompCore and DolRecomp forks and the pinned Dawn package. Prerequisites, signing and installing:
-[docs/status/DEVICE_BUILD.md](docs/status/DEVICE_BUILD.md).
+[docs/status/DEVICE_BUILD.md](../status/DEVICE_BUILD.md).
 
 As of **September 26, 2026**, BlueWake runs on a **physical iPad Pro (M2)** at a steady 30 FPS at full
 game speed after loading a save, in Outset's heavy pier view and while walking the village (the 15 FPS
 phases after loading were frames the XFB exchange discarded, not a slow CPU). The in-game menu has a
 **Mods** section with the 16:9 widescreen code, Dolphin-format HD texture packs and Better Wind Waker;
 code mods are compiled into the app as variant chunks, since a statically recompiled game cannot take
-code patches at runtime. See [docs/MODS.md](docs/MODS.md).
+code patches at runtime. See [docs/MODS.md](../MODS.md).
 
 ## Status
 
 **September 23, 2026 reorientation (active):** iPadOS is the product target
 now, hosted on Route A, tested one simulator at a time. Route B continues as the
 long-term speed track and does not gate iPadOS. See
-[the iPadOS reorientation](docs/status/IPADOS_REORIENTATION_2026-09-23.md), the
-[v56 loop](docs/GOAL_PROMPT_V56_2026-09-23.md) and the
-[iOS build instructions](apple/ios/README.md).
+[the iPadOS reorientation](../status/IPADOS_REORIENTATION_2026-09-23.md), the
+[v56 loop](GOAL_PROMPT_V56_2026-09-23.md) and the
+[iOS build instructions](../../apple/ios/README.md).
 
 **September 9, 2026 reorientation:** Route B is the active source-native route,
 now prioritizing full original scene/stage owners, observed J3D rendering, live
 world input, and original scheduler integration. Route A remains an oracle.
 Recorded Route B evidence includes native 2D presentation and headless Link
 frames; a playable native 3D world remains unqualified. The active plan is
-[the whole-unit integration loop](docs/status/REORIENTATION_2026-09-09.md).
+[the whole-unit integration loop](../status/REORIENTATION_2026-09-09.md).
 The phase-two summary below is historical and superseded by the live ledger.
 
 **Native Route B update — September 6, 2026:** active source-port work now
@@ -83,7 +83,7 @@ and sanitizer diagnostics with real model/animation resources. This is not
 complete actor creation or playable native gameplay: phase three, continuous
 player/camera/collision integration, drawing and input remain open. The table
 below records the older Route A baseline, not Route B acceptance. See the
-[phase-two evidence](docs/status/ROUTE_B_PLAYER_PHASE_TWO_2026-09-06.md).
+[phase-two evidence](../status/ROUTE_B_PLAYER_PHASE_TWO_2026-09-06.md).
 
 | Area | State | Current evidence |
 |---|---|---|
@@ -97,11 +97,11 @@ below records the older Route A baseline, not Route B acceptance. See the
 | Graphics correctness | Open | Link's hair/material state is visibly wrong; wider GX fidelity still needs qualification |
 | Product acceptance | Open | Physical controller, human audio review, unrestricted play, and endurance |
 | iPadOS (simulator) | Pass, bounded | First run, title to Outset play, saves, stereo audio, touch/keyboard/controller; 58-60 retraces a second (densest view 51-54); matches Dolphin across the checked scenes |
-| iOS / iPadOS hardware | Next | One-command device build from the user's disc, verified from a clean checkout; install needs the user's signing identity ([build and install](docs/status/DEVICE_BUILD.md), [what to check](docs/status/IPAD_STATE_2026-09-24.md)) |
+| iOS / iPadOS hardware | Next | One-command device build from the user's disc, verified from a clean checkout; install needs the user's signing identity ([build and install](../status/DEVICE_BUILD.md), [what to check](../status/IPAD_STATE_2026-09-24.md)) |
 
-The live engineering record is in [CURRENT.md](docs/status/CURRENT.md), the
-gate ledger is in [GATES.md](docs/status/GATES.md), and the prioritized work
-remaining is in [FINISH_LINE.md](docs/status/FINISH_LINE.md).
+The live engineering record is in [CURRENT.md](../status/CURRENT.md), the
+gate ledger is in [GATES.md](../status/GATES.md), and the prioritized work
+remaining is in [FINISH_LINE.md](status/FINISH_LINE.md).
 
 ## Architecture
 
@@ -185,8 +185,8 @@ python3 scripts/prepare.py /path/to/GZLE01.iso
 
 The complete private translation/composite procedure is intentionally kept in
 the implementation record because it depends on generated, non-redistributable
-inputs. Start with [HANDOFF.md](docs/HANDOFF.md) and the proven P1-P3 evidence
-in [GATES.md](docs/status/GATES.md). Once those local outputs exist, build the
+inputs. Start with [HANDOFF.md](HANDOFF.md) and the proven P1-P3 evidence
+in [GATES.md](../status/GATES.md). Once those local outputs exist, build the
 DSP-enabled macOS host and run its tests with:
 
 ```bash
@@ -235,7 +235,7 @@ correctness route must agree before a trace-off speedup is accepted.
   macOS remains the reference host for traces and timing.
 
 These rules and the anti-stall mechanism are formalized in
-[GOAL_LOOP.md](docs/GOAL_LOOP.md).
+[GOAL_LOOP.md](../GOAL_LOOP.md).
 
 ## Project Map
 
@@ -251,15 +251,15 @@ These rules and the anti-stall mechanism are formalized in
 
 ## Documentation
 
-- [Finish Line](docs/status/FINISH_LINE.md): prioritized path from working prototype to credible macOS build
-- [Current Status](docs/status/CURRENT.md): newest evidence and next action
-- [Mods](docs/MODS.md): widescreen, HD texture packs and Better Wind Waker, and how code mods are built
-- [Blockers](docs/status/BLOCKERS.md): owned blocker ledger and reproductions
-- [Performance](docs/status/PERFORMANCE.md): benchmarks and optimization evidence
-- [Porting History](docs/PORTING_HISTORY.md): chronological engineering narrative
-- [Product Requirements](docs/PRD.md): scope, gates, platform policy, and definition of done
-- [Goal Loop](docs/GOAL_LOOP.md): autonomous implementation and anti-stall protocol
-- [Legal and Provenance](docs/research/LEGAL_AND_PROVENANCE.md): source and data boundaries
+- [Finish Line](status/FINISH_LINE.md): prioritized path from working prototype to credible macOS build
+- [Current Status](../status/CURRENT.md): newest evidence and next action
+- [Mods](../MODS.md): widescreen, HD texture packs and Better Wind Waker, and how code mods are built
+- [Blockers](status/BLOCKERS.md): owned blocker ledger and reproductions
+- [Performance](../status/PERFORMANCE.md): benchmarks and optimization evidence
+- [Porting History](PORTING_HISTORY.md): chronological engineering narrative
+- [Product Requirements](PRD.md): scope, gates, platform policy, and definition of done
+- [Goal Loop](../GOAL_LOOP.md): autonomous implementation and anti-stall protocol
+- [Legal and Provenance](../research/LEGAL_AND_PROVENANCE.md): source and data boundaries
 
 ## Legal
 

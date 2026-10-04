@@ -27,7 +27,7 @@ ledgers before the much older historical status logs:
 
 - docs/status/RELEASE.md: next-candidate scope and outstanding acceptance gates.
 - docs/status/STABILITY_2026-10-01.md: experiments, regressions, exact limits and failed approaches.
-- docs/FORK_INTEGRATION.md: integration, physical iPad checks and platform boundaries.
+- docs/archive/FORK_INTEGRATION.md: integration, physical iPad checks and platform boundaries.
 - docs/WINDOWS.md and docs/status/TVOS_BUILD.md: experimental platform foundations.
 - docs/BUILD_YOUR_OWN.md: player-owned-disc builder and personal-build rules.
 

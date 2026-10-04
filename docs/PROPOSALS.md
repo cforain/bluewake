@@ -5,8 +5,8 @@ starts. A proposal here is not a decision or a plan.
 
 ## Easier Windows builds without publishing game code
 
-**Status:** proposal, not agreed. Needs Elliott's view; any public app release also needs the private
-release audit to be clear ([AGENTS.md](../AGENTS.md)).
+**Status:** proposal, not agreed. Since October 4, BlueWake publishes a ready-made Windows build
+([AGENTS.md](../AGENTS.md)), so this is now about a possible later replacement for it, not a blocker.
 
 **Problem.** Wind Waker Recomp's ready-made Windows apps are what most players use. BlueWake does not
 publish builds that contain code translated from the game, so a Windows player builds their own from their
