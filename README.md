@@ -13,6 +13,7 @@
   <img alt="Game data not included" src="https://img.shields.io/badge/game%20data-not%20included-FF453A">
   <img alt="License: GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-lightgrey">
   <img alt="Status: source preview" src="https://img.shields.io/badge/status-source%20preview-FFD60A">
+  <a href="https://github.com/chrissotraidis/padmint"><img alt="Build BlueWake with PadMint" src="https://img.shields.io/badge/PadMint-build%20your%20own-3EB489"></a>
   <a href="https://discord.gg/xwHfUD2bxW"><img alt="Join the community on Discord" src="https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&amp;logoColor=white"></a>
 </p>
 
@@ -333,6 +334,16 @@ receives the whole imported save, including all three slots.
 - [Mods](docs/MODS.md): the three mods and how code mods are built
 - [History](docs/HISTORY.md): the project's earlier README, from macOS prototype to iPad
 - [Porting history](docs/PORTING_HISTORY.md) and [legal and provenance](docs/research/LEGAL_AND_PROVENANCE.md)
+
+## Community and support
+
+[Join the Discord](https://discord.gg/xwHfUD2bxW) for help and news. It is one
+community for BlueWake and its sibling projects, such as KartPad, MeleePad and
+SunPad: ask about setup, building with PadMint, and installing, share how it
+runs on your device, and hear about new releases first.
+
+Found a bug? [Open an issue](https://github.com/chrissotraidis/bluewake/issues)
+with your device, its OS version, and the steps that led to it.
 
 ## Credits
 
