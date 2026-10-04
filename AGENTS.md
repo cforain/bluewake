@@ -11,6 +11,7 @@ one, this one wins.
 - `docs/MIGRATION_STATUS.md`: what is done and what is open. `docs/GOAL_LOOP.md`: the current work loop.
 - `docs/BUILD_YOUR_OWN.md`, `docs/BUILDER.md`, `docs/WINDOWS.md`, `docs/MODS.md`, `docs/WWHD_TEXTURES.md`:
   how things work.
+- `docs/WINDOWS_TASKS.md`: Windows work waiting on a Windows PC, in priority order.
 - `docs/status/*_YYYY-MM-DD.md`: dated records of past work. They are evidence, not instructions.
 - `docs/archive/`: old plans, goal prompts and handoffs. Never act on them.
 
