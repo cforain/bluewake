@@ -22,6 +22,19 @@ belongs to Elliott (his hardware); a native Linux port is not planned (players c
 | 3. iPad in the Simulator | The iPad app builds and runs in the Simulator with no regressions in menus, touch controls or saves. |
 | 4. Release candidate | A Mac/iPad app-only release (no game code) and its PadMint recipe are built from `main` and pass the release check. Chris decides whether to publish. |
 
+### Progress, October 4
+
+- **0. Docs:** done ([#87](https://github.com/chrissotraidis/bluewake/pull/87)).
+- **1. Triage:** done. Every open issue has platform and status labels; four duplicates closed into
+  #65, #64, #56 and #60; reporters asked for logs or a retest on the current download where needed.
+- **2. Mac:** a complete build from current `main` plays a new game to control with Smooth Motion at
+  120 FPS and no slow seconds. The intro music plays on the Mac (October 1 trace), so #65 looks
+  Windows-only. The remaining reports need a save at that point in the game, a texture pack or Windows,
+  and are labeled.
+- **3. iPad Simulator:** the same source reaches control on Outset with the HUD and touch controls drawn.
+- **4. Release candidate:** a draft release, BlueWake 0.2.0 (iPad app without game code and its PadMint
+  recipe, plus the Windows 0.4.0 files), passes the release check and PadMint's audit. Waiting on Chris.
+
 ### Each iteration
 
 1. Pick the highest step that isn't done and name what will close it.
