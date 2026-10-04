@@ -56,6 +56,7 @@ set(BLUEWAKE_HOST_SOURCES
     ${BLUEWAKE_HOST_SRC}/forest_water.c
     ${BLUEWAKE_HOST_SRC}/fps_watch.c
     ${BLUEWAKE_HOST_SRC}/game_options.c
+    ${BLUEWAKE_HOST_SRC}/settings_menu.cpp
     ${BLUEWAKE_HOST_SRC}/mouse_camera.c)
 
 add_executable(bluewake
