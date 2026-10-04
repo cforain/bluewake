@@ -25,12 +25,14 @@ announced there.
 | October 3 | Elliott's later Windows branch merged: save-state crash fix, faster shader compilation, Smooth Motion for cloth, the wider training and his optimization defaults ([#43](https://github.com/chrissotraidis/bluewake/pull/43), [#45](https://github.com/chrissotraidis/bluewake/pull/45)) |
 | October 3 | Fixes for reports on his tracker: camera flipping in water, an FPS counter that read 60 while Smooth Motion was paused, and Windows menu parity ([#44](https://github.com/chrissotraidis/bluewake/pull/44)) |
 | October 4 | BlueWake publishes the Windows build ([#47](https://github.com/chrissotraidis/bluewake/pull/47)); Elliott's October 3 work merged ([#50](https://github.com/chrissotraidis/bluewake/pull/50), [#52](https://github.com/chrissotraidis/bluewake/pull/52)); rules for contributors and bots in AGENTS.md ([#53](https://github.com/chrissotraidis/bluewake/pull/53)) |
+| October 4 | Wind-Waker-Recomp's ten releases unpublished (kept as drafts) and its download links pointed to BlueWake ([adac1e6](https://github.com/elliotttate/Wind-Waker-Recomp/commit/adac1e616376ab0d7d57eda51d82acf4dc607079)) |
 | October 4 | The 28 open issues moved to BlueWake (27 recreated, one already there) and the 3 open pull request authors invited over (see below) |
 | October 3 | Wind-Waker-Recomp's README and issue form point to BlueWake ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)); the notice was then reworded to use first names only ([e4e1401](https://github.com/elliotttate/Wind-Waker-Recomp/commit/e4e14010b5c942d09eab0efd6b57454a734b80cf)) |
 
 ## Changes made on Wind-Waker-Recomp
 
-Kept small and reversible; Elliott's own text, releases and history are unchanged.
+Kept small and reversible, and Elliott's commit history is unchanged. Elliott gave Chris write access on
+October 2 and said to make any changes needed.
 
 - **README:** a notice at the top saying the project is moving to BlueWake, where to report bugs, that
   open issues will be moved, and that Windows saves carry over. "Questions or bugs?" points to BlueWake.
@@ -43,6 +45,9 @@ Kept small and reversible; Elliott's own text, releases and history are unchange
 - **Issues and pull requests (October 4):** a comment from Chris on each open issue with its new
   BlueWake link, and on each open pull request asking its author to reopen it against BlueWake. Nothing
   was closed.
+- **Releases (October 4):** Chris unpublished all ten releases (v0.1.0-macos.1 to v0.4.0), so players get
+  their downloads from BlueWake. They are now drafts with their files intact; Elliott can publish any of
+  them again from the Releases page. The README's download links point to BlueWake ([adac1e6](https://github.com/elliotttate/Wind-Waker-Recomp/commit/adac1e616376ab0d7d57eda51d82acf4dc607079)).
 
 These are the only commits Chris's account has pushed to Wind-Waker-Recomp; every other commit there is
 Elliott's own (GitHub's push events show the pushing account).
@@ -69,8 +74,8 @@ was already BlueWake #13. The three pull request authors have been asked to reop
 
 - **Releases.** Decided October 4: BlueWake publishes the ready-made Windows build on its
   [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest), the same as Wind-Waker-Recomp 0.4.0. Mac, iPhone and iPad stay on PadMint
-  ([rights](../RIGHTS_AND_LICENSES.md)). Elliott to take down Wind-Waker-Recomp's release downloads and
-  point players here.
+  ([rights](../RIGHTS_AND_LICENSES.md)). Wind-Waker-Recomp's releases were unpublished on
+  October 4 (see above).
 - **Windows testing** of BlueWake from a player's own disc: [checklist](WINDOWS_ACCEPTANCE.md).
 - **Remaining code:** Elliott's second set of native functions, his `lean_memory` step, and his
   newest Wind-Waker-Recomp commits on October 3 (WWHD texture import, Mac rendering fixes, smooth HUD
