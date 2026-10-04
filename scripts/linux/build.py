@@ -90,10 +90,13 @@ def sha256_file(path):
 
 
 def tree_digest(root):
-    """scripts/ios/composite_manifest.py's digest of a generated tree."""
+    """scripts/ios/composite_manifest.py's digest of a generated tree.
+
+    The manifest prints "<sha256>  <N> files"; only the hash identifies the tree.
+    """
     out = subprocess.check_output(
         [sys.executable, str(ROOT / "scripts/ios/composite_manifest.py"), str(root)], text=True)
-    return out.strip()
+    return out.split()[0]
 
 
 def sync_tree(new, current):
