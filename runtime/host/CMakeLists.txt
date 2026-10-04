@@ -39,6 +39,7 @@ add_executable(bluewake_host
     src/delivery_digest.c
     src/edge_intercepts.c
     src/game_options.c
+    src/forest_water.c
     src/fast_load.c
     src/fps_watch.c
     src/jump_button.c
@@ -503,6 +504,16 @@ target_include_directories(bluewake_edge_intercepts_test PRIVATE
 )
 add_test(NAME bluewake_edge_intercepts_test
     COMMAND bluewake_edge_intercepts_test)
+
+add_executable(bluewake_forest_water_test
+    ../../tests/forest_water_test.c
+    src/forest_water.c)
+target_link_libraries(bluewake_forest_water_test PRIVATE gxruntime ${CMAKE_DL_LIBS})
+target_include_directories(bluewake_forest_water_test PRIVATE
+    ${GXRUNTIME_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../ref/recompcore/Source/Core/Core/PowerPC/StaticRecomp)
+add_test(NAME bluewake_forest_water_test COMMAND bluewake_forest_water_test)
 
 add_executable(bluewake_external_memory_test
     ../../tests/external_memory_test.c

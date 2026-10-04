@@ -29,6 +29,7 @@
 #include "guest_checkpoint.h"
 #include "edge_intercepts.h"
 #include "game_options.h"
+#include "forest_water.h"
 #include "fast_load.h"
 #include "fps_watch.h"
 #include "jump_button.h"
@@ -7709,6 +7710,9 @@ int main(int argc, char** argv) {
             gather_mode == BLUEWAKE_GATHER_DIRECT ? "direct" : "off");
     host_mods_enable(lib, &cpu);
     bluewake_game_options_enable(lib, &cpu, g_options_mod);
+    bluewake_forest_water_set_ftree_text(
+        host_rel_section_linked_start(mod, 317u, 1u));
+    bluewake_forest_water_reload();
     bluewake_mouse_camera_attach(&cpu);
     bluewake_climb_attach(&cpu);
     bluewake_jump_button_attach(&cpu);
@@ -8078,6 +8082,7 @@ int main(int argc, char** argv) {
         if (dol_platform_should_quit()) { stop_reason = "quit"; break; }
         bluewake_card_runtime_service_callback(&cpu);
         bluewake_card_runtime_dispatch(&cpu);
+        bluewake_forest_water_dispatch(&cpu, cpu.pc);
         if (g_host_retrace_count != scene_milestone_last_retrace) {
             scene_milestone_last_retrace = g_host_retrace_count;
             const u32 open_scene = host_find_scene_by_proc_name(&cpu, 0x000Eu);
