@@ -5,22 +5,11 @@ own supported *The Wind Waker* disc. (On Windows you can instead download the re
 [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest).) The game's code is translated from your disc during the build,
 so **the app you build is yours alone: never share or upload it.**
 
-The migration candidate is reviewed in
-[PR #37](https://github.com/chrissotraidis/bluewake/pull/37), branch
-`codex/fork-consolidated`; it is not yet merged into `main`. Fresh player-build
-acceptance is tied to `3392854`. The later `9706637` host adds the bounded Mac
-Pictobox repair, tested with that same personal module; it has not repeated the
-complete clean player build. Follow-up test-fixture changes do not alter that
-host. For candidate testing from a new checkout use
-`git clone --branch codex/fork-consolidated https://github.com/chrissotraidis/bluewake.git`.
-Do not reset an existing checkout or replace its private build outputs to switch
-revisions. The [platform matrix](status/FORK_RECONCILIATION_2026-10-02.md#player-build-and-platform-gates)
-separates implemented routes from completed player acceptance. Windows has a
-separate [source-build guide](WINDOWS.md).
+Windows players who prefer to build their own: see [BlueWake on Windows](WINDOWS.md).
 
-## Mac personal app (migration candidate)
+## Mac personal app
 
-The reconciliation branch also provides an Apple Silicon Mac target:
+BlueWake also builds as an Apple Silicon Mac app:
 
 ```sh
 scripts/builder/build.sh /path/to/your/GZLE01.iso --platform macos --out build/macos
@@ -42,7 +31,7 @@ previous packaged app beside the new one. It signs locally with an ad-hoc
 signature; `--identity NAME` selects an installed Mac signing identity. Device
 options `--ipa`, `--app`, `--profile` and `--install` do not apply to Mac.
 
-The migration candidate also accepts `--combined-optimizations` for personal
+The Mac build also accepts `--combined-optimizations` for personal
 Mac builds. It selects the imported preparation/native helpers measured in the
 reconciliation ledger, applies the same configuration during local training and
 compilation, and records it in the app's provenance. The packaged app enables

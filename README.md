@@ -145,9 +145,8 @@ For Apple TV, use [the tvOS build guide](docs/status/TVOS_BUILD.md); it builds a
 `BlueWake.exe` and choose your `.iso` or `.gcm` disc image. It needs Windows 10 or 11, a Direct3D 12 GPU and a CPU
 with AVX2 (Intel Haswell from 2013, AMD Ryzen, or newer). To build it yourself instead:
 
-An experimental native Windows x86-64 source port targets Direct3D 12, using the same disc and verified
-game source. The runtime/app compile and link pass native Windows CI; end-to-end personal-module
-build and Direct3D gameplay validation remain pending. To try it
+BlueWake's Windows builder compiles and passes its automated checks, but a complete build from a disc on
+Windows has not been checked in BlueWake yet. To try it
 with Visual Studio's C++ workload and its Clang component, Python, Git, CMake and Ninja:
 
 ~~~bash
@@ -298,6 +297,12 @@ It is experimental and off by default; disable it if you see artifacts or worse 
 
 Yes, on an A13 or newer. The touch controls sit in the black bars beside the picture. The busiest scenes
 dip below 30 FPS on an iPhone 14; see [Performance](#performance).
+
+### Is there a Linux version?
+
+Not a native one. Some players run the Windows download on Linux and Steam Deck through Proton (add
+`BlueWake.exe` as a non-Steam game). We haven't tested that ourselves, so please share how it goes in
+[#56](https://github.com/chrissotraidis/bluewake/issues/56).
 
 ### Do controllers work?
 
