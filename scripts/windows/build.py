@@ -508,7 +508,8 @@ int main(void) {
         # compile start over. Mods are part of the recorded inputs.
         inputs = hashlib.sha256()
         inputs.update((f"{digest}\n{int(self.mods)}\n{int(self.args.prepared_blocks)}\n"
-                       f"{int(self.args.fixed_cpu)}\n{int(self.args.fixed_mem1)}\n{int(self.args.inline_fp)}\n{int(self.args.gather_pipe)}\n{int(self.args.direct_calls)}\n{int(self.args.inline_gpr)}\n{int(self.args.native_j3d)}\n{int(self.args.native_vec)}\n{int(self.args.native_math)}\n{int(self.args.native_skin)}\n{int(self.args.native_game_math)}\n").encode())
+                       f"{int(self.args.fixed_cpu)}\n{int(self.args.fixed_mem1)}\n{int(self.args.inline_fp)}\n{int(self.args.gather_pipe)}\n{int(self.args.direct_calls)}\n{int(self.args.inline_gpr)}\n{int(self.args.native_j3d)}\n{int(self.args.native_vec)}\n{int(self.args.native_math)}\n{int(self.args.native_skin)}\n{int(self.args.native_game_math)}\n"
+                       f"{int(self.args.lean_memory)}\n{int(self.args.native_entries)}\n").encode())
         for f in (sorted((ROOT / "scripts/mods").glob("*")) + sorted((ROOT / "mods/widescreen").glob("*.gecko"))
                   + [ROOT / "mods/betterww/options.txt", ROOT / "scripts/windows/fast_blocks.py",
                      ROOT / "scripts/windows/global_guest_cpu.py", ROOT / "scripts/windows/chunk_headers.py",
@@ -522,7 +523,17 @@ int main(void) {
                      ROOT / "cmake/composite/native_game_math.h", ROOT / "scripts/windows/native_skin.py", ROOT / "cmake/composite/native_skin.c",
                      ROOT / "cmake/composite/native_skin.h", ROOT / "cmake/composite/native_math.c", ROOT / "cmake/composite/native_math.h",
                      ROOT / "cmake/composite/native_work_pool.c", ROOT / "cmake/composite/native_work_pool.h",
-                     ROOT / "scripts/windows/inline_save_restore_gpr.py", Path(__file__)]):
+                     ROOT / "scripts/windows/inline_save_restore_gpr.py",
+                     ROOT / "cmake/composite/native_fifo.c",
+                     ROOT / "cmake/composite/native_fifo.h",
+                     ROOT / "cmake/composite/native_bg.c",
+                     ROOT / "cmake/composite/native_bg.h",
+                     ROOT / "cmake/composite/native_mtxcalc.c",
+                     ROOT / "cmake/composite/native_mtxcalc.h",
+                     ROOT / "cmake/composite/native_search.c",
+                     ROOT / "cmake/composite/native_search.h",
+                     ROOT / "scripts/windows/native_entries.py",
+                     ROOT / "scripts/windows/lean_memory.py", Path(__file__)]):
             if f.is_file():
                 inputs.update(f.read_bytes())
         if self.args.direct_calls or self.args.native_game_math:
@@ -663,6 +674,16 @@ int main(void) {
         if self.args.direct_calls:
             self.run("direct-calls", [sys.executable, ROOT / "scripts/windows/direct_calls.py",
                                        o / "composite-src"])
+        # Elliott Tate's Windows steps, off by default. Each changes only what it
+        # can prove: lean_memory.py needs the prepaid copies' deadline test, and
+        # native_entries.py hooks a native only where the translation hashes to the
+        # one its comparison test was run on (it reports the rest as not hooked).
+        if self.args.lean_memory:
+            self.run("lean-memory", [sys.executable, ROOT / "scripts/windows/lean_memory.py",
+                                      o / "composite-src"])
+        if self.args.native_entries:
+            self.run("native-entries", [sys.executable, ROOT / "scripts/windows/native_entries.py",
+                                         o / "composite-src"])
         digest = tree_digest(o / "composite-src")
         receipt = {"enabled": self.args.prepared_blocks,
                    "fixed_cpu": self.args.fixed_cpu,
@@ -676,6 +697,8 @@ int main(void) {
                    "native_math": self.args.native_math,
                    "native_skin": self.args.native_skin,
                    "native_game_math": self.args.native_game_math,
+                   "lean_memory": self.args.lean_memory,
+                   "native_entries": self.args.native_entries,
                    "gather_sha256": {name: sha256_file(ROOT / "cmake/composite" / name)
                                      for name in ("gather_pipe.h", "gather_pipe.c", "gather_pipe_batch.h")},
                    "inline_fp_script_sha256": sha256_file(ROOT / "scripts/windows/chunk_headers.py"),
@@ -754,6 +777,7 @@ int main(void) {
             f"-DBLUEWAKE_NATIVE_GAME_MATH={'ON' if self.args.native_game_math else 'OFF'}",
             f"-DBLUEWAKE_NATIVE_SKIN={'ON' if self.args.native_skin else 'OFF'}",
             f"-DBLUEWAKE_NATIVE_MATH={'ON' if self.args.native_math else 'OFF'}",
+            f"-DBLUEWAKE_NATIVE_ENTRIES={'ON' if self.args.native_entries else 'OFF'}",
             f"-DBLUEWAKE_DIRECT_CALLS={'ON' if self.args.direct_calls else 'OFF'}",
             f"-DBLUEWAKE_GATHER_PIPE={'ON' if self.args.gather_pipe else 'OFF'}",
             f"-DBLUEWAKE_INLINE_FP={'ON' if self.args.inline_fp else 'OFF'}",
@@ -833,7 +857,8 @@ int main(void) {
                                "options": {name: getattr(self.args, name) for name in
                                            ("prepared_blocks", "fixed_cpu", "fixed_mem1", "inline_fp",
                                             "gather_pipe", "direct_calls", "inline_gpr", "native_j3d",
-                                            "native_vec", "native_math", "native_skin", "native_game_math")},
+                                            "native_vec", "native_math", "native_skin", "native_game_math",
+                                            "lean_memory", "native_entries")},
                                "runtime": self.git("-C", str(self.recompcore), "rev-parse", "HEAD"),
                                "source": tree_digest(self.out / "composite-src")},
                               sort_keys=True).encode())
@@ -1186,6 +1211,12 @@ def main():
                         help="certify and enable optional native skinning preparation (off by default)")
     parser.add_argument("--native-math", action="store_true",
                         help="prepare certified native matrix functions; off by default, compatible host opt-in required")
+    parser.add_argument("--lean-memory", action="store_true",
+                        help="Wind Waker Recomp's lean loads and stores in prepaid copies (off by default; "
+                             "needs --prepared-blocks)")
+    parser.add_argument("--native-entries", action="store_true",
+                        help="Wind Waker Recomp's certified native entries, second and third sets (off by default; "
+                             "needs --direct-calls, --gather-pipe and --native-vec)")
     parser.add_argument("--console", action="store_true", help="build BlueWake.exe as a console program")
     parser.add_argument("--conservative", action="store_true",
                         help="build the plain translation, without the optimizations prepared by default "
@@ -1207,6 +1238,10 @@ def main():
         parser.error("--inline-gpr requires --direct-calls")
     if args.fixed_mem1 and not args.fixed_cpu:
         parser.error("--fixed-mem1 requires --fixed-cpu")
+    if args.lean_memory and not args.prepared_blocks:
+        parser.error("--lean-memory requires --prepared-blocks")
+    if args.native_entries and not (args.direct_calls and args.gather_pipe and args.native_vec):
+        parser.error("--native-entries requires --direct-calls, --gather-pipe and --native-vec")
     if args.jobs is None:
         args.jobs = default_jobs()
     if args.jobs < 1:
