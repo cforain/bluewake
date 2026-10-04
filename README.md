@@ -306,8 +306,11 @@ Not a native one. Some players run the Windows download on Linux and Steam Deck 
 
 ### Do controllers work?
 
-Yes. Controllers that iOS supports work, with camera inversion and button remapping under
-**⋯ › Controller**, and the game's rumble is passed to the controller.
+Yes. On iPhone and iPad, controllers that iOS supports work, with camera inversion and button
+remapping under **⋯ › Controller**, and the game's rumble is passed to the controller. On Mac and
+Windows, Xbox, PlayStation, Switch Pro and other SDL controllers work; remap the six GameCube buttons
+under **Settings › Controls › Controller buttons** (F1 or Esc opens settings). Picking a button that
+is already used swaps the two.
 
 ### Will updates keep my saves?
 

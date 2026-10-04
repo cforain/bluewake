@@ -9,6 +9,7 @@
 #include "input.hpp"
 #include "internal.hpp"
 #include "controller_face_swap.h"
+#include "button_remap.h"
 int main() {
     assert(SDL_InitSubSystem(SDL_INIT_GAMEPAD));
     auto directory = std::filesystem::temp_directory_path() / ("bluewake-pad-test-" + std::to_string(SDL_GetTicksNS()));
@@ -39,11 +40,31 @@ int main() {
             found |= swapped[j].padButton == target && swapped[j].nativeButton == original[i].nativeButton;
         assert(found);
     }
+    // Button remap (button_remap.h): the saved text, swap on conflict, and a press.
+    BwButtonMap map;
+    assert(!bw_button_map_parse("", &map) && bw_button_map_format(map).empty());
+    assert(!bw_button_map_parse("1,2,3", &map) && !bw_button_map_parse("0,1,2,3,10,6,9", &map));
+    assert(!bw_button_map_parse("0,1,2,3,10,5", &map));  // the Guide button is not a choice
+    bw_button_map_set(&map, 0, SDL_GAMEPAD_BUTTON_EAST);  // A takes B's button; B gets A's
+    assert(map.native[0] == SDL_GAMEPAD_BUTTON_EAST && map.native[1] == SDL_GAMEPAD_BUTTON_SOUTH);
+    bw_button_map_set(&map, 4, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);  // Z on the left shoulder
+    BwButtonMap reread;
+    assert(bw_button_map_parse(bw_button_map_format(map), &reread));
+    for (int i = 0; i < BW_REMAP_BUTTONS; ++i) assert(reread.native[i] == map.native[i]);
+    PADStatus status[PAD_CHANMAX];
+    PADRestoreDefaultMapping(0); bw_apply_button_map(0, map);
+    assert(SDL_SetJoystickVirtualButton(joystick, SDL_GAMEPAD_BUTTON_SOUTH, true));
+    assert(SDL_SetJoystickVirtualButton(joystick, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, true));
+    SDL_UpdateJoysticks(); SDL_UpdateGamepads(); PADRead(status);
+    assert((status[0].button & (PAD_BUTTON_A | PAD_BUTTON_B | PAD_TRIGGER_Z)) == (PAD_BUTTON_B | PAD_TRIGGER_Z));
+    assert(SDL_SetJoystickVirtualButton(joystick, SDL_GAMEPAD_BUTTON_SOUTH, false));
+    assert(SDL_SetJoystickVirtualButton(joystick, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, false));
+    SDL_UpdateJoysticks(); SDL_UpdateGamepads(); PADRead(status);
     PADRestoreDefaultMapping(0);
     assert(SDL_SetJoystickVirtualButton(joystick, SDL_GAMEPAD_BUTTON_SOUTH, true));
     assert(SDL_SetJoystickVirtualAxis(joystick, SDL_GAMEPAD_AXIS_LEFTX, 24000));
     SDL_UpdateJoysticks(); SDL_UpdateGamepads();
-    PADStatus status[PAD_CHANMAX]; PADRead(status);
+    PADRead(status);
     assert(status[0].button & PAD_BUTTON_A); assert(status[0].stickX != 0);
     PADBlockInput(true); PADRead(status);
     assert(status[0].button == 0 && status[0].stickX == 0);
