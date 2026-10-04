@@ -15,7 +15,8 @@ spec = importlib.util.spec_from_file_location("windows_builder", REPO / "scripts
 bw = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bw)
 OPTIONS = ("prepared_blocks", "fixed_cpu", "fixed_mem1", "inline_fp", "gather_pipe", "direct_calls",
-           "inline_gpr", "native_j3d", "native_vec", "native_math", "native_skin", "native_game_math")
+           "inline_gpr", "native_j3d", "native_vec", "native_math", "native_skin", "native_game_math",
+           "lean_memory", "native_entries")
 
 
 class TrainingTest(unittest.TestCase):
