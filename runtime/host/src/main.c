@@ -1143,6 +1143,47 @@ static void host_trace_bgm_stream(CPUState* cpu, u32 address) {
 }
 #endif
 static unsigned g_audio_object_watch_reports;
+
+// Streamed music (the intro, cutscenes): one line whenever the track, its
+// playback state or its mute flag changes, read once per retrace and never
+// written. Shipping builds keep this so a player's log can say whether a
+// scene's music started. GZLE01 revision 0: JAIZelBasic's zel_basic SDA slot,
+// the stream object's sound and id, and the stream path buffer.
+static unsigned g_music_stream_reports;
+static u32 g_music_stream_last_id;
+static u8 g_music_stream_last_state, g_music_stream_last_disabled;
+static char g_music_stream_last_path[64];
+
+static void host_log_music_stream(CPUState* cpu) {
+    if (cpu == NULL || g_music_stream_reports >= 500u)
+        return;
+    const u32 slot = cpu->gpr[13] - 27088u;
+    if (slot < 0x80000000u || slot > 0x817FFFFCu)
+        return;
+    const u32 object = mem_read32(cpu, slot);
+    if (object < 0x80000000u || object > 0x817FFF80u)
+        return;
+    const u32 sound = mem_read32(cpu, object + 0x70u);
+    const u32 id = mem_read32(cpu, object + 0x7Cu);
+    const u8 disabled = mem_read8(cpu, object + 0x63u);
+    const u8 state = sound >= 0x80000000u && sound <= 0x817FFFBAu ? mem_read8(cpu, sound + 5u) : 0u;
+    char path[64] = {0};
+    for (unsigned i = 0u; i + 1u < sizeof path; ++i) {
+        path[i] = (char)mem_read8(cpu, 0x803ED130u + i);
+        if (path[i] == '\0') break;
+        if ((unsigned char)path[i] < 0x20u || (unsigned char)path[i] > 0x7Eu) { path[i] = '\0'; break; }
+    }
+    if (id == g_music_stream_last_id && state == g_music_stream_last_state &&
+        disabled == g_music_stream_last_disabled && strcmp(path, g_music_stream_last_path) == 0)
+        return;
+    fprintf(stderr, "[music-stream] retrace=%llu path=\"%s\" id=0x%08X state=%u muted=%u\n",
+            (unsigned long long)g_host_retrace_count, path, id, state, disabled);
+    g_music_stream_reports++;
+    g_music_stream_last_id = id;
+    g_music_stream_last_state = state;
+    g_music_stream_last_disabled = disabled;
+    memcpy(g_music_stream_last_path, path, sizeof path);
+}
 static unsigned g_audio_context_interrupt_reports;
 static unsigned g_audio_dsp_handler_reports;
 static unsigned g_audio_dsp_callback_reports;
@@ -4995,6 +5036,7 @@ static void host_sync_vi_cycles(CPUState* cpu) {
     dol_vi_clock_advance(g_cycle_vi_clock, elapsed_cycles);
     while (dol_vi_clock_pop_retrace(g_cycle_vi_clock, NULL)) {
         g_host_retrace_count++;
+        host_log_music_stream(cpu);
 #if BLUEWAKE_ENABLE_DEVELOPER_TRACING
         host_trace_bgm_stream(cpu, 0u);
 #endif

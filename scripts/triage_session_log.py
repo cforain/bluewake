@@ -4,7 +4,7 @@
 Usage: python3 scripts/triage_session_log.py session-*.log ...
 
 Reads the lines the runtime already writes ([fps-dip], [interp-pace], [perf],
-[gx-slow], [render-slow], [crash] ...) and prints a short report, so an attached
+[gx-slow], [render-slow], [music-stream], [crash] ...) and prints a short report, so an attached
 log shows where and why the game slowed down without reading it line by line.
 """
 import re
@@ -58,6 +58,7 @@ def report(path):
     gx_slow = gx_compile = render_slow = 0
     worst_ms, hitches, first, last, previous, day = 0.0, 0, None, None, None, 0
     thermal, summary = 0, None
+    music = []
     with open(path, errors="replace") as log:
         for raw in log:
             raw = raw.rstrip("\r\n")
@@ -87,6 +88,8 @@ def report(path):
                 dips.append(field(text, "speed") or 0)
             elif tag == "interp-pace" and PACE.search(text):
                 paces.append(text)
+            elif tag == "music-stream":
+                music.append(text)
             elif tag == "perf-summary":
                 summary = text
             elif tag == "fps" and "thermal=" in text:
@@ -123,6 +126,9 @@ def report(path):
     print(f"  hitches in [perf]: {hitches}, worst frame {worst_ms:.0f} ms")
     print(f"  slow GX batches: {gx_slow} ({gx_compile} while compiling pipelines or loading textures)")
     print(f"  slow render/present frames: {render_slow}")
+    print(f"  streamed music changes ([music-stream]): {len(music)}")
+    for text in music[:12]:
+        print("   ", text[:150])
     if thermal:
         print(f"  highest iOS thermal state: {thermal} (0 nominal .. 3 critical)")
     if summary:
@@ -130,7 +136,11 @@ def report(path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    names = sys.argv[1:]
+    if not names or any(name in ("-h", "--help") for name in names):
         sys.exit(__doc__)
-    for name in sys.argv[1:]:
-        report(name)
+    for name in names:
+        try:
+            report(name)
+        except OSError as error:
+            print(f"== {name}: cannot read ({error.strerror})")
