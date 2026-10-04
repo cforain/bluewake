@@ -188,7 +188,8 @@ Waker settings and 16:10 variants; an older module does not gain those variants 
 ## Your saves and game data
 
 - Saves live in **GZLE01.card**: **On My iPad/iPhone › BlueWake › BlueWake** in Files, or
-  **`%APPDATA%\BlueWake`** on Windows (paste that path into File Explorer's address bar).
+  **`%APPDATA%\BlueWake`** on Windows (paste that path into File Explorer's address bar). For
+  everything in one folder on Windows, use [portable mode](docs/WINDOWS.md#your-saves-and-logs).
 - On iPhone/iPad, **⋯ › Game Data & Saves › Back Up Saves…** exports a copy; **Restore Saves…** brings one back and
   keeps a copy of your current saves in a Backups folder first.
 - On Windows, close BlueWake before copying or replacing the card, and keep a backup outside its data folder.
