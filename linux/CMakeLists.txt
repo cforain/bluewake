@@ -75,6 +75,7 @@ endif()
 set_target_properties(bluewake PROPERTIES LINKER_LANGUAGE CXX OUTPUT_NAME bluewake)
 target_include_directories(bluewake PRIVATE
     ${BLUEWAKE_HOST_SRC}
+    ${BLUEWAKE_REPO_ROOT}/windows/src
     ${BLUEWAKE_REPO_ROOT}/apple/ios/src
     ${GXRUNTIME_DIR}/include
     ${BLUEWAKE_RECOMPCORE}/Source/Core/Core/PowerPC/StaticRecomp)
