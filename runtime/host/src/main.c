@@ -6142,8 +6142,8 @@ static const BwStateField k_host_state_fields[] = {
     HS_FIELD(g_vi_cycle_cursor), HS_FIELD(g_audio_cycle_cursor), HS_FIELD(g_dsp_cycle_cursor),
 #ifdef BLUEWAKE_HAS_DSP_ADAPTER
     HS_FIELD(g_dsp_adapter_interrupt_pending), HS_FIELD(g_dsp_adapter_slice_cycles),
-#endif
     HS_FIELD(g_dsp_adapter_update_elapsed), HS_FIELD(g_dsp_adapter_dma_count),
+#endif
     HS_FIELD(g_host_retrace_count), HS_FIELD(g_previous_retrace_timebase), HS_FIELD(g_vi_assert_reports),
     HS_FIELD(g_context_shadows), HS_FIELD(g_delivery_digest),
     HS_FIELD(g_async_draw_done_commits),
