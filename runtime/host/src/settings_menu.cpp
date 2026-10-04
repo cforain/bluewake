@@ -404,12 +404,12 @@ void gameplay_tab() {
     ImGui::EndDisabled();
 
     ImGui::Separator();
-    bool jump = env_on("BLUEWAKE_JUMP_BUTTON", true);
+    bool jump = env_on("BLUEWAKE_JUMP_BUTTON", false);
     if (ImGui::Checkbox("Jump button (Space, left bumper)", &jump)) {
         set_env("BLUEWAKE_JUMP_BUTTON", jump ? "1" : "0");
         bluewake_jump_button_reload();
     }
-    float sprint = static_cast<float>(std::atof(env("BLUEWAKE_SPRINT_SPEED", "1.5").c_str()));
+    float sprint = static_cast<float>(std::atof(env("BLUEWAKE_SPRINT_SPEED", "1").c_str()));
     if (sprint < 1.f)
         sprint = 1.f;
     if (slider("Sprint speed (Shift, left stick click; 1 is off)", &sprint, 1.f, 2.f, "%.2fx")) {
@@ -745,6 +745,10 @@ extern "C" void bluewake_settings_load(void) {
     g_path = chosen != nullptr && chosen[0] != '\0' ? chosen : default_path();
     if (g_path.empty())
         return;
+    // Jump and sprint start off, as on the iPad and Windows (#71); a saved choice
+    // or an explicit environment value wins.
+    setenv("BLUEWAKE_JUMP_BUTTON", "0", 0);
+    setenv("BLUEWAKE_SPRINT_SPEED", "1", 0);
     FILE* file = std::fopen(g_path.c_str(), "r");
     // Read legacy preferences if needed, but never rename or overwrite the old file.
     if (file == nullptr && chosen == nullptr) {
