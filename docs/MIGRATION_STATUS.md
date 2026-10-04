@@ -31,8 +31,8 @@ New bug reports, feature requests and pull requests should go to
 - October 4, on an Apple Silicon Mac: the current `main` host (with Elliott's October 3 runtime) and a
   module built from a player's disc boot to the title screen on Metal with Smooth Motion on, drawn
   correctly. This is a short check, not a gameplay session.
-- Original 30 FPS game logic stays the default. Smooth Motion and experimental 60 FPS logic are off
-  unless a player turns them on.
+- Original 30 FPS game logic stays the default, and Smooth Motion is off unless a player turns it on.
+  Wind Waker Recomp 0.4.0's experimental 60 FPS game logic is not in BlueWake `main`.
 
 ## Open
 
@@ -50,13 +50,17 @@ New bug reports, feature requests and pull requests should go to
 | Pictobox freeze | BlueWake | [#13](https://github.com/chrissotraidis/bluewake/issues/13). A fix passes on Mac. Windows confirmation is part of the checklist above. |
 | Point Wind-Waker-Recomp to BlueWake | Chris and Elliott | Done October 3: its README and issue form point here ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)). The repository description needs Elliott (admin). Its ten releases were unpublished on October 4 (kept as drafts, files intact) and its download links point here ([adac1e6](https://github.com/elliotttate/Wind-Waker-Recomp/commit/adac1e616376ab0d7d57eda51d82acf4dc607079)). Archiving the fork waits until issues are moved, Windows is checked and both agree. |
 
-Linux, other game regions and an Android port are later work. They are not part of this move.
+Other game regions and an Android port are later work and not part of this move. Linux: on October 4
+the maintainers decided BlueWake may publish a ready-made Linux build, like the Windows one
+([AGENTS.md](../AGENTS.md#releases)). A community port exists (Wind-Waker-Recomp PR #33) and has not
+been brought over or tested yet.
 
 ## Releases
 
-Windows: a ready-made build is on the Releases page and needs your own disc image. Mac, iPhone and
-iPad: build BlueWake yourself from your own disc with PadMint. Builds you make yourself contain game code
-and must never be uploaded or shared.
+Windows: a ready-made build is on the Releases page and needs your own disc image. Linux: a ready-made
+build is allowed under the same rules once a native port is in BlueWake. Mac, iPhone and iPad: build
+BlueWake yourself from your own disc with PadMint. Builds you make yourself contain game code and must
+never be uploaded or shared.
 
 ## How to help
 

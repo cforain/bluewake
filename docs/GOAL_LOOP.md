@@ -1,55 +1,44 @@
 # BlueWake goal loop
 
-## Current loop: Mac and iPad stability, October 4, 2026
+## Current loop: cutscene audio, PadMint and fixes Windows can pick up, October 4, 2026
 
-Make BlueWake steadier on Mac and iPad and keep the docs true, without growing the project. Windows
-belongs to Elliott (his hardware); a native Linux port is not planned (players can try Proton, README FAQ).
+Find out why cutscenes lose their music and sound effects without needing play sessions to do it,
+confirm that the PadMint path players are told to use works, and land small fixes that Elliott's Windows
+build gets just by building from `main`.
 
 ### Limits
 
-- Use one Apple Silicon Mac: the Mac app and the iOS Simulator. No physical iPad in this loop; anything
-  that needs one is labeled `needs-device` and left for a device session.
-- No new platforms or features. Fix what players report, in small changes. Anything risky is off by default.
-- One concern per pull request, following [AGENTS.md](../AGENTS.md).
+- One Apple Silicon Mac. No Windows PC and no physical iPad in this loop. Anything that needs one goes
+  into [WINDOWS_TASKS.md](WINDOWS_TASKS.md) or is labeled `needs-device`.
+- No long play sessions. Short automated runs are fine to confirm that new log lines appear.
+- Follow [Keep Windows in step](../AGENTS.md#keep-windows-in-step): shared code first, both desktop menus,
+  Windows CI green, and the Windows check listed.
+- No new platforms or features beyond what players asked for. Anything risky is off by default.
 
 ### Steps
 
 | Step | Done when |
 | --- | --- |
-| 0. Docs | README, AGENTS.md, this file, [migration status](MIGRATION_STATUS.md), the build guides and the Windows pages agree with `main`. |
-| 1. Triage | Every open bug report has a platform label and one status: `needs-info`, `needs-windows`, `needs-device` or `confirmed`. Duplicates point to one issue. Nothing is closed without the reporter, except clear duplicates. |
-| 2. Reproduce and fix on the Mac | With a Mac build from current `main`, each Mac-reproducible report (music in the intro and scripted scenes, the slow bird and Aryll scenes, dungeon maps, the pirate flag, the Forsaken Fortress soft lock, Smooth Motion at 120 Hz, HD texture shading) is fixed with before and after evidence, explained, or labeled. |
-| 3. iPad in the Simulator | The iPad app builds and runs in the Simulator with no regressions in menus, touch controls or saves. |
-| 4. Release candidate | A Mac/iPad app-only release (no game code) and its PadMint recipe are built from `main` and pass the release check. Chris decides whether to publish. |
-
-### Progress, October 4
-
-- **0. Docs:** done ([#87](https://github.com/chrissotraidis/bluewake/pull/87)).
-- **1. Triage:** done. Every open issue has platform and status labels; four duplicates closed into
-  #65, #64, #56 and #60; reporters asked for logs or a retest on the current download where needed.
-- **2. Mac:** a complete build from current `main` plays a new game to control with Smooth Motion at
-  120 FPS and no slow seconds. The intro music plays on the Mac (October 1 trace), so #65 looks
-  Windows-only. The remaining reports need a save at that point in the game, a texture pack or Windows,
-  and are labeled.
-- **3. iPad Simulator:** the same source reaches control on Outset with the HUD and touch controls drawn.
-- **4. Release:** BlueWake 0.2.0 is published ([v0.2.0](https://github.com/chrissotraidis/bluewake/releases/tag/v0.2.0)):
-  the iPad app without game code and its PadMint recipe, built from `72a241f`, plus the Windows 0.4.0 files.
-  It passes the release check and PadMint's audit, and PadMint resolves and verifies it. Not yet checked
-  through PadMint on a physical iPad.
-- **Windows:** the remaining work is in [WINDOWS_TASKS.md](WINDOWS_TASKS.md).
-- **Quick wins:** controller button remapping on Mac and Windows, matching the iPad (#66), and Jump and
-  Sprint starting off on the Mac as on the other platforms (#71), merged in
-  [#98](https://github.com/chrissotraidis/bluewake/pull/98). They reach players in the next Mac release and
-  Windows build.
+| 1. Audio logging | Every build (Mac, iPad, Windows) writes `[audio]` lines when something changes: whether a cutscene or event is running, the state and volume of the background music and the streamed track, how loud the output is, and samples the host dropped. An `[audio-lost]` line marks music or all sound going quiet while the game runs, with the scene and the game's speed. `scripts/triage_session_log.py` summarizes them. A short automated Mac run shows the lines and the Windows CI passes. |
+| 2. Audio code review | Each difference between Wind Waker Recomp 0.4.0 and `main` that can affect sound timing has been checked in the code: Smooth Motion's in-between frames, the experimental 60 Hz gameplay (in 0.4.0 only), the native function replacements, DSP and streamed-music handling, and slow frames. Any that can drop cutscene audio is fixed in shared code or turned off by default, or written up in WINDOWS_TASKS.md with the log lines that would confirm it. |
+| 3. PadMint confirmation | The player path, `padmint make bluewake ios` from the published release and a disc, runs on this Mac to a finished IPA that passes PadMint's audit. The time and result are in [PADMINT_HANDOFF.md](PADMINT_HANDOFF.md), and the README asks players to say whether it worked. Installing on an iPad waits for the iPad. |
+| 4. Small fixes | Each fix is in shared code or both menus, passes the Windows CI, is listed under "In `main`, waiting for a Windows build", and its issue is answered. First: portable mode for Windows (#64). |
+| 5. Linux | With Chris's go-ahead, the author of the native Linux port (Wind-Waker-Recomp PR #33) is invited to open it on BlueWake, and its release workflow follows the Linux rules in AGENTS.md (no disc in CI). |
+| 6. Issues and docs | Every pass: new issues and comments answered in Chris's voice and labeled, nothing closed without the reporter, and README, MIGRATION_STATUS.md and WINDOWS_TASKS.md match `main`. |
 
 ### Each iteration
 
-1. Pick the highest step that isn't done and name what will close it.
-2. Reproduce before changing anything. A fix needs the same scene before and after, with the same settings.
-3. Make the smallest change that addresses the cause, then run the host tests and the affected scene.
-4. Update the issue in Chris's voice and the [migration status](MIGRATION_STATUS.md) when something changes.
+1. Pick the first step that isn't done and name what will close it.
+2. Prefer reading the code and adding logging over playing the game.
+3. Make the smallest change, run the host tests, and let the Windows CI build it.
+4. Update the issue, WINDOWS_TASKS.md and the progress below.
 
-Stop when every item is fixed, explained, or labeled as needing hardware.
+Stop when steps 1 to 4 are done or blocked on hardware, and say which. Don't repeat runs that can't tell
+causes apart.
 
-Earlier loops, including the October 3 stability and migration loops, are in
-[the archive](archive/GOAL_LOOP_HISTORY.md).
+### Progress
+
+- October 4: loop written. Done before it: controller button remapping on Mac and Windows (#66), Jump
+  and Sprint off by default everywhere (#71), #67 closed after the reporter confirmed 0.4.0 fixed it.
+
+Earlier loops are in [the archive](archive/GOAL_LOOP_HISTORY.md).
