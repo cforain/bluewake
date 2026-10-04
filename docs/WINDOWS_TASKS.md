@@ -11,14 +11,28 @@ disc, and the build tools in [BlueWake on Windows](WINDOWS.md#what-you-need).
 Recomp 0.4.0 build. BlueWake `main` has fixes that build doesn't, and its Windows build from a disc has
 not yet been run on real hardware.
 
+## In `main`, waiting for a Windows build
+
+Fixes and features already in `main` that the current Windows download doesn't have. Task 1 ships them;
+check each one on a Windows PC and tell the linked issue. New entries are added by the pull request that
+lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
+
+| Change | Issue | What to check |
+| --- | --- | --- |
+| Pictobox photos no longer freeze the picture | #13 | Take a Pictobox photo; the game keeps drawing. |
+| Swap A and B, Swap X and Y | #55 | F1 › Controls; the swap takes effect at once. |
+| Camera no longer flips direction in water | #73 | Swim and turn the camera with the stick and the mouse. |
+| Controller button remapping | #66 | F1 › Controls › Controller buttons: change a button, confirm the game follows it, restart, confirm it was kept. |
+| Jump and Run off by default (0.4.0 has them always on) | #71 | A new install has no jump on Space or the left bumper; F1 › Mods › Jump and Run turns both on after a restart. |
+| Smooth Motion off by default, and the "Smooth Motion paused" counter | #79 | A new install runs at 30 FPS; turning Smooth Motion on shows the counter when it pauses. |
+| `[music-stream]` log line | #65, #97 | A session log shows the line when the intro music starts. |
+
 ## 1. A Windows build from BlueWake `main`
 
-**Why:** ships fixes Windows players are waiting for: the Pictobox freeze (#13), Swap A and B (#55), the
-camera turning the other way in water (#73), the "Smooth Motion paused" counter, Smooth Motion **off** by
-default, and the `[music-stream]` log line (#65).
+**Why:** ships everything in the list above to Windows players.
 
 1. Build from a clean checkout of `main`: `python scripts/windows/build.py "D:\path\to\GZLE01.iso"`.
-2. Run checks 1 to 4 of the [Windows checklist](WINDOWS_ACCEPTANCE.md), and confirm each fix above.
+2. Run checks 1 to 4 of the [Windows checklist](WINDOWS_ACCEPTANCE.md), and the checks in the list above.
 3. Package it like Wind Waker Recomp's releases (its `scripts/windows/package_release.py` is a starting
    point; bring it over as a pull request): `BlueWake-vX.Y.Z-windows-x64.zip` holding the build folder,
    licenses and a `BuilderProvenance.json`, **without `nodtool.exe`** (it embeds Wii keys), plus a source zip.

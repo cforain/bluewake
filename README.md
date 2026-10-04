@@ -300,9 +300,10 @@ dip below 30 FPS on an iPhone 14; see [Performance](#performance).
 
 ### Is there a Linux version?
 
-Not a native one. Some players run the Windows download on Linux and Steam Deck through Proton (add
-`BlueWake.exe` as a non-Steam game). We haven't tested that ourselves, so please share how it goes in
-[#56](https://github.com/chrissotraidis/bluewake/issues/56).
+Not yet. A native Linux port from the community is being brought over, and once it is ready BlueWake
+will offer a ready-made Linux build like the Windows one. Until then, some players run the Windows
+download on Linux and Steam Deck through Proton (add `BlueWake.exe` as a non-Steam game). We haven't
+tested that ourselves, so please share how it goes in [#56](https://github.com/chrissotraidis/bluewake/issues/56).
 
 ### Do controllers work?
 
