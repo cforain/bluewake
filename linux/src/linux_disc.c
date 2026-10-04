@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <SDL3/SDL.h>
@@ -127,14 +128,14 @@ static int needs_unpacking(const char* path) {
 
 typedef struct {
     char result[4096];
-    volatile SDL_bool done;
+    volatile bool done;
 } ChooseState;
 
 static void SDLCALL choose_callback(void* userdata, const char* const* filelist, int filter) {
     ChooseState* state = (ChooseState*)userdata;
     if (filelist != NULL && filelist[0] != NULL)
         snprintf(state->result, sizeof state->result, "%s", filelist[0]);
-    state->done = SDL_TRUE;
+    state->done = true;
 }
 
 // The explanation goes to stderr (the session log); the picker is SDL's.
@@ -156,9 +157,9 @@ static int choose(const char* why, char* out, size_t size) {
         {"GameCube disc images", "iso;gcm"},
         {"All files", "*"},
     };
-    ChooseState state = {{0}, SDL_FALSE};
+    ChooseState state = {{0}, false};
     SDL_ShowOpenFileDialog(choose_callback, &state, NULL, filters,
-                           (int)(sizeof filters / sizeof filters[0]), NULL, SDL_FALSE);
+                           (int)(sizeof filters / sizeof filters[0]), NULL, false);
     // Pump until the callback fires (the dialog is modal and asynchronous).
     while (!state.done)
         SDL_PumpEvents();
