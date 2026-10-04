@@ -105,6 +105,7 @@ static void resolve_dirs(void) {
 static pthread_t g_log_thread;
 static int g_log_pipe[2];
 static FILE* g_log_file;
+static int g_term_out = -1;
 
 static void* log_pump(void* arg) {
     (void)arg;
@@ -128,6 +129,8 @@ static void* log_pump(void* arg) {
             fprintf(g_log_file, "%02d:%02d:%02d.%03ld %s", local.tm_hour, local.tm_min, local.tm_sec,
                     ts.tv_nsec / 1000000, line);
             fflush(g_log_file);
+            if (g_term_out >= 0)
+                (void)write(g_term_out, line, line_len);
             line_len = 0;
         }
     }
@@ -166,7 +169,8 @@ static void finish_session_log(void) {
         return;
     fflush(stdout);
     fflush(stderr);
-    close(g_log_pipe[1]);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
     pthread_join(g_log_thread, NULL);
     fclose(g_log_file);
     g_log_file = NULL;
@@ -195,7 +199,8 @@ static void start_session_log(void) {
     int out_fd = dup(STDOUT_FILENO);
     int err_fd = dup(STDERR_FILENO);
     if (out_fd < 0 || err_fd < 0) { if (out_fd >= 0) close(out_fd); if (err_fd >= 0) close(err_fd); }
-    (void)out_fd; (void)err_fd;
+    g_term_out = out_fd;
+    (void)err_fd;
     dup2(g_log_pipe[1], STDOUT_FILENO);
     dup2(g_log_pipe[1], STDERR_FILENO);
     close(g_log_pipe[1]);
@@ -236,6 +241,8 @@ static void usage(void) {
 }
 
 int main(int argc, char** argv) {
+    for (int i = 1; i < argc; i++)
+        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) { usage(); return 0; }
     resolve_dirs();
     if (getenv("BLUEWAKE_SESSION_LOG") == NULL || strcmp(getenv("BLUEWAKE_SESSION_LOG"), "0") != 0)
         start_session_log();
