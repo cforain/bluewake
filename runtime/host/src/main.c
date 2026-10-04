@@ -5037,6 +5037,7 @@ static void host_sync_vi_cycles(CPUState* cpu) {
     while (dol_vi_clock_pop_retrace(g_cycle_vi_clock, NULL)) {
         g_host_retrace_count++;
         host_log_music_stream(cpu);
+        bluewake_audio_watch_retrace(cpu, g_host_retrace_count);
 #if BLUEWAKE_ENABLE_DEVELOPER_TRACING
         host_trace_bgm_stream(cpu, 0u);
 #endif

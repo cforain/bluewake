@@ -40,6 +40,7 @@ add_executable(bluewake_host
     src/edge_intercepts.c
     src/game_options.c
     src/forest_water.c
+    src/audio_watch.c
     src/fast_load.c
     src/fps_watch.c
     src/jump_button.c
@@ -163,6 +164,12 @@ target_link_libraries(bluewake_feature_dispatch_test PRIVATE gxruntime)
 target_include_directories(bluewake_feature_dispatch_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_test(NAME bluewake_feature_dispatch_test COMMAND bluewake_feature_dispatch_test)
 set_tests_properties(bluewake_feature_dispatch_test PROPERTIES TIMEOUT 30)
+
+add_executable(bluewake_audio_watch_test ../../tests/audio_watch_test.c src/audio_watch.c)
+target_link_libraries(bluewake_audio_watch_test PRIVATE gxruntime)
+target_include_directories(bluewake_audio_watch_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_test(NAME bluewake_audio_watch_test COMMAND bluewake_audio_watch_test)
+set_tests_properties(bluewake_audio_watch_test PROPERTIES TIMEOUT 30)
 
 # The pinned runtime ships matching/blending/pacing regressions, but does not
 # register this standalone suite in its own CMake. Exercise the actual linked
