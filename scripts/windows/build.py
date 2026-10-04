@@ -1255,6 +1255,10 @@ def main():
         parser.error("--native-entries requires --direct-calls, --gather-pipe and --native-vec")
     if args.jobs is None:
         args.jobs = default_jobs()
+    if args.source_only:
+        # Only the disc extractor is built from the app's project: its optimization
+        # profile is for the app, and an older Visual Studio clang cannot read it.
+        args.no_app_pgo = True
     if args.jobs < 1:
         parser.error("--jobs must be positive")
     args.out = args.out.resolve()
