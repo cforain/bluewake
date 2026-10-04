@@ -69,9 +69,11 @@ GitHub or CI (a secret could not hold a 1.4 GB disc, and must not). CI builds an
 tests everything that does not need the disc (`.github/workflows/linux-host.yml`),
 and every published artifact passes `scripts/release/check_public_assets.sh`.
 
-## Why gcc
+## Why two compilers
 
-The game module is compiled with gcc, not clang. The translated chunks are each one
-enormous generated function, and clang's optimizer is pathologically slow on them
-(many minutes to hours per chunk at `-O2`); gcc compiles the same tree in a few
-minutes per chunk.
+The host (Aurora, SDL3, the DSP) is compiled with clang, and the game module with
+gcc. Aurora uses C++20 designated-initializer field orders that gcc rejects, so the
+host needs clang. The game module's translated chunks are each one enormous generated
+function, and clang's optimizer is pathologically slow on them (many minutes to hours
+per chunk at `-O2`); gcc compiles the same tree in a few minutes per chunk, so the
+module is built with gcc.

@@ -18,7 +18,7 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build \
+          sudo apt-get install -y build-essential clang cmake ninja-build \
             libwayland-dev libxkbcommon-dev libx11-xcb-dev \
             libx11-dev libxrandr-dev libxext-dev libxi-dev \
             libxcursor-dev libgl1-mesa-dev libvulkan-dev \
@@ -35,8 +35,10 @@ jobs:
       - name: Compile and link the host without a disc or game module
         run: |
           set -euo pipefail
-          cmake -S linux -B build/linux-host -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTING=OFF -DBLUEWAKE_LINUX_REGRESSION_TESTS=ON \
+          cmake -S linux -B build/linux-host -G Ninja \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
+            -DBLUEWAKE_LINUX_REGRESSION_TESTS=ON \
             -DAURORA_DAWN_PROVIDER=package -DAURORA_SDL3_PROVIDER=vendor
           cmake --build build/linux-host --target bluewake bluewake_disc_extract \
             bluewake_fast_blocks_test bluewake_cycle_domain_test \

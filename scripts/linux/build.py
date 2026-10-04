@@ -172,12 +172,17 @@ class Builder:
             if shutil.which(tool) is None:
                 die(f"missing {tool}: install Git, CMake 3.25+, Ninja and a C/C++ compiler "
                     "(sudo apt install build-essential cmake ninja-build)")
+        # The host (Aurora) needs clang: it uses C++20 designated-initializer
+        # field orders gcc rejects. The game module uses gcc (see compile_module).
+        if shutil.which("clang") is None:
+            die("missing clang: the host build needs it (sudo apt install clang)")
         version = subprocess.check_output(["cmake", "--version"], text=True).split()[2]
         if tuple(int(x) for x in version.split(".")[:2]) < (3, 25):
             die(f"CMake 3.25 or newer is required (found {version})")
         cc = shutil.which("cc")
         cc_version = subprocess.check_output([cc, "--version"], text=True).splitlines()[0]
-        print(f"{cc_version}; cmake {version}; ninja "
+        clang_version = subprocess.check_output(["clang", "--version"], text=True).splitlines()[0]
+        print(f"{cc_version}; {clang_version}; cmake {version}; ninja "
               f"{subprocess.check_output(['ninja', '--version'], text=True).strip()}; "
               f"{self.args.jobs} jobs")
 
@@ -254,6 +259,7 @@ class Builder:
         self.app_build = self.out / "app"
         self.run("app-configure", [
             "cmake", "-S", ROOT / "linux", "-B", self.app_build, "-G", "Ninja",
+            "-DCMAKE_C_COMPILER=clang", "-DCMAKE_CXX_COMPILER=clang++",
             "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_TESTING=OFF",
             "-DAURORA_DAWN_PROVIDER=package", "-DAURORA_DAWN_LINKAGE=static",
             "-DAURORA_SDL3_PROVIDER=vendor", "-DAURORA_SDL3_LINKAGE=static"])
@@ -332,7 +338,8 @@ class Builder:
         build = self.out / "composite"
         self.run("composite-configure", [
             "cmake", "-S", ROOT / "cmake/composite", "-B", build, "-G", "Ninja",
-            "-DCMAKE_BUILD_TYPE=Release", f"-DCOMPOSITE_OPTIMIZATION_LEVEL={self.args.opt_level}",
+            "-DCMAKE_C_COMPILER=gcc", "-DCMAKE_BUILD_TYPE=Release",
+            f"-DCOMPOSITE_OPTIMIZATION_LEVEL={self.args.opt_level}",
             f"-DCOMPOSITE_DIR={self.out / 'composite-src'}",
             f"-DGXRUNTIME_DIR={rc / 'GXRuntime'}",
             f"-DABI_DIR={rc / 'Source/Core/Core/PowerPC/StaticRecomp'}"])
