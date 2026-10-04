@@ -12,9 +12,9 @@ The goal is an authentic Wind Waker application using the user's GZLE01 data: ma
 
 ## Recover the actual state first
 
-Read applicable repository instructions, `docs/PRD.md`, and the operating rules/core iteration/anti-stall/route-pivot sections of `docs/GOAL_LOOP.md`. Read the first authority banners of `docs/status/CURRENT.md` and `docs/status/BLOCKERS.md` before consulting their extensive historical entries. Then inspect:
+Read applicable repository instructions, `docs/archive/PRD.md`, and the operating rules/core iteration/anti-stall/route-pivot sections of `docs/GOAL_LOOP.md`. Read the first authority banners of `docs/status/CURRENT.md` and `docs/archive/status/BLOCKERS.md` before consulting their extensive historical entries. Then inspect:
 
-- `docs/status/NEXT_MODEL_HANDOFF_2026-09-06.md`
+- `docs/archive/status/NEXT_MODEL_HANDOFF_2026-09-06.md`
 - `docs/status/ROUTE_B_ACTIVE_VERTEX_BINDING_2026-09-06.md`
 - `docs/status/ROUTE_B_PLAYER_COMMAND_EMISSION_2026-09-06.md`
 - `docs/status/PLAYABILITY_CRITICAL_PATH_2026-09-06.md`

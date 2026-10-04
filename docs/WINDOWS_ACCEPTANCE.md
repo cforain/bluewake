@@ -1,5 +1,7 @@
 # Windows testing handoff for Elliott
 
+The current list of Windows work is [WINDOWS_TASKS.md](WINDOWS_TASKS.md); this checklist is its task 1.
+
 The source consolidation is merged into BlueWake `main` in [#37](https://github.com/chrissotraidis/bluewake/pull/37),
 with the Windows local-training follow-up in [#38](https://github.com/chrissotraidis/bluewake/pull/38).
 Please use BlueWake for new changes and preserve contributor attribution.
@@ -99,5 +101,5 @@ GPU/driver, compiler, settings and app/module hashes. Use a short table:
 
 Return sanitized textual findings and focused source fix PRs. Keep personal apps,
 modules, generated game source, profiles, discs and saves local; do not attach them
-to GitHub. Public releases remain paused. Repository redirects, issue/PR migration
+to GitHub. Releases follow [AGENTS.md](../AGENTS.md). Repository redirects, issue/PR migration
 and archival wait for the migration decision; this handoff is for Windows testing.

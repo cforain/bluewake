@@ -27,8 +27,11 @@ That fixed revision carries [CC0-1.0](https://github.com/zeldaret/tww/blob/09de0
 The import retains its attribution. Certification scripts record hashes and
 modify only a player's locally generated source; translated bodies stay private.
 
-BlueWake is released as source only. Every app is built by its player, on their own Mac, from their own
-disc ([docs/BUILD_YOUR_OWN.md](docs/BUILD_YOUR_OWN.md)).
+BlueWake's source is published here. Mac, iPhone and iPad apps are built by each player from their own
+disc ([docs/BUILD_YOUR_OWN.md](docs/BUILD_YOUR_OWN.md)). One exception: the maintainers publish a
+ready-made Windows build on the Releases page, as Wind Waker Recomp did. It contains code translated
+from the game but no disc image, game assets, saves or console keys, and it needs the player's own
+disc. It will be taken down if the rights holder asks.
 
 ## Game content
 
@@ -37,6 +40,7 @@ Legend of Zelda: The Wind Waker*, its code, data, characters, names and imagery,
 trademark remain the property of their owners. BlueWake cannot grant rights it does not hold.
 
 This repository contains no disc image, playable game assets, saves or code translated from the game.
+The Windows release build described above is the only published file that contains translated code.
 Documentation screenshots depict the game and are not covered by BlueWake's software license. You
 supply your own legally obtained USA `GZLE01` revision 0 disc, and the app or IPA you build from it
 contains code translated from that disc (`Frameworks/gGZLE01_recomp.dylib`). That build is for your
@@ -51,6 +55,13 @@ of their authors and keep their own terms. The repository carries only the wides
 (`mods/widescreen/GZLE01.gecko` and its 16:10 variant) and the option-site descriptions derived from
 Better Wind Waker. Personal builds translate both behaviors at those sites from the player's disc;
 the settings select which behavior runs. You add texture packs yourself.
+
+The optional Wind Waker HD texture importer (`scripts/import_wwhd_textures.py`)
+extracts artwork only from the user's local disc. Its output, discs, tickets and
+keys are personal data and must never be included in a public release. The
+vendored Wii U surface address library is AboodXD's BFRES-Tool addrlib under
+GPL-3.0-or-later; its license, copyright and pinned source are recorded in
+`scripts/wwhd/vendor/`. Format reader attribution is in `docs/WWHD_TEXTURES.md`.
 
 ## Runtime metadata
 

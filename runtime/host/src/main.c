@@ -29,6 +29,7 @@
 #include "guest_checkpoint.h"
 #include "edge_intercepts.h"
 #include "game_options.h"
+#include "forest_water.h"
 #include "fast_load.h"
 #include "fps_watch.h"
 #include "jump_button.h"
@@ -1142,6 +1143,47 @@ static void host_trace_bgm_stream(CPUState* cpu, u32 address) {
 }
 #endif
 static unsigned g_audio_object_watch_reports;
+
+// Streamed music (the intro, cutscenes): one line whenever the track, its
+// playback state or its mute flag changes, read once per retrace and never
+// written. Shipping builds keep this so a player's log can say whether a
+// scene's music started. GZLE01 revision 0: JAIZelBasic's zel_basic SDA slot,
+// the stream object's sound and id, and the stream path buffer.
+static unsigned g_music_stream_reports;
+static u32 g_music_stream_last_id;
+static u8 g_music_stream_last_state, g_music_stream_last_disabled;
+static char g_music_stream_last_path[64];
+
+static void host_log_music_stream(CPUState* cpu) {
+    if (cpu == NULL || g_music_stream_reports >= 500u)
+        return;
+    const u32 slot = cpu->gpr[13] - 27088u;
+    if (slot < 0x80000000u || slot > 0x817FFFFCu)
+        return;
+    const u32 object = mem_read32(cpu, slot);
+    if (object < 0x80000000u || object > 0x817FFF80u)
+        return;
+    const u32 sound = mem_read32(cpu, object + 0x70u);
+    const u32 id = mem_read32(cpu, object + 0x7Cu);
+    const u8 disabled = mem_read8(cpu, object + 0x63u);
+    const u8 state = sound >= 0x80000000u && sound <= 0x817FFFBAu ? mem_read8(cpu, sound + 5u) : 0u;
+    char path[64] = {0};
+    for (unsigned i = 0u; i + 1u < sizeof path; ++i) {
+        path[i] = (char)mem_read8(cpu, 0x803ED130u + i);
+        if (path[i] == '\0') break;
+        if ((unsigned char)path[i] < 0x20u || (unsigned char)path[i] > 0x7Eu) { path[i] = '\0'; break; }
+    }
+    if (id == g_music_stream_last_id && state == g_music_stream_last_state &&
+        disabled == g_music_stream_last_disabled && strcmp(path, g_music_stream_last_path) == 0)
+        return;
+    fprintf(stderr, "[music-stream] retrace=%llu path=\"%s\" id=0x%08X state=%u muted=%u\n",
+            (unsigned long long)g_host_retrace_count, path, id, state, disabled);
+    g_music_stream_reports++;
+    g_music_stream_last_id = id;
+    g_music_stream_last_state = state;
+    g_music_stream_last_disabled = disabled;
+    memcpy(g_music_stream_last_path, path, sizeof path);
+}
 static unsigned g_audio_context_interrupt_reports;
 static unsigned g_audio_dsp_handler_reports;
 static unsigned g_audio_dsp_callback_reports;
@@ -4994,6 +5036,7 @@ static void host_sync_vi_cycles(CPUState* cpu) {
     dol_vi_clock_advance(g_cycle_vi_clock, elapsed_cycles);
     while (dol_vi_clock_pop_retrace(g_cycle_vi_clock, NULL)) {
         g_host_retrace_count++;
+        host_log_music_stream(cpu);
 #if BLUEWAKE_ENABLE_DEVELOPER_TRACING
         host_trace_bgm_stream(cpu, 0u);
 #endif
@@ -6142,8 +6185,8 @@ static const BwStateField k_host_state_fields[] = {
     HS_FIELD(g_vi_cycle_cursor), HS_FIELD(g_audio_cycle_cursor), HS_FIELD(g_dsp_cycle_cursor),
 #ifdef BLUEWAKE_HAS_DSP_ADAPTER
     HS_FIELD(g_dsp_adapter_interrupt_pending), HS_FIELD(g_dsp_adapter_slice_cycles),
-#endif
     HS_FIELD(g_dsp_adapter_update_elapsed), HS_FIELD(g_dsp_adapter_dma_count),
+#endif
     HS_FIELD(g_host_retrace_count), HS_FIELD(g_previous_retrace_timebase), HS_FIELD(g_vi_assert_reports),
     HS_FIELD(g_context_shadows), HS_FIELD(g_delivery_digest),
     HS_FIELD(g_async_draw_done_commits),
@@ -7709,6 +7752,9 @@ int main(int argc, char** argv) {
             gather_mode == BLUEWAKE_GATHER_DIRECT ? "direct" : "off");
     host_mods_enable(lib, &cpu);
     bluewake_game_options_enable(lib, &cpu, g_options_mod);
+    bluewake_forest_water_set_ftree_text(
+        host_rel_section_linked_start(mod, 317u, 1u));
+    bluewake_forest_water_reload();
     bluewake_mouse_camera_attach(&cpu);
     bluewake_climb_attach(&cpu);
     bluewake_jump_button_attach(&cpu);
@@ -8078,6 +8124,7 @@ int main(int argc, char** argv) {
         if (dol_platform_should_quit()) { stop_reason = "quit"; break; }
         bluewake_card_runtime_service_callback(&cpu);
         bluewake_card_runtime_dispatch(&cpu);
+        bluewake_forest_water_dispatch(&cpu, cpu.pc);
         if (g_host_retrace_count != scene_milestone_last_retrace) {
             scene_milestone_last_retrace = g_host_retrace_count;
             const u32 open_scene = host_find_scene_by_proc_name(&cpu, 0x000Eu);

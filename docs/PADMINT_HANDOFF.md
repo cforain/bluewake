@@ -45,8 +45,8 @@ second clean current-source build. Sustained play and matched performance remain
 | Windows / tvOS / Linux | No complete PadMint adapter acceptance; use each platform's explicitly documented source route or preview boundary |
 
 The exact-source iOS app-only input passes the repository content gate and
-PadMint audit without translated game code. It remains local while public
-releases are paused. Personal assemblies and generated profiles remain private.
+PadMint audit without translated game code. Mac, iPhone and iPad releases
+publish only this kind of app; see [AGENTS.md](../AGENTS.md). Personal assemblies and generated profiles remain private.
 The source-only route must not receive the full mode's `--app` argument.
 A supplied app shell must match the intended source/module compatibility;
 never infer compatibility from the IPA filename alone.

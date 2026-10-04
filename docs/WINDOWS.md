@@ -1,6 +1,9 @@
 # BlueWake on Windows
 
-BlueWake also builds as a native Windows x86-64 program. As on the Mac, you build it yourself from your own disc:
+**Most players should download the ready-made Windows build** from the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest): unpack it,
+run `BlueWake.exe` and choose your own disc image (`.iso` or `.gcm`).
+
+This page is about building it yourself. BlueWake builds as a native Windows x86-64 program from your own disc:
 the game's code is translated from that disc during the build, so **the folder you build is yours alone: never
 share or upload it.**
 
@@ -101,18 +104,9 @@ Options (`--help` lists all):
 | `--no-train` / `--no-pgo` | Explicitly skip local training and compile without a profile |
 | `--retrain` | Record a new local profile instead of reusing a matching one |
 | `--no-mods` | Skip the mods (widescreen 16:9 and 16:10, Better Wind Waker's options) |
-| `--prepared-blocks` | Opt into generic prepaid-block optimization; off by default, Windows timing/gameplay pending |
-| `--fixed-cpu` | Opt into experimental fixed-address CPU storage; off by default, requires the matching app |
-| `--fixed-mem1` | Also use module-owned RAM; requires `--fixed-cpu` and the matching app, off by default |
-| `--inline-fp` | Opt into inline floating-point helpers; off by default, module/gameplay/performance qualification pending |
-| `--gather-pipe` | Prepare experimental gather/inline-memory wrappers; off by default, host batching and module qualification remain separate gates |
-| `--direct-calls` | Prepare direct cross-chunk/indirect calls; off by default, matching host selection and qualification required |
-| `--native-j3d` | Prepare certified J3D matrix functions; off by default, host opt-in and module qualification required |
-| `--native-vec` | Prepare nine certified SDK vector functions; off by default, host opt-in and module qualification required |
-| `--native-game-math` | Prepare twelve certified game-math functions; off by default, host opt-in and module qualification required |
-| `--native-skin` | Prepare certified model skinning; off by default, host opt-in and module qualification required |
-| `--native-math` | Prepare four certified SDK matrix functions; off by default, host opt-in and module qualification required |
-| `--inline-gpr` | Also inline certified register saves/restores; requires `--direct-calls` |
+| `--conservative` | Build the plain translation. By default the builder prepares the same optimizations as Wind Waker Recomp's builds (prepaid blocks, fixed CPU and RAM storage, inline floating point and memory access, direct calls, register inlining, and the certified native J3D, vector, game-math, skinning and matrix functions); with `--conservative`, each `--...` option adds one back |
+| `--native-entries` | Elliott Tate's second and third native sets; off by default. They apply only where the translation matches what his builder produces, which BlueWake's does not yet |
+| `--lean-memory` | Elliott Tate's lean loads and stores in prepaid copies; off by default, and it changes nothing until BlueWake's prepaid copies carry his deadline test |
 | `--jobs N` | Parallel compile jobs (default: the cores, as far as free memory allows) |
 | `--march LEVEL` | CPU level for the game module (default `x86-64-v3`) |
 | `--console` | Build `BlueWake.exe` as a console program |

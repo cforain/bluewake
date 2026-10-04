@@ -13,6 +13,7 @@
   <img alt="Game data not included" src="https://img.shields.io/badge/game%20data-not%20included-FF453A">
   <img alt="License: GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-lightgrey">
   <img alt="Status: source preview" src="https://img.shields.io/badge/status-source%20preview-FFD60A">
+  <a href="https://github.com/chrissotraidis/padmint"><img alt="Build BlueWake with PadMint" src="https://img.shields.io/badge/PadMint-build%20your%20own-3EB489"></a>
   <a href="https://discord.gg/xwHfUD2bxW"><img alt="Join the community on Discord" src="https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&amp;logoColor=white"></a>
 </p>
 
@@ -24,9 +25,11 @@
 > assets or saves. Your personal app contains code translated from your disc; you also import the
 > disc on your device.
 >
-> **Public app releases are paused.** Build privately from source using your own disc; do not
-> expect a downloadable BlueWake app. Publication requires clearance in the maintainer's private
-> release audit. See [Getting started](#getting-started) and the [candidate checklist](docs/status/RELEASE.md).
+> **Windows: download and play.** A ready-made Windows build is on the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest). It
+> contains the recompiled game code; at first launch you choose your own disc image (`.iso` or `.gcm`).
+>
+> **Mac, iPhone and iPad: build your own** from your disc with PadMint or the builder in
+> [Getting started](#getting-started). No prebuilt app with game code is provided for these.
 >
 > **AI disclosure:** BlueWake is developed with substantial AI assistance for code, testing,
 > documentation and debugging. The status log records what has actually been checked, and on what.
@@ -34,9 +37,23 @@
 **Questions or bugs?** Join the [Discord](https://discord.gg/xwHfUD2bxW) or
 [open an issue](https://github.com/chrissotraidis/bluewake/issues).
 
-Elliott Tate's Wind-Waker-Recomp is merging into BlueWake, and development continues here. See the
-[migration status](docs/MIGRATION_STATUS.md) for what is done and what is still open. The
-measurements below describe earlier developer builds; they are not acceptance of every personal
+## Coming from Wind Waker Recomp?
+
+Wind Waker Recomp, Elliott's fork of BlueWake, is moving here, and Elliott and Chris now maintain BlueWake
+together. His work is being brought in with his authorship. How the move works: [migration log](docs/WIND_WAKER_RECOMP_MIGRATION.md)
+and [status](docs/MIGRATION_STATUS.md).
+
+- **Report bugs and request features in [BlueWake's issues](https://github.com/chrissotraidis/bluewake/issues)**,
+  not on Wind-Waker-Recomp. Say whether you use a Wind Waker Recomp release or a BlueWake build, and
+  attach your session log. Open issues there are being moved here with a link back.
+- **Your Windows saves carry over:** both keep them in `%APPDATA%\BlueWake`. Back that folder up
+  before switching.
+- **Windows:** the same ready-made build as Wind Waker Recomp 0.4.0 is on BlueWake's
+  [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest). Unpack it, run `BlueWake.exe` and choose your disc image. A Dolphin `.rvz`
+  must first be converted to ISO in Dolphin (right-click the game, Convert File).
+- **Questions:** the [Discord](https://discord.gg/xwHfUD2bxW), shared by both projects.
+
+The measurements below describe earlier developer builds; they are not acceptance of every personal
 player build. Windows and Apple TV remain experimental.
 
 ## What is BlueWake?
@@ -100,8 +117,8 @@ You need:
 - Or an Apple TV on tvOS 17 or later, with Developer Mode on ([Apple TV build guide](docs/status/TVOS_BUILD.md))
 - an Apple ID for signing (a free one works; its apps expire after seven days)
 
-PadMint's BlueWake workflow uses an app-only release as its starting point. Public app releases
-are currently paused, so use the source builder below instead of relying on that release workflow.
+PadMint's BlueWake workflow starts from the app-only IPA on the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest)
+(0.2.0) and adds the game made from your disc. To build from the latest source instead, use the builder below.
 
 **From this repository,** one command builds your own personal app from a fresh checkout:
 
@@ -124,9 +141,12 @@ For Apple TV, use [the tvOS build guide](docs/status/TVOS_BUILD.md); it builds a
 
 ### Windows
 
-An experimental native Windows x86-64 source port targets Direct3D 12, using the same disc and verified
-game source. The runtime/app compile and link pass native Windows CI; end-to-end personal-module
-build and Direct3D gameplay validation remain pending. To try it
+**Download:** the ready-made Windows build is on the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest): unpack it, run
+`BlueWake.exe` and choose your `.iso` or `.gcm` disc image. It needs Windows 10 or 11, a Direct3D 12 GPU and a CPU
+with AVX2 (Intel Haswell from 2013, AMD Ryzen, or newer). To build it yourself instead:
+
+BlueWake's Windows builder compiles and passes its automated checks, but a complete build from a disc on
+Windows has not been checked in BlueWake yet. To try it
 with Visual Studio's C++ workload and its Clang component, Python, Git, CMake and Ninja:
 
 ~~~bash
@@ -161,7 +181,7 @@ and left-stick click. Jump uses the game's ledge jump and respects its movement 
 
 The rendering, camera, movement, transition and game-option additions come from
 [elliotttate's source fork](https://github.com/elliotttate/Wind-Waker-Recomp), with original commit
-authorship retained. [Integration status](docs/FORK_INTEGRATION.md) distinguishes BlueWake's checks
+authorship retained. [Integration status](docs/archive/FORK_INTEGRATION.md) distinguishes BlueWake's checks
 from the fork's reported measurements. Rebuild your personal game module for the new Better Wind
 Waker settings and 16:10 variants; an older module does not gain those variants from an app update.
 
@@ -196,9 +216,9 @@ Waker settings and 16:10 variants; an older module does not gain those variants 
 
 ### Can I download it?
 
-Public app releases are paused. You can build a personal app from source on an Apple silicon Mac
-with your own disc (see [Getting started](#getting-started)). Never share that app: it contains
-translated game code. An app-only build without your module shows "Translated game code: Missing".
+On Windows, yes: the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest) has a ready-made build that needs your own disc image.
+On Mac, iPhone and iPad, build a personal app from source with your own disc (see
+[Getting started](#getting-started)). Never share an app you build yourself: it contains translated game code. An app-only build without your module shows "Translated game code: Missing".
 
 ### Why does it need my disc?
 
@@ -208,7 +228,9 @@ world data are read from your disc on the device. Neither is included here.
 ### Which version of the game works?
 
 Only the GameCube USA release, `GZLE01` revision 0. The build checks the disc and refuses others. The
-Wii U *Wind Waker HD* is a different game and is not supported.
+Wii U *Wind Waker HD* is a different game and cannot be used as the game disc.
+You can optionally [import its compatible textures from your own HD disc](docs/WWHD_TEXTURES.md)
+into a replacement pack while continuing to play from your GameCube disc.
 
 ### Is this an emulator?
 
@@ -241,11 +263,14 @@ For a smaller pack on iPhone/iPad, see [Mods](docs/MODS.md#installing).
 
 ### BlueWake.exe does nothing when I open it
 
-The symptom alone does not identify the cause. These steps apply to this repository's experimental
-Windows port; include the repository/fork and exact build version when reporting it.
+The most common cause is the processor. The Windows build needs a CPU with AVX2 (Intel Haswell from
+2013, AMD Ryzen, or newer). On an older CPU, such as an Intel Core i7 860, it stops before it can show
+any message. Check your CPU in **Settings › System › About**.
 
-1. Run the executable from the **complete personal build folder**, not by itself or from inside an
-   archive. Keep the builder's runtime DLLs, `gGZLE01_recomp.dll` and `game` folder together.
+If your CPU has AVX2:
+
+1. Run the executable from the **complete unpacked folder** (the download or your own build), not by
+   itself or from inside an archive. Keep the builder's runtime DLLs, `gGZLE01_recomp.dll` and `game` folder together.
 2. Open `%APPDATA%\BlueWake\logs` in File Explorer. Attach the newest `session-*.log` and, if present,
    the matching `crash-*.log`. If no new log appears, say so; Windows may be failing before BlueWake's
    logging starts. Include any Windows error message, your CPU/GPU and Windows version.
@@ -272,6 +297,12 @@ It is experimental and off by default; disable it if you see artifacts or worse 
 
 Yes, on an A13 or newer. The touch controls sit in the black bars beside the picture. The busiest scenes
 dip below 30 FPS on an iPhone 14; see [Performance](#performance).
+
+### Is there a Linux version?
+
+Not a native one. Some players run the Windows download on Linux and Steam Deck through Proton (add
+`BlueWake.exe` as a non-Steam game). We haven't tested that ourselves, so please share how it goes in
+[#56](https://github.com/chrissotraidis/bluewake/issues/56).
 
 ### Do controllers work?
 
@@ -312,8 +343,18 @@ receives the whole imported save, including all three slots.
 - [The Builder](docs/BUILDER.md): how the build works, and reusing it for other ports
 - [Device build](docs/status/DEVICE_BUILD.md): signing, installing and build options
 - [Mods](docs/MODS.md): the three mods and how code mods are built
-- [History](docs/HISTORY.md): the project's earlier README, from macOS prototype to iPad
-- [Porting history](docs/PORTING_HISTORY.md) and [legal and provenance](docs/research/LEGAL_AND_PROVENANCE.md)
+- [History](docs/archive/HISTORY.md): the project's earlier README, from macOS prototype to iPad
+- [Porting history](docs/archive/PORTING_HISTORY.md) and [legal and provenance](docs/research/LEGAL_AND_PROVENANCE.md)
+
+## Community and support
+
+[Join the Discord](https://discord.gg/xwHfUD2bxW) for help and news. It is one
+community for BlueWake and its sibling projects, such as KartPad, MeleePad and
+SunPad: ask about setup, building with PadMint, and installing, share how it
+runs on your device, and hear about new releases first.
+
+Found a bug? [Open an issue](https://github.com/chrissotraidis/bluewake/issues)
+with your device, its OS version, and the steps that led to it.
 
 ## Credits
 
@@ -327,7 +368,7 @@ receives the whole imported save, including all three slots.
 - HD texture pack authors, including
   [Hypatia](https://forums.dolphin-emu.org/Thread-hypatia-s-tloz-the-wind-waker-hd-pack-v2-0001a)
 - SunPad, whose touch control overlay BlueWake adapts
-- [Elliott Tate (@elliotttate)](https://github.com/elliotttate), for the rendering, desktop, gameplay
+- [Elliott (@elliotttate)](https://github.com/elliotttate), for the rendering, desktop, gameplay
   and performance enhancements being consolidated into BlueWake from his Wind Waker fork
 - [Ian MacFarlane (@iannotian)](https://github.com/iannotian), for the controller-first Apple TV contribution
 
