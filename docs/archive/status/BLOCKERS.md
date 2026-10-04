@@ -24,7 +24,7 @@ archive handoff, opening transition and METER admission remain next; audio start
 reset recovery and legacy MAT2/BLS formats are not qualified here. Solid-heap
 individual-free/size warnings remain recorded. No product gate advances; full PRD
 goal active. Recovery: `local-research/checkpoints/reorientation-20260909-logo-cold-start/`.
-See [world integration evidence](ROUTE_B_WORLD_INTEGRATION_2026-09-09.md).
+See [world integration evidence](../../status/ROUTE_B_WORLD_INTEGRATION_2026-09-09.md).
 
 > **STARTUP RESOURCE HANDOFF FRONTIER:** the expanded world now links and
 > passes strict scripted 180-frame regression. Original scheduler reaches METER

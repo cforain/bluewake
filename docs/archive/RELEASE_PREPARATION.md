@@ -81,4 +81,4 @@ check remains unverified.
 - The iPad is unavailable during this pass. All ongoing work is Mac-only;
   hardware acceptance is deferred until the owner makes it available.
 
-See [PadMint handoff](PADMINT_HANDOFF.md) for the shared-builder contract.
+See [PadMint handoff](../PADMINT_HANDOFF.md) for the shared-builder contract.

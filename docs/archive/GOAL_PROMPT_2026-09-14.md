@@ -1,6 +1,6 @@
 # BlueWake goal prompt — 2026-09-14 (v3)
 
-This replaces v2 at this path, and §12 of [GOAL_LOOP.md](GOAL_LOOP.md), as the durable goal given to the implementation agent. The PRD still defines what "finished" means. This document defines what counts as a day's work.
+This replaces v2 at this path, and §12 of [GOAL_LOOP.md](../GOAL_LOOP.md), as the durable goal given to the implementation agent. The PRD still defines what "finished" means. This document defines what counts as a day's work.
 
 ## Why v2 was also going to fail
 

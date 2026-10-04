@@ -1,6 +1,9 @@
 # BlueWake on Windows
 
-BlueWake also builds as a native Windows x86-64 program. As on the Mac, you build it yourself from your own disc:
+**Most players should download the ready-made Windows build** from the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest): unpack it,
+run `BlueWake.exe` and choose your own disc image (`.iso` or `.gcm`).
+
+This page is about building it yourself. BlueWake builds as a native Windows x86-64 program from your own disc:
 the game's code is translated from that disc during the build, so **the folder you build is yours alone: never
 share or upload it.**
 

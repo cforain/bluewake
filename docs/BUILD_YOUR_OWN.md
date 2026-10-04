@@ -1,8 +1,8 @@
 # Build your own BlueWake
 
-BlueWake is distributed as source. Build it on an Apple Silicon Mac from your
-own supported *The Wind Waker* disc for your iPhone/iPad, or use the Mac migration
-candidate below. The game's code is translated from your disc during the build,
+On iPhone, iPad and Mac you build BlueWake yourself on an Apple Silicon Mac from your
+own supported *The Wind Waker* disc. (On Windows you can instead download the ready-made build from the
+[Releases page](https://github.com/chrissotraidis/bluewake/releases/latest).) The game's code is translated from your disc during the build,
 so **the app you build is yours alone: never share or upload it.**
 
 The migration candidate is reviewed in

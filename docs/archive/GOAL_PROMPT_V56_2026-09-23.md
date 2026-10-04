@@ -3,7 +3,7 @@
 **USER-DIRECTED. Supersedes v55's ordering; v55's Route B campaign continues as a background track.**
 The user asked for the game to actually work, on iPadOS, tested in the simulators one at a time,
 with no hardware iPad yet. The dossier for this reorientation is
-[status/IPADOS_REORIENTATION_2026-09-23.md](status/IPADOS_REORIENTATION_2026-09-23.md).
+[status/IPADOS_REORIENTATION_2026-09-23.md](../status/IPADOS_REORIENTATION_2026-09-23.md).
 
 ## Objective
 
@@ -34,7 +34,7 @@ shim. Route B work continues only when it does not block this loop.
    own (PRD 14.4): `scripts/card_to_gci.py` turns a BlueWake save into a GCI for Dolphin's GCI
    folder.
 5. Record the evidence (milestones, screenshots, counters) under `local-research/ipad/` and a dated
-   entry at the top of [status/CURRENT.md](status/CURRENT.md). An iteration counts only if a
+   entry at the top of [status/CURRENT.md](../status/CURRENT.md). An iteration counts only if a
    screenshot, milestone or counter moved.
 6. Every three iterations, report to the user.
 

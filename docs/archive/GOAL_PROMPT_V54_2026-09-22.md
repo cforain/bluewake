@@ -2,7 +2,7 @@
 
 **User-started and nothing is blocked by the user; write the loop and go.** The
 governing specification is [PRD.md](PRD.md), the operating procedure is
-[GOAL_LOOP.md](GOAL_LOOP.md), and the previous workstream page is
+[GOAL_LOOP.md](../GOAL_LOOP.md), and the previous workstream page is
 [GOAL_PROMPT_V53_2026-09-22.md](GOAL_PROMPT_V53_2026-09-22.md). What the PRD demands
 that this loop is measured against, restated once so it is not re-derived:
 
@@ -147,4 +147,4 @@ service **4.5 percent**. Item 5 still stands and is the level the gate turns on:
 play window measures 38.34 ms mean and 33.14 ms median a retrace against the 16.667 ms target.
 Item 4 (the dispatch cache) and the emitter-side precharge belong in the next rebuild, which is
 paused at 274 of 756 objects with its work preserved. Everything measured is in
-[status/CURRENT.md](status/CURRENT.md).
+[status/CURRENT.md](../status/CURRENT.md).

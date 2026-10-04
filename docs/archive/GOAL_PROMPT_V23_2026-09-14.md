@@ -7,7 +7,7 @@
 > with the keyboard without a crash, and time-to-playable is under five minutes,
 > with the five governing product numbers holding on this host.
 
-**This document supersedes `docs/GOAL_PROMPT_V22_2026-09-14.md`.** v22's own
+**This document supersedes `docs/archive/GOAL_PROMPT_V22_2026-09-14.md`.** v22's own
 launch was void (below); the measurement run it predicted is the one this
 document now reports, **v23**, and v23 has a verdict.
 
@@ -104,7 +104,7 @@ simply be abandoned: the cutscene does not advance itself.
 
 ### The decisive cross-reference: the route already moved Link through these exact windows
 
-The route's own oracle, from `docs/GOAL_PROMPT_V19_2026-09-14.md` (lines 45–70):
+The route's own oracle, from `docs/archive/GOAL_PROMPT_V19_2026-09-14.md` (lines 45–70):
 
 ```
 [player-control-admission] moved=1 start=C83ED280,44CE4000,48992880 final=C83EE1CE,44CE4000,4899151C trigger_retrace=19972 final_retrace=20153

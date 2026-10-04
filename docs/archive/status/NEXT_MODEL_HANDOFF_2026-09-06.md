@@ -9,7 +9,7 @@ resume automatically. No implementation was changed during the stopping turn.
 
 Read the original objective at
 `(a private attachment)`,
-then `docs/PRD.md`, `docs/GOAL_LOOP.md`, applicable repository instructions,
+then `docs/archive/PRD.md`, `docs/GOAL_LOOP.md`, applicable repository instructions,
 and the first authority banners in `docs/status/CURRENT.md` and `BLOCKERS.md`.
 Read `ROUTE_B_ACTIVE_VERTEX_BINDING_2026-09-06.md` and
 `ROUTE_B_PLAYER_COMMAND_EMISSION_2026-09-06.md` for qualified evidence.
