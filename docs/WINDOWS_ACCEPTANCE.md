@@ -99,5 +99,5 @@ GPU/driver, compiler, settings and app/module hashes. Use a short table:
 
 Return sanitized textual findings and focused source fix PRs. Keep personal apps,
 modules, generated game source, profiles, discs and saves local; do not attach them
-to GitHub. Public releases remain paused. Repository redirects, issue/PR migration
+to GitHub. Releases follow [AGENTS.md](../AGENTS.md). Repository redirects, issue/PR migration
 and archival wait for the migration decision; this handoff is for Windows testing.
