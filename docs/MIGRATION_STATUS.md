@@ -48,7 +48,7 @@ New bug reports, feature requests and pull requests should go to
 | Longer gameplay session | BlueWake | About 30 minutes of real play with a controller and audio on Mac and iPad, to catch problems short checks miss. |
 | Matched performance comparison | BlueWake and Elliott | Compare BlueWake with Wind-Waker-Recomp in the same scenes, settings and hardware. |
 | Pictobox freeze | BlueWake | [#13](https://github.com/chrissotraidis/bluewake/issues/13). A fix passes on Mac. Windows confirmation is part of the checklist above. |
-| Point Wind-Waker-Recomp to BlueWake | Chris and Elliott | Done October 3: its README and issue form point here ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)). The repository description needs Elliott (admin). Elliott to take down his release downloads now that BlueWake has the Windows build. Archiving the fork waits until issues are moved, Windows is checked and both agree. |
+| Point Wind-Waker-Recomp to BlueWake | Chris and Elliott | Done October 3: its README and issue form point here ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)). The repository description needs Elliott (admin). Its ten releases were unpublished on October 4 (kept as drafts, files intact) and its download links point here ([adac1e6](https://github.com/elliotttate/Wind-Waker-Recomp/commit/adac1e616376ab0d7d57eda51d82acf4dc607079)). Archiving the fork waits until issues are moved, Windows is checked and both agree. |
 
 Linux, other game regions and an Android port are later work. They are not part of this move.
 
