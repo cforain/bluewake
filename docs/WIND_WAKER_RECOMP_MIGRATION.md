@@ -24,6 +24,8 @@ announced there.
 | October 3 | Session logs name the cause of slowdowns; Smooth Motion no longer pauses on single hitches ([#39](https://github.com/chrissotraidis/bluewake/pull/39)-[#41](https://github.com/chrissotraidis/bluewake/pull/41)) |
 | October 3 | Elliott's later Windows branch merged: save-state crash fix, faster shader compilation, Smooth Motion for cloth, the wider training and his optimization defaults ([#43](https://github.com/chrissotraidis/bluewake/pull/43), [#45](https://github.com/chrissotraidis/bluewake/pull/45)) |
 | October 3 | Fixes for reports on his tracker: camera flipping in water, an FPS counter that read 60 while Smooth Motion was paused, and Windows menu parity ([#44](https://github.com/chrissotraidis/bluewake/pull/44)) |
+| October 4 | BlueWake publishes the Windows build ([#47](https://github.com/chrissotraidis/bluewake/pull/47)); Elliott's October 3 work merged ([#50](https://github.com/chrissotraidis/bluewake/pull/50), [#52](https://github.com/chrissotraidis/bluewake/pull/52)); rules for contributors and bots in AGENTS.md ([#53](https://github.com/chrissotraidis/bluewake/pull/53)) |
+| October 4 | 28 open issues recreated in BlueWake and the 3 open pull request authors invited over (see below) |
 | October 3 | Wind-Waker-Recomp's README and issue form point to BlueWake ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)); the notice was then reworded to use first names only ([e4e1401](https://github.com/elliotttate/Wind-Waker-Recomp/commit/e4e14010b5c942d09eab0efd6b57454a734b80cf)) |
 
 ## Changes made on Wind-Waker-Recomp
@@ -38,6 +40,10 @@ Kept small and reversible; Elliott's own text, releases and history are unchange
   "Moving to BlueWake: github.com/chrissotraidis/bluewake. The Wind Waker static recompilation for
   Windows, Mac, iPhone and iPad", with the website set to BlueWake.
 
+- **Issues and pull requests (October 4):** a comment from Chris on each open issue with its new
+  BlueWake link, and on each open pull request asking its author to reopen it against BlueWake. Nothing
+  was closed.
+
 These are the only commits Chris's account has pushed to Wind-Waker-Recomp; every other commit there is
 Elliott's own (GitHub's push events show the pushing account).
 
@@ -51,11 +57,13 @@ GitHub cannot transfer issues between repositories owned by different accounts, 
    elliotttate/Wind-Waker-Recomp#N", and the label `from-wind-waker-recomp`. Tagging the reporter
    notifies them.
 3. Comment on the original with the new link (and, where BlueWake already has a fix, what changed and how
-   to confirm it), then close it.
+   to confirm it). Leave the original open; closing it is Elliott's call.
 4. Pull requests: ask each author to reopen against BlueWake, keeping their authorship. If an author
    cannot, a maintainer ports the change and credits them as co-author.
 
-Status: not started. 27 issues and 3 pull requests were open on October 3.
+Status: done October 4. The 28 issues open then are BlueWake
+[#54-#80](https://github.com/chrissotraidis/bluewake/issues?q=label%3Afrom-wind-waker-recomp), and #19
+was already BlueWake #13. The three pull request authors have been asked to reopen against BlueWake.
 
 ## Still to decide or do
 
