@@ -142,7 +142,8 @@ For Apple TV, use [the tvOS build guide](docs/status/TVOS_BUILD.md); it builds a
 ### Windows
 
 **Download:** the ready-made Windows build is on the [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest): unpack it, run
-`BlueWake.exe` and choose your `.iso` or `.gcm` disc image. To build it yourself instead:
+`BlueWake.exe` and choose your `.iso` or `.gcm` disc image. It needs Windows 10 or 11, a Direct3D 12 GPU and a CPU
+with AVX2 (Intel Haswell from 2013, AMD Ryzen, or newer). To build it yourself instead:
 
 An experimental native Windows x86-64 source port targets Direct3D 12, using the same disc and verified
 game source. The runtime/app compile and link pass native Windows CI; end-to-end personal-module
@@ -263,11 +264,14 @@ For a smaller pack on iPhone/iPad, see [Mods](docs/MODS.md#installing).
 
 ### BlueWake.exe does nothing when I open it
 
-The symptom alone does not identify the cause. These steps apply to this repository's experimental
-Windows port; include the repository/fork and exact build version when reporting it.
+The most common cause is the processor. The Windows build needs a CPU with AVX2 (Intel Haswell from
+2013, AMD Ryzen, or newer). On an older CPU, such as an Intel Core i7 860, it stops before it can show
+any message. Check your CPU in **Settings › System › About**.
 
-1. Run the executable from the **complete personal build folder**, not by itself or from inside an
-   archive. Keep the builder's runtime DLLs, `gGZLE01_recomp.dll` and `game` folder together.
+If your CPU has AVX2:
+
+1. Run the executable from the **complete unpacked folder** (the download or your own build), not by
+   itself or from inside an archive. Keep the builder's runtime DLLs, `gGZLE01_recomp.dll` and `game` folder together.
 2. Open `%APPDATA%\BlueWake\logs` in File Explorer. Attach the newest `session-*.log` and, if present,
    the matching `crash-*.log`. If no new log appears, say so; Windows may be failing before BlueWake's
    logging starts. Include any Windows error message, your CPU/GPU and Windows version.

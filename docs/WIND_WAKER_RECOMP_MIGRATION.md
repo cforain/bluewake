@@ -43,8 +43,8 @@ October 2 and said to make any changes needed.
   Windows, Mac, iPhone and iPad", with the website set to BlueWake.
 
 - **Issues and pull requests (October 4):** a comment from Chris on each open issue with its new
-  BlueWake link, and on each open pull request asking its author to reopen it against BlueWake. Nothing
-  was closed.
+  BlueWake link, and on each open pull request asking its author to reopen it against BlueWake. Later
+  that day the 28 issues were closed as moved; the pull requests stay open for their authors.
 - **Releases (October 4):** Chris unpublished all ten releases (v0.1.0-macos.1 to v0.4.0), so players get
   their downloads from BlueWake. They are now drafts with their files intact; Elliott can publish any of
   them again from the Releases page. The README's download links point to BlueWake ([adac1e6](https://github.com/elliotttate/Wind-Waker-Recomp/commit/adac1e616376ab0d7d57eda51d82acf4dc607079)).
@@ -62,7 +62,7 @@ GitHub cannot transfer issues between repositories owned by different accounts, 
    elliotttate/Wind-Waker-Recomp#N", and the label `from-wind-waker-recomp`. Tagging the reporter
    notifies them.
 3. Comment on the original with the new link (and, where BlueWake already has a fix, what changed and how
-   to confirm it). Leave the original open; closing it is Elliott's call.
+   to confirm it), then close it as not planned here.
 4. Pull requests: ask each author to reopen against BlueWake, keeping their authorship. If an author
    cannot, a maintainer ports the change and credits them as co-author.
 
