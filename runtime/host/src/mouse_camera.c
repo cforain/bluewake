@@ -1,5 +1,6 @@
 #include "mouse_camera.h"
 #include "game_options.h"
+#include "input_remap.h"
 #include "jump_button.h"
 #include "settings_menu.h"
 #include "save_state.h"
@@ -110,7 +111,13 @@ static const double kScopeZoomPerNotch = 0.125;
 static bool g_enabled;
 static bool g_blocked;
 static bool g_captured;
-static bool g_click; // left button held while the mouse is the camera: A
+// The mouse buttons held while the mouse is the camera (bit n-1 for SDL
+// button n), and what each presses (BLUEWAKE_MOUSE_BUTTONS; left is A).
+static unsigned g_buttons_down;
+// Pressed since the pad was last read: a click shorter than a frame (a
+// trackpad tap) still reaches the game, as Aurora latches keys.
+static unsigned g_buttons_latched;
+static BwMouseMap g_mouse_map = {{1, 0, 0, 0, 0}};
 static SDL_WindowID g_window;
 static double g_sum_x, g_sum_y;
 static double g_wheel; // notches, positive away from the player (zoom in)
@@ -217,12 +224,13 @@ static void set_captured(bool captured) {
     if (!SDL_SetWindowRelativeMouseMode(window, captured))
         return;
     g_captured = captured;
-    g_click = false;
+    g_buttons_down = 0;
+    g_buttons_latched = 0;
     g_sum_x = g_sum_y = 0.0;
     g_wheel = 0.0;
     g_held = false;
     fprintf(stderr, "[mouse] camera %s\n",
-            captured ? "on (left click is A, the wheel zooms, Esc gives the mouse back)"
+            captured ? "on (the buttons press what Controls says, the wheel zooms, Esc gives the mouse back)"
                      : "off (click to turn it on)");
 }
 
@@ -244,19 +252,20 @@ static void observe(const void* sdl_event, void* user) {
         return;
     switch (event->type) {
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        if (event->button.button != SDL_BUTTON_LEFT)
-            break;
         if (g_captured) {
-            g_click = true;
-        } else {
+            if (event->button.button >= 1 && event->button.button <= BW_MOUSE_BUTTONS) {
+                g_buttons_down |= 1u << (event->button.button - 1);
+                g_buttons_latched |= 1u << (event->button.button - 1);
+            }
+        } else if (event->button.button == SDL_BUTTON_LEFT) {
             // The click that hands over the mouse is not a press.
             g_window = event->button.windowID;
             set_captured(true);
         }
         break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
-        if (event->button.button == SDL_BUTTON_LEFT)
-            g_click = false;
+        if (event->button.button >= 1 && event->button.button <= BW_MOUSE_BUTTONS)
+            g_buttons_down &= ~(1u << (event->button.button - 1));
         break;
     case SDL_EVENT_MOUSE_MOTION:
         if (g_captured) {
@@ -292,6 +301,7 @@ void bluewake_mouse_camera_install(void) {
     // jump key read the same events.
     const char* on = getenv("BLUEWAKE_MOUSE_CAMERA");
     g_enabled = on == NULL || on[0] != '0';
+    bluewake_mouse_camera_buttons(getenv("BLUEWAKE_MOUSE_BUTTONS"));
     const char* fresh = getenv("BLUEWAKE_MOUSE_FRESH");
     g_fresh = fresh == NULL || fresh[0] != '0';
     const char* latency = getenv("BLUEWAKE_MOUSE_LATENCY");
@@ -303,6 +313,12 @@ void bluewake_mouse_camera_install(void) {
 }
 
 bool bluewake_mouse_camera_captured(void) { return g_captured; }
+
+void bluewake_mouse_camera_buttons(const char* map) {
+    bw_mouse_map_parse(map, &g_mouse_map);
+    g_buttons_down = 0;
+    g_buttons_latched = 0;
+}
 
 void bluewake_mouse_camera_configure(bool enabled, double sensitivity, bool invert_y) {
     g_enabled = enabled;
@@ -361,6 +377,7 @@ void bluewake_mouse_camera_reload(void) {
     g_sensitivity = sensitivity != NULL && atof(sensitivity) > 0.0 ? atof(sensitivity) : 1.0;
     const char* invert = getenv("BLUEWAKE_MOUSE_INVERT_Y");
     g_invert_y = invert != NULL && invert[0] == '1' ? -1.0 : 1.0;
+    bluewake_mouse_camera_buttons(getenv("BLUEWAKE_MOUSE_BUTTONS"));
     read_stick_settings();
 }
 
@@ -502,8 +519,19 @@ static void stick_turn(double x, double y, double seconds, double speed, double*
 }
 
 void bluewake_mouse_camera_pad(DolPadState* pad) {
-    if (g_click)
-        pad->button |= 0x0100u; // PAD_BUTTON_A
+    const unsigned held = g_buttons_down | g_buttons_latched;
+    g_buttons_latched = 0;
+    for (int i = 0; i < BW_MOUSE_BUTTONS; i++) {
+        if ((held & (1u << i)) == 0u)
+            continue;
+        const unsigned short bit = bw_mouse_choice_pad(g_mouse_map.choice[i]);
+        pad->button |= bit;
+        // L and R are analog triggers too: all the way in, as a key press is.
+        if (bit == 0x0040u)
+            pad->trigger_left = 0xFF;
+        else if (bit == 0x0020u)
+            pad->trigger_right = 0xFF;
+    }
     if (!g_stick_on)
         return;
     double x, y, left_x, left_y;
