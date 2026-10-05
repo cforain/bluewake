@@ -34,18 +34,21 @@ lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 | The camera-stick inversion now comes from a header shared with the Mac (no change intended on Windows) | #73 | F1 › Controls › "camera stick left and right inverted" on: the camera turns the same inverted way on land, swimming and on the boat. |
 | Mouse buttons and keyboard keys can be changed | Discord | F1 › Controls › Mouse buttons: set the right button to B; click the game, right-click, and Link uses his sword. Keyboard keys for the GameCube buttons: give A another key; it works in game, J no longer does, and both survive a restart (`mouse_buttons=` and `key_map=` in `settings.ini`). |
 | `gamecontrollerdb.txt` beside the saves adds controller mappings | #61 | Put the SDL_GameControllerDB file in `%APPDATA%\BlueWake`; the session log has `[pad] N controller mappings from ...` with N above 0, and a controller that worked before still works. |
+| Older CPUs get a message instead of nothing | #77 | Task 2 below: `sde64 -nhm -- BlueWake.exe` shows "BlueWake can't run on this processor"; a normal launch is unchanged. |
 
 
 ### The second Windows run (added October 5)
 
-If the first BlueWake Windows build was made before these merged (`c00397e` to `30f024f`, October 5),
-rebuild from `main` and check only these five rows of the table above, nothing else again:
+If the first BlueWake Windows build was made before these merged (from `c00397e` on, October 5),
+rebuild from `main` and check only these rows of the table above, nothing else again:
 
 1. "Exact" sound no longer crashes at launch (#58).
 2. A launch that crashes is recovered, with the plain message (#58).
 3. The camera-stick inversion from the shared header (#73).
 4. Mouse buttons and keyboard keys can be changed.
 5. "Quit the game" and the three option notes.
+6. Older CPUs get a message instead of nothing (#77, task 2).
+7. `gamecontrollerdb.txt` beside the saves adds controller mappings (#61).
 
 ## 1. A Windows build from BlueWake `main`
 
@@ -65,12 +68,13 @@ rebuild from `main` and check only these five rows of the table above, nothing e
 
 **Why:** on an older CPU, such as an Intel Core i7 860, `BlueWake.exe` exits silently.
 
-The app itself is compiled with `-march=x86-64-v3`, so the check has to run before any AVX2 code: a small
-function built for plain x86-64 (for example `__attribute__((target("arch=x86-64")))`) in an early C runtime
-initializer, which checks CPUID and shows a message box naming the requirement, then exits.
+**In `main` (October 5):** `windows/src/win_entry.c` checks the CPU from the C runtime's initializer table
+(`.CRT$XIU`, before the C++ static initializers and `main`), in functions compiled for plain x86-64, and shows a
+message box instead of stopping silently. Only builds for x86-64-v3 include it. On the Mac, the same code
+compiled for Windows showed the entry in `.CRT$XIU` and no AVX instructions in the check; it hasn't run on Windows.
 
 **Done when:** under Intel SDE emulating an older CPU (`sde64 -nhm -- BlueWake.exe`), the message appears
-instead of nothing, and normal launches are unchanged.
+instead of nothing, and a normal launch (and `sde64 -hsw -- BlueWake.exe`) is unchanged.
 
 ## 3. Opening the window in place (PR #89)
 
