@@ -37,6 +37,7 @@ lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 | Older CPUs get a message instead of nothing | #77 | Task 2 below: `sde64 -nhm -- BlueWake.exe` shows "BlueWake can't run on this processor"; a normal launch is unchanged. | Not in 0.5.0 (merged after `c56d6b6`) |
 | The first-launch disc prompt offers .rvz only when `nodtool.exe` is beside `BlueWake.exe` | #120 | From the release zip (no `nodtool.exe`), with no disc chosen yet: the message says .iso or .gcm and how to convert an .rvz in Dolphin, and the picker lists only *.iso and *.gcm. A self-built folder still offers .rvz. | Not in 0.5.0 (merged after `c56d6b6`) |
 | Portable mode keeps Aurora's shader and pipeline caches in the `user` folder too | #64 | With `portable.txt` and no `%APPDATA%\BlueWake` folder before: after a run, `dawn_cache.db` and `pipeline_cache.db` are in `user`. `%APPDATA%\BlueWake` may still appear holding only `imgui.ini` (needs a RecompCore change). Without `portable.txt`, the caches stay in `%APPDATA%\BlueWake` as before. | Not in 0.5.0 (merged after `c56d6b6`) |
+| Molgera's arena in the Wind Temple has its sand floor (it was black) | #126 | Go through the boss door in the Wind Temple, or load a copy of a save moved there with `scripts/save_set_restart.py IN.gci OUT.gci kazeB 0 0`: the floor is sand, and the session log's `[gx-core] shutdown` line has `array_unresolved=0`. Elsewhere looks as before. | Not in 0.5.0 (merged after `c56d6b6`) |
 
 
 ### The second Windows run (added October 5)
@@ -52,6 +53,7 @@ rebuild from `main` and check only these rows of the table above, nothing else a
 6. `gamecontrollerdb.txt` beside the saves adds controller mappings (#61).
 7. The disc prompt offers .rvz only when `nodtool.exe` is there.
 8. Portable mode keeps the shader caches in the `user` folder (#64).
+9. Molgera's arena has its sand floor (#126).
 
 ## 1. A Windows build from BlueWake `main`
 

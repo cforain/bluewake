@@ -25,6 +25,10 @@ Built on Chris's Windows PC from `c56d6b6` (this morning's `main`) and packaged 
 | Forsaken Fortress map and compass | No BlueWake patch touches dungeon items (only Tingle Chest markers and the new-game sea chart reveal), and the Mac shows the fortress minimap on the first visit with no patch involved. Most likely the original game; left as is. |
 | #77 and Discord: `BlueWake.exe` does nothing on older CPUs | A message box now names the AVX2 requirement instead of a silent exit ([#117](https://github.com/chrissotraidis/bluewake/pull/117)); checked by compiling for Windows on the Mac, still to run under Intel SDE on Windows (task 2). |
 | #61 8BitDo GameCube mod kit | Its Switch mode works with A and B swapped (Swap A and B is in `main`). Its generic mode needs an SDL mapping: BlueWake now loads `gamecontrollerdb.txt` from the folder with the saves ([#116](https://github.com/chrissotraidis/bluewake/pull/116)); the reporter was told how to try it with the next Windows build. |
+| #126, Discord (Dale): no floor in the Wind Temple boss room | **Reproduced on the Mac, fixed in `main`'s next build.** Dale's log skips one draw a frame in `kazeB` (`array_unresolved`): Molgera's sand floor, which the boss module draws with arrays and a texture in its own data. The game passes the array through `OSCachedToPhysical` (`0xC06B0DA0` becomes `0x406B0DA0`) and the texture through SETIMAGE3's 24 bits (`0xC06A0DA0` becomes `0x006A0DA0`), so neither was found where BlueWake links modules. The host now reads both at the module's address (RecompCore patch 0156 for the texture). With a copy of a save moved into the room, the floor was black before and is sand after; Windfall and the pirate ship draw bit for bit as before. Still to check on Windows. |
+| Discord (davioxx): PadMint stops at `generate_composite.py` with `write_text() got an unexpected keyword argument 'newline'` | macOS's own `python3` is 3.9, and that argument needs 3.10. The builder scripts write their files another way ([#127](https://github.com/chrissotraidis/bluewake/pull/127)); checked with `/usr/bin/python3` 3.9.6, which regenerates the same composite and mod variants. |
+| Discord (SAUCE): Tingle Tuner | The Tuner needs a Game Boy Advance linked to the GameCube, which BlueWake doesn't emulate, so it isn't supported. Better Wind Waker's "Tingle Chests without the Tingle Tuner" (on by default) opens the chests with ordinary bombs. |
+| Discord (Awesome): change the Xbox 360 controller's buttons | Controller button remapping and Swap A and B / Swap X and Y are in `main` and in the 0.5.0 draft (#66, #55); not yet pressed on a Windows PC with a controller. |
 
 ## Fixed in `main`, waiting for a Windows build
 
@@ -54,7 +58,7 @@ These close once a Windows build from `main` is out and the reporter confirms.
 | #76: soft lock in the Forsaken Fortress after a Moblin falls | Windows | Needs a Windows check; may be the original game. | WINDOWS_TASKS |
 | #80: HD pack shading and orange hair on an AMD GPU | Windows | Asked whether the PNG pack does it too. | needs info |
 | #61: 8BitDo GameCube mod kit controller not seen | Windows | Needs a Windows check. | WINDOWS_TASKS |
-| #69: pirate ship flag has no texture | Windows 0.3.0 | Asked for a check on 0.4.0. | needs info |
+| #69: pirate ship flag has no texture | Windows 0.3.0 | Asked for a check on 0.4.0. The pirate ship's sail module (`d_a_sail`) keeps a texture in its own data, like Molgera's floor in #126, so the #126 fix may cover it; not seen on the Mac yet. | needs info |
 
 ## Slow scenes
 
