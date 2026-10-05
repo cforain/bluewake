@@ -1087,7 +1087,13 @@ void frame(void*) {
     if (g_safe_mode && SDL_GetTicks() - g_first_frame_at < 15000) {
         ImGui::SetNextWindowBgAlpha(0.85f);
         ImGui::Begin("Launch recovery", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::TextWrapped("Safe mode: HLE audio, mods off. Previous settings were kept in a backup when possible.");
+        // A fixed wrap width: TextWrapped in an auto-resizing window wraps to
+        // the window's own width and collapses it to a narrow column.
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 28.0f);
+        ImGui::TextUnformatted("BlueWake didn't finish starting last time, so this time it starts with Fast "
+                               "sound, 4:3 and the mods off. Your earlier settings were saved beside "
+                               "settings.ini. You can turn things back on in the settings (F1).");
+        ImGui::PopTextWrapPos();
         ImGui::End();
     }
     draw_climb_wheel();
