@@ -7,6 +7,19 @@ or their own issues. This is a snapshot: [GOAL_LOOP.md](../GOAL_LOOP.md) has the
 Every Windows player is still on Wind Waker Recomp 0.4.0, so a Windows report doesn't show whether
 `main` has the problem. Logs attached to issues were read with `scripts/triage_session_log.py` and by hand.
 
+## What the October 5 loop found
+
+| Report | Result |
+| --- | --- |
+| #58 Exact sound crash | Already fixed in `main`; recovery message made plain in [#111](https://github.com/chrissotraidis/bluewake/pull/111). Moved to "fixed in `main`" above. |
+| Camera inverting by itself | Two causes. In 0.4.0, the camera switched between the fast stick camera and the game's own camera (swimming, the boat, targeting), which turns the other way; #44 in `main` fixes that. On the Mac, the right stick's invert setting didn't reach the game's own camera; fixed in [#112](https://github.com/chrissotraidis/bluewake/pull/112). Better Wind Waker's "Invert camera left and right" now says what it affects ([#114](https://github.com/chrissotraidis/bluewake/pull/114)). |
+| Controls settings reverting | `main` stopped launch overrides from overwriting saved Windows settings on October 1 and 2 (`8b4611d`, `e3536b1`), after 0.4.0. A crash recovery also resets settings (with a backup), and now says so. |
+| Mouse and keyboard rebinding | Done on Mac and Windows ([#113](https://github.com/chrissotraidis/bluewake/pull/113)). Checked on the Mac: right-click set to B logged B; A moved to L logged A on L and nothing on J. |
+| Quit from the menu, Brisk Sail and Unrestricted boat | Windows has "Quit the game"; both menus explain the two options ([#114](https://github.com/chrissotraidis/bluewake/pull/114)). |
+| #74 dungeon map, sea charts | On the Mac, the Forsaken Fortress minimap, the sea chart and its Charts screen draw correctly (community saves from cbartondock/Windwaker, on scratch cards). No save inside a dungeon was at hand, so the large dungeon map is still unchecked; Chris was asked for one, and WINDOWS_TASKS.md says what to capture. |
+| #65, #97 cutscene sound | On the Mac, the opening cutscene logs `cues=4 sounds=4 missing=0 silent=0.4s` with default settings, mouse camera off, Better Wind Waker on and 16:9 (no HD pack installed to try). None of them drops its sound on the Mac, so the cause is on Windows or in a later scene (the bird dropping Tetra); a Windows `[demo] end` line decides it. |
+| Forsaken Fortress map and compass | No BlueWake patch touches dungeon items (only Tingle Chest markers and the new-game sea chart reveal), and the Mac shows the fortress minimap on the first visit with no patch involved. Most likely the original game; left as is. |
+
 ## Fixed in `main`, waiting for a Windows build
 
 These close once a Windows build from `main` is out and the reporter confirms.
@@ -20,12 +33,12 @@ These close once a Windows build from `main` is out and the reporter confirms.
 | #71 | Jump and sprint always on | Off by default in `main`. |
 | #73 | Camera turns the other way in water | #44. DonatelloEsq also sees it after talking to someone (#65). |
 | #79 | 120 Hz Smooth Motion keeps switching | The log shows the game at 13.7 to 25.9 game frames a second on an Intel Arc handheld, so Smooth Motion stepped down as designed. The reporter says newer builds don't do it. |
+| #58 | "Exact" sound crashes, then every launch crashes | The crash (a call to address 0) was fixed on October 1 (`ef29510`, RecompCore patch 0114), after the 0.4.0 download. A crash before the game runs is now also recovered on the next launch, with a plain message (#111). |
 
 ## Bugs
 
 | Report | Where | What we know | Loop step |
 | --- | --- | --- | --- |
-| #58, Discord (StarXfusion, Xand3r, Dale): the Exact sound setting crashes, and the game then crashes on every launch | Windows | #58's log ends with `[dsp-lle] authentic DSPCore shadow route enabled` and a null read (`0xC0000005` at address 0) within a second. Players recover by deleting the `.ini` in `%APPDATA%\BlueWake` or setting its `lle_audio` line to 0. | 3 |
 | #65, #97, Discord (Xand3r, Dale, shargul, Aleximo, GinOkami428): music, Link's voice and effects missing in cutscenes; the intro story silent; Tower of the Gods rises silently | Windows 0.4.0 | The intro has sound for some players and not others. DonatelloEsq got the bird dropping Tetra back by turning off the HD texture pack, the Better Wind Waker options and mouse camera; Xand3r says 4:3 helps. On the Mac the opening cutscene logs `cues=4 sounds=4 missing=0`. | 8 |
 | #74, Discord (Xand3r, Chris): dungeon map shows the room icons but not the floor drawing | Windows 0.3.0 and 0.4.0 | Seen in Forbidden Woods and Dragon Roost Cavern on every floor. Not yet tried on the Mac. | 7 |
 | Discord (Dale): every sea chart shows the same island, changing as the story goes on | Windows | Dale had "Reveal the full sea chart" off, as far as he knows. | 7 |

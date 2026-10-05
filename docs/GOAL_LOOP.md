@@ -56,6 +56,17 @@ it is written up in WINDOWS_TASKS.md; finishing doesn't depend on the Windows PC
 
 ### Progress
 
-- October 5: loop written; catalog added (step 1).
+- **1. Catalog and loop:** done ([#110](https://github.com/chrissotraidis/bluewake/pull/110)).
+- **2. Replies:** done. #58, #66, #64, #65, #108, #70, #75, #60, #61 and #57 answered and labeled; nothing closed.
+- **3. Exact sound crash:** done. The crash was already fixed in `main` (October 1, after 0.4.0), and the launch recovery already existed; its message is now plain ([#111](https://github.com/chrissotraidis/bluewake/pull/111)).
+- **4. Camera invert and settings:** done. The Mac's invert now reaches the game's own camera ([#112](https://github.com/chrissotraidis/bluewake/pull/112)); the reverting settings were fixed in `main` on October 1 and 2.
+- **5. Mouse and keyboard rebinding:** done ([#113](https://github.com/chrissotraidis/bluewake/pull/113)), checked on the Mac with the pad trace.
+- **6. Small menu fixes:** done ([#114](https://github.com/chrissotraidis/bluewake/pull/114)).
+- **7. Dungeon map:** not finished. The Mac draws the minimap, sea chart and Charts screen correctly; the large dungeon map needs a save inside a dungeon (asked Chris), and the Windows capture is in WINDOWS_TASKS.md.
+- **8. Cutscene sound:** done. No option drops the opening cutscene's sound on the Mac (four runs, all `cues=4 sounds=4 missing=0`).
+- **9. Forsaken Fortress map and compass:** done. No BlueWake patch hands them out; most likely the original game.
+- **10. Hand-off:** done. "The second Windows run" in WINDOWS_TASKS.md lists the five rows to check.
+
+Details: [OPEN_ISSUES_2026-10-05.md](status/OPEN_ISSUES_2026-10-05.md#what-the-october-5-loop-found).
 
 Earlier loops are in [the archive](archive/GOAL_LOOP_HISTORY.md).
