@@ -270,6 +270,15 @@ in the folder with your saves (`%APPDATA%\BlueWake` on Windows, or the `user` fo
 </details>
 
 <details>
+<summary><strong>Does the Tingle Tuner work?</strong></summary>
+
+No. The Tingle Tuner needs a Game Boy Advance linked to the GameCube, and BlueWake doesn't emulate one,
+so its co-op features aren't available. Better Wind Waker's **Tingle Chests without the Tingle Tuner**
+(on by default, under Mods) lets you open Tingle Chests with ordinary bombs and shows them on the maps.
+
+</details>
+
+<details>
 <summary><strong>Will updates keep my saves?</strong></summary>
 
 Yes, as long as you install over the existing app. Back up your saves first, and never delete the app
