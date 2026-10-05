@@ -580,6 +580,24 @@ int main(void) {
 
     def compile_composite(self, build, opt_level, extra_flags, extra_link_flags, name, cold=None):
         rc = self.recompcore
+        # The build directory may hold a stale configure from an earlier
+        # builder (the old Linux builder compiled the module with gcc). CMake
+        # cannot switch compilers in place: it reconfigures against the stale
+        # cache and the Threads probe (and friends) fail with a confusing
+        # "Could NOT find Threads". Wipe a build dir whose cached compiler is
+        # not clang, or whose cache is gone but its ninja file remains.
+        cache = build / "CMakeCache.txt"
+        stale = False
+        if cache.exists():
+            cached = re.search(r"^CMAKE_C_COMPILER:FILEPATH=(.*)$", cache.read_text(), re.M)
+            if cached and "clang" not in cached.group(1):
+                print(f"  {build} was configured with {cached.group(1)}; removing it for clang")
+                stale = True
+        elif (build / "build.ninja").exists():
+            print(f"  {build} has no CMake cache; removing the stale tree for a clean configure")
+            stale = True
+        if stale:
+            shutil.rmtree(build)
         # Each chunk is one very large function, and two LLVM passes are
         # superlinear on it (clang 22, x86-64, measured with -ftime-report):
         # - the SLP vectorizer took 92 percent of a typical large chunk's time;
