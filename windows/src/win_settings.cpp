@@ -353,18 +353,7 @@ void apply_controller() {
         bw_apply_button_map(0, map);
     else
         bw_apply_face_swaps(0, d.controller_swap_ab, d.controller_swap_xy);
-    const PADAxisMapping axes[4] = {
-        {{SDL_GAMEPAD_AXIS_RIGHTX, d.pad_invert_x ? AXIS_SIGN_NEGATIVE : AXIS_SIGN_POSITIVE},
-         SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_X_POS},
-        {{SDL_GAMEPAD_AXIS_RIGHTX, d.pad_invert_x ? AXIS_SIGN_POSITIVE : AXIS_SIGN_NEGATIVE},
-         SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_X_NEG},
-        {{SDL_GAMEPAD_AXIS_RIGHTY, d.pad_invert_y ? AXIS_SIGN_POSITIVE : AXIS_SIGN_NEGATIVE},
-         SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_Y_POS},
-        {{SDL_GAMEPAD_AXIS_RIGHTY, d.pad_invert_y ? AXIS_SIGN_NEGATIVE : AXIS_SIGN_POSITIVE},
-         SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_Y_NEG},
-    };
-    for (const PADAxisMapping& axis : axes)
-        PADSetAxisMapping(0, axis);
+    bw_apply_camera_axes(0, d.pad_invert_x, d.pad_invert_y);
     g_pad_applied = true;
 }
 

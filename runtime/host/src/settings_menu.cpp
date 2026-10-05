@@ -422,23 +422,32 @@ void gameplay_tab() {
 
 void apply_controller_swaps() {
     static SDL_JoystickID previous = 0;
-    static bool applied = false, last_ab = false, last_xy = false;
+    static bool applied = false, last_ab = false, last_xy = false, last_ix = false, last_iy = false;
     static std::string last_map;
     int index = PADGetIndexForPort(0);
     SDL_JoystickID connection = bw_controller_connection(0);
     bool ab = env_on("BLUEWAKE_PAD_SWAP_AB", false), xy = env_on("BLUEWAKE_PAD_SWAP_XY", false);
+    // The right stick's inversion reaches the game's own C-stick too, as on
+    // Windows, while the direct stick camera is on (otherwise the game's stick
+    // follows Better Wind Waker's "Invert camera", as the Controls tab says).
+    const bool stick = env_on("BLUEWAKE_STICK_CAMERA", true);
+    const bool ix = stick && env_on("BLUEWAKE_STICK_CAMERA_INVERT_X", false);
+    const bool iy = stick && env_on("BLUEWAKE_STICK_CAMERA_INVERT_Y", false);
     const std::string map_text = env("BLUEWAKE_BUTTON_MAP");
-    if (connection == previous && ab == last_ab && xy == last_xy && map_text == last_map) return;
-    previous = connection; last_ab = ab; last_xy = xy; last_map = map_text;
+    if (connection == previous && ab == last_ab && xy == last_xy && ix == last_ix && iy == last_iy &&
+        map_text == last_map)
+        return;
+    previous = connection; last_ab = ab; last_xy = xy; last_ix = ix; last_iy = iy; last_map = map_text;
     BwButtonMap map;
     const bool remapped = bw_button_map_parse(map_text, &map);
-    if (index < 0 || (!ab && !xy && !remapped && !applied)) return;
+    if (index < 0 || (!ab && !xy && !ix && !iy && !remapped && !applied)) return;
     PADRestoreDefaultMapping(0);
     // A custom layout replaces the swaps; otherwise the swaps as before.
     if (remapped)
         bw_apply_button_map(0, map);
     else
         bw_apply_face_swaps(0, ab, xy);
+    bw_apply_camera_axes(0, ix, iy);
     applied = true;
 }
 
