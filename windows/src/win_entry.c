@@ -49,6 +49,60 @@
 
 int bluewake_host_main(int argc, char** argv);
 
+// A clear message on a CPU this build can't run on (#77). A build for
+// x86-64-v3 (the release's -march: AVX2, FMA, BMI1 and BMI2, MOVBE, LZCNT) stops
+// at its first such instruction on an older CPU, with no message at all. This
+// check is compiled for plain x86-64 and runs from the C runtime's initializer
+// table, before the C++ static initializers and main. A build for an older
+// level (the builder picks one on such a CPU) doesn't need it and leaves it out.
+#if defined(__AVX2__)
+#define BW_PLAIN_X86_64 __attribute__((target("arch=x86-64"), noinline))
+BW_PLAIN_X86_64 static void bw_cpuid(unsigned leaf, unsigned sub, unsigned out[4]) {
+    __asm__ volatile("cpuid" : "=a"(out[0]), "=b"(out[1]), "=c"(out[2]), "=d"(out[3]) : "a"(leaf), "c"(sub));
+}
+
+BW_PLAIN_X86_64 static int bw_cpu_runs_this_build(void) {
+    unsigned r[4];
+    bw_cpuid(0, 0, r);
+    if (r[0] < 7u)
+        return 0;
+    bw_cpuid(1, 0, r);
+    const unsigned leaf1 = (1u << 12) | (1u << 22) | (1u << 27) | (1u << 28);  // FMA, MOVBE, OSXSAVE, AVX
+    if ((r[2] & leaf1) != leaf1)
+        return 0;
+    unsigned lo, hi;
+    __asm__ volatile("xgetbv" : "=a"(lo), "=d"(hi) : "c"(0));
+    (void)hi;
+    if ((lo & 6u) != 6u)  // Windows saves the AVX registers
+        return 0;
+    bw_cpuid(7, 0, r);
+    const unsigned leaf7 = (1u << 3) | (1u << 5) | (1u << 8);  // BMI1, AVX2, BMI2
+    if ((r[1] & leaf7) != leaf7)
+        return 0;
+    bw_cpuid(0x80000000u, 0, r);
+    if (r[0] < 0x80000001u)
+        return 0;
+    bw_cpuid(0x80000001u, 0, r);
+    return (r[2] & (1u << 5)) != 0;  // LZCNT
+}
+
+BW_PLAIN_X86_64 static int __cdecl bw_cpu_check(void) {
+    if (bw_cpu_runs_this_build())
+        return 0;
+    if (GetEnvironmentVariableW(L"BLUEWAKE_NO_DIALOG", NULL, 0) == 0)
+        MessageBoxW(NULL,
+                    L"BlueWake can't run on this processor.\n\n"
+                    L"This download needs a CPU with AVX2: an Intel Core from 2013 (Haswell) or later, "
+                    L"or an AMD Ryzen or later.",
+                    L"BlueWake", MB_OK | MB_ICONERROR);
+    ExitProcess(1);
+    return 1;
+}
+
+#pragma section(".CRT$XIU", long, read)
+__declspec(allocate(".CRT$XIU")) __attribute__((used)) static int(__cdecl* bw_cpu_check_entry)(void) = bw_cpu_check;
+#endif
+
 static char g_exe_dir[MAX_PATH * 4];
 static char g_data_dir[MAX_PATH * 4];
 static char g_log_path[MAX_PATH * 4];
@@ -565,6 +619,12 @@ int main(int argc, char** argv) {
     snprintf(states, sizeof states, "%sstates", g_data_dir);
     _mkdir(states);
     bw_default("BLUEWAKE_STATE_DIR", states);
+    // Aurora's shader and pipeline caches (dawn_cache.db, pipeline_cache.db) go
+    // with the rest of the player's data: the same %APPDATA%\BlueWake as before,
+    // or the user folder in portable mode (#64), which otherwise still filled
+    // %APPDATA%. Aurora's own imgui.ini follows its userPath, which GXRuntime
+    // doesn't expose yet.
+    bw_default("DOL_AURORA_CACHE_DIR", g_data_dir);
     char module[MAX_PATH * 4];
     const char* module_env = getenv("BLUEWAKE_COMPOSITE");
     if (module_arg != NULL)

@@ -18,8 +18,9 @@ LINE = re.compile(r"^(?:(\d\d):(\d\d):(\d\d)\.\d+ )?\[([^\]]+)\] ?(.*)$")
 SETUP = ("[windows]", "[simulation]", "[aspect]", "CPU model", "OS:", "Device:", "Using framebuffer",
          "present mode", "Device lock", "[host] module", "[device]", "[smooth-motion]")
 FATAL = re.compile(r"\[crash\]|\[panic\]|Device lost|exception 0x|fatal", re.IGNORECASE)
-# Not failures: a capped REL call trace once labelled [panic], and the device released at exit.
-BENIGN = re.compile(r"\[panic\] vcall-after|Device lost: Device was destroyed")
+# Not failures: a capped REL call trace once labelled [panic], the device released at exit, and
+# the Windows startup line naming where crash reports would go ([crash] reports=...).
+BENIGN = re.compile(r"\[panic\] vcall-after|Device lost: Device was destroyed|\[crash\] reports=")
 PACE = re.compile(r"in-between frames (\d+) -> (\d+)")
 CAUSES = {"gx-worker": "GX worker (GPU command conversion on the CPU)", "game-thread": "game thread",
           "shader-compile": "shader compile", "gpu-present": "GPU or presentation",
