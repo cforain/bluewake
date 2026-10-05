@@ -35,6 +35,7 @@ lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 | Mouse buttons and keyboard keys can be changed | Discord | F1 › Controls › Mouse buttons: set the right button to B; click the game, right-click, and Link uses his sword. Keyboard keys for the GameCube buttons: give A another key; it works in game, J no longer does, and both survive a restart (`mouse_buttons=` and `key_map=` in `settings.ini`). | Not in 0.5.0 (merged after `c56d6b6`) |
 | `gamecontrollerdb.txt` beside the saves adds controller mappings | #61 | Put the SDL_GameControllerDB file in `%APPDATA%\BlueWake`; the session log has `[pad] N controller mappings from ...` with N above 0, and a controller that worked before still works. | Not in 0.5.0 (merged after `c56d6b6`) |
 | Older CPUs get a message instead of nothing | #77 | Task 2 below: `sde64 -nhm -- BlueWake.exe` shows "BlueWake can't run on this processor"; a normal launch is unchanged. | Not in 0.5.0 (merged after `c56d6b6`) |
+| The first-launch disc prompt offers .rvz only when `nodtool.exe` is beside `BlueWake.exe` | #120 | From the release zip (no `nodtool.exe`), with no disc chosen yet: the message says .iso or .gcm and how to convert an .rvz in Dolphin, and the picker lists only *.iso and *.gcm. A self-built folder still offers .rvz. | Not in 0.5.0 (merged after `c56d6b6`) |
 
 
 ### The second Windows run (added October 5)
@@ -48,6 +49,7 @@ rebuild from `main` and check only these rows of the table above, nothing else a
 4. "Quit the game" and the three option notes.
 5. Older CPUs get a message instead of nothing (#77, task 2).
 6. `gamecontrollerdb.txt` beside the saves adds controller mappings (#61).
+7. The disc prompt offers .rvz only when `nodtool.exe` is there.
 
 ## 1. A Windows build from BlueWake `main`
 
