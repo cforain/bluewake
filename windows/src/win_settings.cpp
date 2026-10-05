@@ -37,6 +37,7 @@
 #include <imgui.h>
 #include "button_remap.h"
 #include "input_remap.h"
+#include "option_notes.h"
 
 #include <algorithm>
 #include <climits>
@@ -770,6 +771,11 @@ void tab_enhancements() {
         }
         const bool was = bw_settings_option_value(g_launched, name, default_on);
         restart_note(value != was);
+        if (const char* note = bw_option_note(name)) {
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
+            ImGui::TextDisabled("%s", note);
+            ImGui::PopTextWrapPos();
+        }
         ImGui::PopID();
     }
     if (!any)
@@ -945,6 +951,15 @@ void draw_menu(SDL_Window* w) {
         }
         if (ImGui::Button("Close   (F1 or Esc)"))
             open = false;
+        ImGui::SameLine();
+        if (ImGui::Button("Quit the game")) {
+            open = false;
+            if (g_dirty)
+                save_file();
+            SDL_Event quit{};
+            quit.type = SDL_EVENT_QUIT;
+            SDL_PushEvent(&quit);
+        }
         overflows = ImGui::GetScrollMaxY() > 4.0f * scale;
     }
     ImGui::End();

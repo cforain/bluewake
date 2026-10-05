@@ -27,6 +27,7 @@ extern "C" {
 #include <imgui.h>
 #include "button_remap.h"
 #include "input_remap.h"
+#include "option_notes.h"
 
 #include <algorithm>
 #include <cmath>
@@ -344,6 +345,11 @@ void gameplay_tab() {
             if (ImGui::Checkbox(g_option_titles[i].c_str(), &on)) {
                 g_options[i].second = on;
                 g_dirty = g_restart_pending = true;
+            }
+            if (const char* note = bw_option_note(g_options[i].first.c_str())) {
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
+                ImGui::TextDisabled("%s", note);
+                ImGui::PopTextWrapPos();
             }
         }
         ImGui::Unindent();
