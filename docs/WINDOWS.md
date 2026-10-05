@@ -182,6 +182,11 @@ Game controllers work through SDL (Xbox, PlayStation, Switch Pro and others). Th
 the file menu. To choose which controller button presses each GameCube button, open settings and use
 **Controls › Controller buttons** (builds from `main` after October 4, 2026). The mouse turns the game's own camera around Link and tilts it, and a left click is A; a
 cutscene, door, Z-target or first-person view takes the camera back.
+**Controls › Mouse buttons** sets what the left, middle, right and side buttons press, and **Keyboard keys for
+the GameCube buttons** changes their keys (builds from `main` after October 5, 2026). A controller SDL doesn't
+recognise works once its mapping is in a `gamecontrollerdb.txt` (from
+[SDL_GameControllerDB](https://github.com/mdqinc/SDL_GameControllerDB)) beside your saves; the session log's
+`[pad] N controller mappings` line shows it was read.
 
 Command-line options (`BlueWake.exe --help`):
 

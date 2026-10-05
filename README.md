@@ -260,7 +260,12 @@ ourselves, so please share how it goes in [#56](https://github.com/chrissotraidi
 Yes. On iPhone and iPad, any controller iOS supports works, with rumble, camera inversion and button
 remapping under **⋯ › Controller**. On Mac and Windows, Xbox, PlayStation, Switch Pro and other SDL
 controllers work; remap buttons under **Settings › Controls › Controller buttons** (F1 or Esc opens
-settings).
+settings). The same tab changes what the mouse buttons and keyboard keys press.
+
+If BlueWake doesn't see your controller at all (a generic Bluetooth pad, for example), download
+`gamecontrollerdb.txt` from [SDL_GameControllerDB](https://github.com/mdqinc/SDL_GameControllerDB), put it
+in the folder with your saves (`%APPDATA%\BlueWake` on Windows, or the `user` folder in portable mode;
+`~/Library/Application Support/BlueWake` on a Mac) and start BlueWake again.
 
 </details>
 

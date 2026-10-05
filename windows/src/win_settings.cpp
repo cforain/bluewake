@@ -36,6 +36,8 @@
 #include <dolphin/pad.h>
 #include <imgui.h>
 #include "button_remap.h"
+#include "input_remap.h"
+#include "option_notes.h"
 
 #include <algorithm>
 #include <climits>
@@ -59,6 +61,7 @@ extern "C" {
 void bluewake_mouse_camera_configure(bool enabled, double sensitivity, bool invert_y);
 void bluewake_mouse_camera_block(bool blocked);
 bool bluewake_mouse_camera_captured(void);
+void bluewake_mouse_camera_buttons(const char* map);
 void bluewake_haptics_reload(void);
 void bluewake_mouse_camera_reload(void);
 void bluewake_climb_reload(void);
@@ -135,6 +138,8 @@ void load_file() {
         else if (k == "mouse_invert_y") d.mouse_invert_y = parse_bool(v);
         else if (k == "controller_swap_ab") d.controller_swap_ab = parse_bool(v);
         else if (k == "button_map") d.button_map = v;
+        else if (k == "mouse_buttons") d.mouse_buttons = v;
+        else if (k == "key_map") d.key_map = v;
         else if (k == "controller_swap_xy") d.controller_swap_xy = parse_bool(v);
         else if (k == "controller_invert_x") d.pad_invert_x = parse_bool(v);
         else if (k == "controller_invert_y") d.pad_invert_y = parse_bool(v);
@@ -183,6 +188,10 @@ void save_file() {
     std::fprintf(f, "controller_swap_ab=%d\ncontroller_swap_xy=%d\n", d.controller_swap_ab, d.controller_swap_xy);
     if (!d.button_map.empty())
         std::fprintf(f, "button_map=%s\n", d.button_map.c_str());
+    if (!d.mouse_buttons.empty())
+        std::fprintf(f, "mouse_buttons=%s\n", d.mouse_buttons.c_str());
+    if (!d.key_map.empty())
+        std::fprintf(f, "key_map=%s\n", d.key_map.c_str());
     std::fprintf(f, "controller_invert_x=%d\ncontroller_invert_y=%d\n", d.pad_invert_x, d.pad_invert_y);
     std::fprintf(f, "stick_camera=%d\nstick_camera_speed=%d\nstick_aim_speed=%d\n", d.stick_camera, d.stick_speed,
                  d.stick_aim_speed);
@@ -353,19 +362,24 @@ void apply_controller() {
         bw_apply_button_map(0, map);
     else
         bw_apply_face_swaps(0, d.controller_swap_ab, d.controller_swap_xy);
-    const PADAxisMapping axes[4] = {
-        {{SDL_GAMEPAD_AXIS_RIGHTX, d.pad_invert_x ? AXIS_SIGN_NEGATIVE : AXIS_SIGN_POSITIVE},
-         SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_X_POS},
-        {{SDL_GAMEPAD_AXIS_RIGHTX, d.pad_invert_x ? AXIS_SIGN_POSITIVE : AXIS_SIGN_NEGATIVE},
-         SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_X_NEG},
-        {{SDL_GAMEPAD_AXIS_RIGHTY, d.pad_invert_y ? AXIS_SIGN_POSITIVE : AXIS_SIGN_NEGATIVE},
-         SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_Y_POS},
-        {{SDL_GAMEPAD_AXIS_RIGHTY, d.pad_invert_y ? AXIS_SIGN_NEGATIVE : AXIS_SIGN_POSITIVE},
-         SDL_GAMEPAD_BUTTON_INVALID, PAD_AXIS_RIGHT_Y_NEG},
-    };
-    for (const PADAxisMapping& axis : axes)
-        PADSetAxisMapping(0, axis);
+    bw_apply_camera_axes(0, d.pad_invert_x, d.pad_invert_y);
     g_pad_applied = true;
+}
+
+// The keyboard's keys for the GameCube buttons (input_remap.h), applied once
+// the pad's keyboard bindings exist and again whenever they change.
+void apply_key_map() {
+    static bool applied = false;
+    static std::string last;
+    const std::string& text = g_session.key_map;
+    if (applied && text == last)
+        return;
+    BwKeyMap map;
+    bw_key_map_parse(text, &map);
+    if (bw_apply_key_map(0, map)) {
+        applied = true;
+        last = text;
+    }
 }
 
 // Adapted from Elliott Tate's display-rate selection; resolve the current
@@ -425,6 +439,7 @@ void apply_live() {
     aurora_set_fps_overlay(d.show_fps);
     aurora_set_pause_on_focus_lost(d.pause_unfocused);
     bluewake_mouse_camera_configure(d.mouse_camera, d.mouse_sensitivity, d.mouse_invert_y);
+    bluewake_mouse_camera_buttons(d.mouse_buttons.c_str());
     apply_controller();
     apply_stick();
     apply_climb();
@@ -576,6 +591,19 @@ void tab_controls() {
     }
     if (ImGui::Checkbox("Mouse forward looks down", &d.mouse_invert_y))
         mouse = true;
+    if (ImGui::CollapsingHeader("Mouse buttons")) {
+        BwMouseMap buttons;
+        bw_mouse_map_parse(d.mouse_buttons.c_str(), &buttons);
+        ImGui::TextWrapped("What each mouse button presses while the mouse is the camera. The first left click "
+                           "only hands the mouse to the game.");
+        if (bw_mouse_map_ui(&buttons)) {
+            char text[64];
+            bw_mouse_map_format(&buttons, text, sizeof text);
+            d.mouse_buttons = text;
+            bluewake_mouse_camera_buttons(d.mouse_buttons.c_str());
+            changed();
+        }
+    }
     if (mouse) {
         bluewake_mouse_camera_configure(d.mouse_camera, d.mouse_sensitivity, d.mouse_invert_y);
         changed();
@@ -637,10 +665,24 @@ void tab_controls() {
     }
     ImGui::Spacing();
     ImGui::SeparatorText("Keyboard");
+    BwKeyMap keys;
+    bw_key_map_parse(d.key_map, &keys);
+    if (ImGui::CollapsingHeader("Keyboard keys for the GameCube buttons")) {
+        ImGui::TextWrapped("Choose the key for each GameCube button. Picking one that is already used swaps the two.");
+        if (bw_key_map_ui(&keys)) {
+            d.key_map = bw_key_map_format(keys);
+            changed();
+        }
+    }
+    char face[96], shoulder[96];
+    std::snprintf(face, sizeof face, "%s  %s  %s  %s", bw_key_name(keys.scancode[0]), bw_key_name(keys.scancode[1]),
+                  bw_key_name(keys.scancode[2]), bw_key_name(keys.scancode[3]));
+    std::snprintf(shoulder, sizeof shoulder, "%s  %s  %s", bw_key_name(keys.scancode[5]),
+                  bw_key_name(keys.scancode[6]), bw_key_name(keys.scancode[4]));
     if (ImGui::BeginTable("keys", 2, ImGuiTableFlags_SizingFixedFit)) {
         const char* const rows[][2] = {
             {"Control stick", "W A S D"}, {"C-stick", "T F G H"}, {"D-pad", "Arrow keys"},
-            {"A  B  X  Y", "J  K  U  I"}, {"L  R  Z", "E  R  Q"}, {"START", "Return"},
+            {"A  B  X  Y", face}, {"L  R  Z", shoulder}, {"START", bw_key_name(keys.scancode[7])},
             {"Jump", "Space (controller: left bumper)"}, {"Sprint", "Shift (controller: click the left stick)"},
             {"Camera zoom", "Mouse wheel, while the mouse is the camera"},
             {"Settings", "F1 or Esc"}, {"Fullscreen", "F11 or Alt+Enter"}, {"Smooth Motion", "F10"},
@@ -729,6 +771,11 @@ void tab_enhancements() {
         }
         const bool was = bw_settings_option_value(g_launched, name, default_on);
         restart_note(value != was);
+        if (const char* note = bw_option_note(name)) {
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
+            ImGui::TextDisabled("%s", note);
+            ImGui::PopTextWrapPos();
+        }
         ImGui::PopID();
     }
     if (!any)
@@ -904,6 +951,15 @@ void draw_menu(SDL_Window* w) {
         }
         if (ImGui::Button("Close   (F1 or Esc)"))
             open = false;
+        ImGui::SameLine();
+        if (ImGui::Button("Quit the game")) {
+            open = false;
+            if (g_dirty)
+                save_file();
+            SDL_Event quit{};
+            quit.type = SDL_EVENT_QUIT;
+            SDL_PushEvent(&quit);
+        }
         overflows = ImGui::GetScrollMaxY() > 4.0f * scale;
     }
     ImGui::End();
@@ -1074,6 +1130,7 @@ void frame(void*) {
     // A controller that connects starts from Aurora's mapping: look twice a
     // second whether the one on port 0 changed.
     static unsigned frames;
+    apply_key_map();
     if ((++frames % 30u) == 0u) {
         const SDL_JoystickID connection = bw_controller_connection(0);
         if (connection != g_pad_connection) {
@@ -1087,7 +1144,13 @@ void frame(void*) {
     if (g_safe_mode && SDL_GetTicks() - g_first_frame_at < 15000) {
         ImGui::SetNextWindowBgAlpha(0.85f);
         ImGui::Begin("Launch recovery", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::TextWrapped("Safe mode: HLE audio, mods off. Previous settings were kept in a backup when possible.");
+        // A fixed wrap width: TextWrapped in an auto-resizing window wraps to
+        // the window's own width and collapses it to a narrow column.
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 28.0f);
+        ImGui::TextUnformatted("BlueWake didn't finish starting last time, so this time it starts with Fast "
+                               "sound, 4:3 and the mods off. Your earlier settings were saved beside "
+                               "settings.ini. You can turn things back on in the settings (F1).");
+        ImGui::PopTextWrapPos();
         ImGui::End();
     }
     draw_climb_wheel();
