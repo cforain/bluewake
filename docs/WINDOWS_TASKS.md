@@ -30,6 +30,7 @@ lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 | Cutscene sound log: `[demo]`, `[demo-sound]`, `[audio-lost]` | #65, #97 | Play to the first cutscene; the log has a `[demo] end` line with `cues`, `sounds` and `missing`. |
 | "Exact" sound no longer crashes at launch (fixed October 1, after 0.4.0) | #58 | F1 › Sound and files › Exact, restart: the game starts and plays sound. |
 | A launch that crashes is recovered: the next launch starts with Fast sound and mods off, backs up `settings.ini` and says so in plain words | #58 | Turn on a mod, end `BlueWake.exe` in Task Manager within a few seconds of starting, start it again: the message shows, a `settings.ini.before-safe-mode-*` file is beside `settings.ini`, and the next normal launch has no message. |
+| The camera-stick inversion now comes from a header shared with the Mac (no change intended on Windows) | #73 | F1 › Controls › "camera stick left and right inverted" on: the camera turns the same inverted way on land, swimming and on the boat. |
 
 ## 1. A Windows build from BlueWake `main`
 
