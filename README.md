@@ -43,8 +43,10 @@ alone: never share or upload it.**
 Wind Waker Recomp has moved here. Its creator, [Elliott](https://github.com/elliotttate), now
 maintains BlueWake together with Chris, and his work is part of BlueWake with his authorship kept.
 
-- **Windows:** BlueWake's [latest release](https://github.com/chrissotraidis/bluewake/releases/latest)
-  has the same build as Wind Waker Recomp 0.4.0.
+- **Windows:** BlueWake 0.5.0, on the [latest release](https://github.com/chrissotraidis/bluewake/releases/latest),
+  is the first Windows build made from BlueWake itself and replaces Wind Waker Recomp 0.4.0. Smooth
+  Motion is off by default (press **F10** to turn it on), and 0.4.0's experimental 60 FPS game logic
+  is gone.
 - **Saves carry over:** both use `%APPDATA%\BlueWake`. Back that folder up before switching.
 - **Bugs and requests** go to [BlueWake's issues](https://github.com/chrissotraidis/bluewake/issues).
   Say which build you use and attach your session log.
@@ -55,7 +57,7 @@ What is done and what is still open: [migration status](docs/MIGRATION_STATUS.md
 
 ### Windows
 
-1. Download `BlueWake-v0.4.0-windows-x64.zip` from the
+1. Download `BlueWake-v0.5.0-windows-x64.zip` from the
    [Releases page](https://github.com/chrissotraidis/bluewake/releases/latest).
 2. Unpack the whole ZIP and run `BlueWake.exe`.
 3. On first launch, choose your disc image (`.iso` or `.gcm`). A Dolphin `.rvz` must first be

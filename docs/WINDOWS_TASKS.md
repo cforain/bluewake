@@ -6,10 +6,10 @@ Read [AGENTS.md](../AGENTS.md) first. One pull request per task, results in the 
 **You need:** Windows 10 or 11 (x64), a CPU with AVX2, a Direct3D 12 GPU, your own USA `GZLE01` revision 0
 disc, and the build tools in [BlueWake on Windows](WINDOWS.md#what-you-need).
 
-**Where things stand (October 5, 2026):** the published Windows download is still Elliott's Wind Waker
-Recomp 0.4.0 build. The first Windows build from BlueWake `main` (`c56d6b6`) was built and checked on one PC
-and is a draft release, `v0.5.0-windows`, waiting for Chris to run the release gate and publish it. Results:
-[Windows build, October 5](status/WINDOWS_BUILD_2026-10-05.md).
+**Where things stand (October 5, 2026):** BlueWake 0.5.0 is the published Windows download, built from
+`main` (`0d1f821`) and checked on one PC: [Windows build for 0.5.0](status/WINDOWS_BUILD_0.5.0.md). Everything
+in the table below is in it. Still to do by hand: the camera-stick invert, "Quit the game" and the option
+notes, mouse buttons, and a controller.
 
 ## In `main`, waiting for a Windows build
 
@@ -71,9 +71,9 @@ Results on the 0.5.0 build (`0d1f821`): [Windows build for 0.5.0](status/WINDOWS
 
 **Done when:** the draft has both zips and the checklist results are posted.
 
-**Status (October 5, 2026):** built from `c56d6b6` and packaged with `scripts/windows/package_release.py`
-(#119). The draft release `v0.5.0-windows` has both zips. The checks in the table above that need a save, a
-controller or the settings menu by hand are still open.
+**Status (October 5, 2026):** done. 0.5.0 was built from `0d1f821`, packaged with
+`scripts/windows/package_release.py` (#119) and published with the Mac, iPhone and iPad files. The checks in
+the table above that need a controller or the settings menu by hand are still open.
 
 ## 2. A clear message on CPUs without AVX2 (#77)
 
