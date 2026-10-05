@@ -714,13 +714,14 @@ static u64 perf_now_us(clockid_t clock) {
 /* For the iOS shell's FPS display and per-second log: the guest retrace count
    (60 a second is full speed) and the emulation thread's CPU time. Read from
    the same thread that advances them. */
-// Windows builds prepare Wind Waker Recomp's optimization set by default
-// (scripts/windows/build.py), so there an optimization the module offers is used
-// unless its variable is 0; elsewhere it stays an opt-in (1). A module prepared
-// without one does not offer it and keeps the translated path.
+// Windows and Linux builds prepare Wind Waker Recomp's optimization set by
+// default (scripts/windows/build.py and scripts/linux/build.py), so there an
+// optimization the module offers is used unless its variable is 0; elsewhere it
+// stays an opt-in (1). A module prepared without one does not offer it and
+// keeps the translated path.
 static bool host_feature_wanted(const char* name) {
     const char* value = getenv(name);
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__linux__)
     if (value == NULL || value[0] == '\0')
         return true;
 #endif
