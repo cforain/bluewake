@@ -6,10 +6,10 @@ Read [AGENTS.md](../AGENTS.md) first. One pull request per task, results in the 
 **You need:** Windows 10 or 11 (x64), a CPU with AVX2, a Direct3D 12 GPU, your own USA `GZLE01` revision 0
 disc, and the build tools in [BlueWake on Windows](WINDOWS.md#what-you-need).
 
-**Where things stand (October 4, 2026):** the Windows download on the
-[Releases page](https://github.com/chrissotraidis/bluewake/releases/latest) is still Elliott's Wind Waker
-Recomp 0.4.0 build. BlueWake `main` has fixes that build doesn't, and its Windows build from a disc has
-not yet been run on real hardware.
+**Where things stand (October 5, 2026):** the published Windows download is still Elliott's Wind Waker
+Recomp 0.4.0 build. The first Windows build from BlueWake `main` (`c56d6b6`) was built and checked on one PC
+and is a draft release, `v0.5.0-windows`, waiting for Chris to run the release gate and publish it. Results:
+[Windows build, October 5](status/WINDOWS_BUILD_2026-10-05.md).
 
 ## In `main`, waiting for a Windows build
 
@@ -17,17 +17,17 @@ Fixes and features already in `main` that the current Windows download doesn't h
 check each one on a Windows PC and tell the linked issue. New entries are added by the pull request that
 lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 
-| Change | Issue | What to check |
-| --- | --- | --- |
-| Pictobox photos no longer freeze the picture | #13 | Take a Pictobox photo; the game keeps drawing. |
-| Swap A and B, Swap X and Y | #55 | F1 › Controls; the swap takes effect at once. |
-| Camera no longer flips direction in water | #73 | Swim and turn the camera with the stick and the mouse. |
-| Controller button remapping | #66 | F1 › Controls › Controller buttons: change a button, confirm the game follows it, restart, confirm it was kept. |
-| Portable mode: `portable.txt` beside `BlueWake.exe` keeps saves, settings and logs in a `user` folder beside it | #64 | With `portable.txt`, the log's `[windows] ... data=` line points to the `user` folder and saves land there; without it, `%APPDATA%\BlueWake` as before. |
-| Jump and Run off by default (0.4.0 has them always on) | #71 | A new install has no jump on Space or the left bumper; F1 › Mods › Jump and Run turns both on after a restart. |
-| Smooth Motion off by default, and the "Smooth Motion paused" counter | #79 | A new install runs at 30 FPS; turning Smooth Motion on shows the counter when it pauses. |
-| `[music-stream]` log line | #65, #97 | A session log shows the line when the intro music starts. |
-| Cutscene sound log: `[demo]`, `[demo-sound]`, `[audio-lost]` | #65, #97 | Play to the first cutscene; the log has a `[demo] end` line with `cues`, `sounds` and `missing`. |
+| Change | Issue | What to check | 0.5.0 draft, October 5 |
+| --- | --- | --- | --- |
+| Pictobox photos no longer freeze the picture | #13 | Take a Pictobox photo; the game keeps drawing. | Not tested |
+| Swap A and B, Swap X and Y | #55 | F1 › Controls; the swap takes effect at once. | Not tested |
+| Camera no longer flips direction in water | #73 | Swim and turn the camera with the stick and the mouse. | Not tested |
+| Controller button remapping | #66 | F1 › Controls › Controller buttons: change a button, confirm the game follows it, restart, confirm it was kept. | Not tested (no controller) |
+| Portable mode: `portable.txt` beside `BlueWake.exe` keeps saves, settings and logs in a `user` folder beside it | #64 | With `portable.txt`, the log's `[windows] ... data=` line points to the `user` folder and saves land there; without it, `%APPDATA%\BlueWake` as before. | Partial: Aurora's caches and `imgui.ini` still go to `%APPDATA%\BlueWake` |
+| Jump and Run off by default (0.4.0 has them always on) | #71 | A new install has no jump on Space or the left bumper; F1 › Mods › Jump and Run turns both on after a restart. | Default off; not pressed live |
+| Smooth Motion off by default, and the "Smooth Motion paused" counter | #79 | A new install runs at 30 FPS; turning Smooth Motion on shows the counter when it pauses. | 30 FPS by default; counter not tested |
+| `[music-stream]` log line | #65, #97 | A session log shows the line when the intro music starts. | Pass |
+| Cutscene sound log: `[demo]`, `[demo-sound]`, `[audio-lost]` | #65, #97 | Play to the first cutscene; the log has a `[demo] end` line with `cues`, `sounds` and `missing`. | Pass: intro `cues=4 sounds=4 missing=0` |
 
 ## 1. A Windows build from BlueWake `main`
 
@@ -42,6 +42,10 @@ lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
    publishes releases.
 
 **Done when:** the draft has both zips and the checklist results are posted.
+
+**Status (October 5, 2026):** built from `c56d6b6` and packaged with `scripts/windows/package_release.py`
+(#119). The draft release `v0.5.0-windows` has both zips. The checks in the table above that need a save, a
+controller or the settings menu by hand are still open.
 
 ## 2. A clear message on CPUs without AVX2 (#77)
 
