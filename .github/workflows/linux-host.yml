@@ -22,7 +22,7 @@ jobs:
             libwayland-dev libxkbcommon-dev libx11-xcb-dev \
             libx11-dev libxrandr-dev libxext-dev libxi-dev \
             libxcursor-dev libgl1-mesa-dev libvulkan-dev \
-            libasound2-dev libpulse-dev
+            libasound2-dev libpulse-dev libxss-dev
       - name: Fetch the pinned public runtime
         run: |
           set -euo pipefail
