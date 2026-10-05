@@ -619,6 +619,12 @@ int main(int argc, char** argv) {
     snprintf(states, sizeof states, "%sstates", g_data_dir);
     _mkdir(states);
     bw_default("BLUEWAKE_STATE_DIR", states);
+    // Aurora's shader and pipeline caches (dawn_cache.db, pipeline_cache.db) go
+    // with the rest of the player's data: the same %APPDATA%\BlueWake as before,
+    // or the user folder in portable mode (#64), which otherwise still filled
+    // %APPDATA%. Aurora's own imgui.ini follows its userPath, which GXRuntime
+    // doesn't expose yet.
+    bw_default("DOL_AURORA_CACHE_DIR", g_data_dir);
     char module[MAX_PATH * 4];
     const char* module_env = getenv("BLUEWAKE_COMPOSITE");
     if (module_arg != NULL)

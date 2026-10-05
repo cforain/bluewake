@@ -36,6 +36,7 @@ lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 | `gamecontrollerdb.txt` beside the saves adds controller mappings | #61 | Put the SDL_GameControllerDB file in `%APPDATA%\BlueWake`; the session log has `[pad] N controller mappings from ...` with N above 0, and a controller that worked before still works. | Not in 0.5.0 (merged after `c56d6b6`) |
 | Older CPUs get a message instead of nothing | #77 | Task 2 below: `sde64 -nhm -- BlueWake.exe` shows "BlueWake can't run on this processor"; a normal launch is unchanged. | Not in 0.5.0 (merged after `c56d6b6`) |
 | The first-launch disc prompt offers .rvz only when `nodtool.exe` is beside `BlueWake.exe` | #120 | From the release zip (no `nodtool.exe`), with no disc chosen yet: the message says .iso or .gcm and how to convert an .rvz in Dolphin, and the picker lists only *.iso and *.gcm. A self-built folder still offers .rvz. | Not in 0.5.0 (merged after `c56d6b6`) |
+| Portable mode keeps Aurora's shader and pipeline caches in the `user` folder too | #64 | With `portable.txt` and no `%APPDATA%\BlueWake` folder before: after a run, `dawn_cache.db` and `pipeline_cache.db` are in `user`. `%APPDATA%\BlueWake` may still appear holding only `imgui.ini` (needs a RecompCore change). Without `portable.txt`, the caches stay in `%APPDATA%\BlueWake` as before. | Not in 0.5.0 (merged after `c56d6b6`) |
 
 
 ### The second Windows run (added October 5)
@@ -50,6 +51,7 @@ rebuild from `main` and check only these rows of the table above, nothing else a
 5. Older CPUs get a message instead of nothing (#77, task 2).
 6. `gamecontrollerdb.txt` beside the saves adds controller mappings (#61).
 7. The disc prompt offers .rvz only when `nodtool.exe` is there.
+8. Portable mode keeps the shader caches in the `user` folder (#64).
 
 ## 1. A Windows build from BlueWake `main`
 
