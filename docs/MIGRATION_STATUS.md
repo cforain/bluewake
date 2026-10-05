@@ -24,8 +24,11 @@ New bug reports, feature requests and pull requests should go to
 - On a physical iPad, an in-place update kept existing saves and settings, and an actual game save
   reloaded correctly.
 - On Windows, the app builds and passes its automated tests in GitHub Actions.
-- October 4: BlueWake's [latest release](https://github.com/chrissotraidis/bluewake/releases/latest)
-  carries the Windows build from Wind Waker Recomp 0.4.0, with the same program files. It leaves out
+- October 5: BlueWake 0.5.0 is the first Windows release built from BlueWake `main` (`0d1f821`), on
+  Chris's PC and checked there ([Windows build for 0.5.0](status/WINDOWS_BUILD_0.5.0.md)). It replaces
+  the Wind Waker Recomp 0.4.0 build that the October 4 release carried.
+- October 4: BlueWake's latest release
+  carried the Windows build from Wind Waker Recomp 0.4.0, with the same program files. It leaves out
   `nodtool.exe`, which contains Wii encryption keys, so a Dolphin `.rvz` must be converted to ISO first.
   Elliott's source archive for that build is attached beside it.
 - October 4, on an Apple Silicon Mac: the current `main` host (with Elliott's October 3 runtime) and a
@@ -38,7 +41,7 @@ New bug reports, feature requests and pull requests should go to
 
 | Item | Owner | Status |
 | --- | --- | --- |
-| Windows build and gameplay on real hardware | Elliott | Not started. The tasks, in order, are in [WINDOWS_TASKS.md](WINDOWS_TASKS.md); the first is a Windows build from `main` for the Releases page. |
+| Windows build and gameplay on real hardware | Chris and Elliott | 0.5.0 was built from `main` and checked on one PC (Ryzen 7 5700U, integrated Radeon graphics). Still open: the checks that need a controller or the menu by hand, other GPUs and longer play ([WINDOWS_TASKS.md](WINDOWS_TASKS.md)). |
 | Elliott's work after v0.4.0 | BlueWake and Elliott | Merged: [#40](https://github.com/chrissotraidis/bluewake/pull/40), [#43](https://github.com/chrissotraidis/bluewake/pull/43), [#45](https://github.com/chrissotraidis/bluewake/pull/45), and on October 4 his October 3 work: Mac water and HUD Smooth Motion and HD packs without shimmer ([#50](https://github.com/chrissotraidis/bluewake/pull/50)), the Wind Waker HD texture importer and Forest Water options ([#52](https://github.com/chrissotraidis/bluewake/pull/52)), and his performance write-ups ([#53](https://github.com/chrissotraidis/bluewake/pull/53)). His second and third sets of native functions and `lean_memory.py` are in BlueWake behind the Windows builder's `--native-entries` and `--lean-memory` options, off by default. Still open: turning them on. They apply only where the translated code matches what his Windows builder produces (on BlueWake's own iOS translation, 0 of 15 certify), so they need his newer `fast_blocks.py` and step order brought over and a Windows build from a disc to confirm. |
 | Random slowdowns | BlueWake | Logs name the cause of each slow second and show when Smooth Motion is paused. The reported slow scenes (#59, #72, #86) and the 120 FPS switching (#79) don't reproduce on the Mac; their reporters have been asked for session logs from the current Windows download. [Stability plan](status/STABILITY_PLAN_2026-10-03.md). |
 | Elliott's new work | Elliott | Opened as BlueWake pull requests from now on ([AGENTS.md](../AGENTS.md)). Elliott still needs to accept his BlueWake collaborator invite, sent October 1. |
