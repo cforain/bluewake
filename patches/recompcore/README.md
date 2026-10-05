@@ -79,3 +79,10 @@ SETIMAGE3 keeps only 24 bits of a texture address, so a texture in a module's da
 `0xC0xxxxxx`) pointed at unrelated MEM1, and Molgera's sand floor (`d_a_bwdg`, issue #126) drew
 scrambled. The HLE `GXCallDisplayList` now passes the list's guest address down
 (`call_display_list_guest`). The floor's vertex arrays are BlueWake's host fix in the same pull request.
+
+Patch 0157 gives gxcore the hardware's eight texgens and sixteen TEV stages (they were capped at 5 and
+8), so the dungeon map draws its grid and rooms (issue #74). The fixed vertex layout keeps five raw
+texture coordinates; a vertex with TEX5..7 and no normal, as the map's quads are, carries them in the
+normal, binormal and tangent slots (`ShaderKey::raw_tex_hi_in_nbt`). The key grew, so the pipeline config
+is version 13, and BlueWake's bundled pipeline seeds were converted to it row by row (same pipelines, new
+layout) in the same pull request.

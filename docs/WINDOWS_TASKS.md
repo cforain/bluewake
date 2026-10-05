@@ -57,6 +57,14 @@ rebuild from `main` and check only these rows of the table above, nothing else a
 
 Results on the 0.5.0 build (`0d1f821`): [Windows build for 0.5.0](status/WINDOWS_BUILD_0.5.0.md). Still to do by hand: items 2, 4, the mouse half of 3, and a controller for 6.
 
+### After 0.5.0 (for the next Windows build)
+
+Merged after `0d1f821`, so 0.5.0 doesn't have them. Check only these on the next build:
+
+| Change | Issue | What to check | Result |
+| --- | --- | --- | --- |
+| Dungeon maps draw their grid and rooms (eight texgens, sixteen TEV stages; RecompCore patch 0157) | #74 | Open the map in any dungeon you've reached (or a copy of a save moved into Dragon Roost Cavern with `scripts/save_set_restart.py IN.gci OUT.gci M_NewD2 0 0`): the grid and the rooms you've seen are drawn, not only the door marker. The session log's `[gx-core] shutdown` line has `unsupported_texgen=0` and `tev_stages_over=0`. A first launch logs `Seeded pipeline cache` and little shader compiling (`pipelines_made` in `[perf-summary]`) in places played before. | Not built yet |
+
 ## 1. A Windows build from BlueWake `main`
 
 **Why:** ships everything in the list above to Windows players.
