@@ -453,6 +453,30 @@ int main(void) {
         o = self.out
         script = ROOT / "scripts/windows/fast_blocks.py"
         cpu_script = ROOT / "scripts/windows/global_guest_cpu.py"
+        # The accelerator scripts re-verify their certified fragments against
+        # the source before rewriting it, so they are NOT safe to re-run on an
+        # already-prepared tree: fast_blocks.py changes the bodies
+        # native_game_math.py certifies, and a second pass fails the hash. The
+        # receipt's final_digest is the tree after every enabled accelerator,
+        # so if it matches the current tree under the same option set the phase
+        # is already done -- skip it.
+        receipt_path = o / "prepared-blocks.json"
+        if receipt_path.exists():
+            try:
+                receipt = json.loads(receipt_path.read_text())
+            except ValueError:
+                receipt = {}
+            option_names = ("enabled", "fixed_cpu", "fixed_mem1", "inline_fp", "gather_pipe",
+                            "direct_calls", "inline_gpr", "native_j3d", "native_vec", "native_math",
+                            "native_skin", "native_game_math", "lean_memory", "native_entries")
+            arg_names = ("prepared_blocks", "fixed_cpu", "fixed_mem1", "inline_fp", "gather_pipe",
+                         "direct_calls", "inline_gpr", "native_j3d", "native_vec", "native_math",
+                         "native_skin", "native_game_math", "lean_memory", "native_entries")
+            options_match = all(receipt.get(name) == bool(getattr(self.args, arg))
+                                for name, arg in zip(option_names, arg_names))
+            if options_match and receipt.get("final_digest") == tree_digest(o / "composite-src"):
+                print("the existing composite source is already prepared")
+                return
         if self.args.native_game_math:
             self.run("native-game-math", [sys.executable, ROOT / "scripts/windows/native_game_math.py",
                                           o / "composite-src"])
