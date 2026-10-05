@@ -73,3 +73,9 @@ blended with their UVs, screen sprites matched by their artwork and bounds); HD 
 their own mip levels, so HD packs stop shimmering while the camera turns; and vertex-by-vertex blending
 kept to meshes the game wrote, so the water path costs what it did. They replace Wind-Waker-Recomp's
 working-tree patches 0113, 0140, 0160 and 0170; its lava patch 0120 is BlueWake's 0136.
+
+Patch 0156 resolves the textures a linked module's own display list names at the module's address.
+SETIMAGE3 keeps only 24 bits of a texture address, so a texture in a module's data (linked at
+`0xC0xxxxxx`) pointed at unrelated MEM1, and Molgera's sand floor (`d_a_bwdg`, issue #126) drew
+scrambled. The HLE `GXCallDisplayList` now passes the list's guest address down
+(`call_display_list_guest`). The floor's vertex arrays are BlueWake's host fix in the same pull request.

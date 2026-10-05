@@ -4769,17 +4769,27 @@ static bool host_graphics_guest_resolve_uncached(
     // d_a_majuu_flag in Hyrule, 0xC0B928C0) was read from unrelated RAM at
     // 0x80B928C0 and failed to parse. The CPU resolves those addresses through
     // the alias registry; resolve graphics reads the same way.
+    //
+    // A game that writes a vertex array's base itself passes it through
+    // OSCachedToPhysical, which subtracts 0x80000000, so a module's data at
+    // 0xC06B0DA0 arrives as 0x406B0DA0. Nothing lives there on a GameCube, so
+    // look it up at the linked address it came from: Molgera's sand floor
+    // (d_a_bwdg's GFSetArray of its texture coordinates) was skipped every
+    // frame and the arena had no floor (issue #126).
     {
+        const u32 linked = (address & 0xC0000000u) == 0x40000000u
+                               ? address | 0x80000000u
+                               : address;
         u8* alias = NULL;
         u32 alias_offset = 0u;
         // The translation worker's thread: see g_guest_alias_lock.
         pthread_mutex_lock(&g_guest_alias_lock);
-        const bool aliased = ppc_guest_alias_resolve(address, size, &alias, &alias_offset);
+        const bool aliased = ppc_guest_alias_resolve(linked, size, &alias, &alias_offset);
         // Whether an alias holds the address at all: if none does, none holds
         // a range from it of any size, and the result below is every size's.
         u8* held = NULL;
         u32 held_offset = 0u;
-        *any_size = !aliased && !ppc_guest_alias_resolve(address, 1u, &held, &held_offset);
+        *any_size = !aliased && !ppc_guest_alias_resolve(linked, 1u, &held, &held_offset);
         pthread_mutex_unlock(&g_guest_alias_lock);
         if (aliased && alias != NULL) {
             *data = alias;
