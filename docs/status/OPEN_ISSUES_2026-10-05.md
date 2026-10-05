@@ -7,6 +7,10 @@ or their own issues. This is a snapshot: [GOAL_LOOP.md](../GOAL_LOOP.md) has the
 Every Windows player is still on Wind Waker Recomp 0.4.0, so a Windows report doesn't show whether
 `main` has the problem. Logs attached to issues were read with `scripts/triage_session_log.py` and by hand.
 
+## The first Windows build from `main`
+
+Built on Chris's Windows PC from `c56d6b6` (this morning's `main`) and packaged as the draft release `v0.5.0-windows` ([report](WINDOWS_BUILD_2026-10-05.md)). The release check on the Mac passes it with only the accepted `containsTranslatedGameCode` finding; the source zip passes. On that PC the game runs, the intro cutscene plays all four sounds (as on the Mac), Exact sound starts without crashing, and the zip works from a fresh folder. It holds the fixes listed above as "fixed in `main`" and #58's crash fix, but nothing merged later today (mouse and keyboard rebinding, the Quit button, the AVX2 message, `gamecontrollerdb.txt`, the plain recovery message, the disc prompt, portable caches); those need the second Windows run in WINDOWS_TASKS.md. New from it: portable mode left Aurora's caches in `%APPDATA%\BlueWake` (#124 fixes the caches; `imgui.ini` needs RecompCore), the disc prompt offered .rvz without `nodtool.exe` (#123), and the triage script miscounted a startup line (#122).
+
 ## What the October 5 loop found
 
 | Report | Result |
