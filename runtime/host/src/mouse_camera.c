@@ -9,6 +9,7 @@
 #include "gxruntime/aurora_backend.h"
 
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_mouse.h>
@@ -292,6 +293,40 @@ static void observe(const void* sdl_event, void* user) {
     }
 }
 
+// gamecontrollerdb.txt beside the saves (the community SDL_GameControllerDB
+// file, or a line from a mapping tool): controllers SDL doesn't recognise, such
+// as a generic Bluetooth pad, become usable (#61). SDL is already running here.
+static void load_gamepad_mappings(void) {
+    char path[4096];
+    const char* card = getenv("BLUEWAKE_CARD_PATH");
+    if (card != NULL && card[0] != '\0') {
+        snprintf(path, sizeof path, "%s", card);
+        char* slash = strrchr(path, '/');
+        char* backslash = strrchr(path, '\\');
+        if (backslash != NULL && (slash == NULL || backslash > slash))
+            slash = backslash;
+        if (slash == NULL)
+            return;
+        slash[1] = '\0';
+        if (strlen(path) + sizeof "gamecontrollerdb.txt" > sizeof path)
+            return;
+        strcat(path, "gamecontrollerdb.txt");
+    } else {
+        const char* home = getenv("HOME");
+        if (home == NULL || home[0] == '\0' ||
+            snprintf(path, sizeof path, "%s/Library/Application Support/BlueWake/gamecontrollerdb.txt", home) >=
+                (int)sizeof path)
+            return;
+    }
+    if (!SDL_GetPathInfo(path, NULL))
+        return;
+    const int added = SDL_AddGamepadMappingsFromFile(path);
+    if (added < 0)
+        fprintf(stderr, "[pad] %s: %s\n", path, SDL_GetError());
+    else
+        fprintf(stderr, "[pad] %d controller mappings from %s\n", added, path);
+}
+
 void bluewake_mouse_camera_install(void) {
 #if defined(__APPLE__) && TARGET_OS_IPHONE
     // An iPad's touches arrive as mouse events too; its controls are on screen.
@@ -306,6 +341,7 @@ void bluewake_mouse_camera_install(void) {
     g_fresh = fresh == NULL || fresh[0] != '0';
     const char* latency = getenv("BLUEWAKE_MOUSE_LATENCY");
     g_latency_log = latency != NULL && latency[0] == '1';
+    load_gamepad_mappings();
     dol_aurora_set_event_observer(observe, NULL);
     if (g_enabled)
         fprintf(stderr, "[mouse] click the game to turn the camera with the mouse\n");
