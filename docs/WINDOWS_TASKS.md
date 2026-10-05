@@ -17,7 +17,7 @@ Fixes and features already in `main` that the current Windows download doesn't h
 check each one on a Windows PC and tell the linked issue. New entries are added by the pull request that
 lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 
-| Change | Issue | What to check | 0.5.0 draft, October 5 |
+| Change | Issue | What to check | Windows result, October 5 |
 | --- | --- | --- | --- |
 | Pictobox photos no longer freeze the picture | #13 | Take a Pictobox photo; the game keeps drawing. | Not tested |
 | Swap A and B, Swap X and Y | #55 | F1 › Controls; the swap takes effect at once. | Not tested |
@@ -28,16 +28,16 @@ lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
 | Smooth Motion off by default, and the "Smooth Motion paused" counter | #79 | A new install runs at 30 FPS; turning Smooth Motion on shows the counter when it pauses. | 30 FPS by default; counter not tested |
 | `[music-stream]` log line | #65, #97 | A session log shows the line when the intro music starts. | Pass |
 | Cutscene sound log: `[demo]`, `[demo-sound]`, `[audio-lost]` | #65, #97 | Play to the first cutscene; the log has a `[demo] end` line with `cues`, `sounds` and `missing`. | Pass: intro `cues=4 sounds=4 missing=0` |
-| "Quit the game" in the settings menu; notes under Brisk Sail, Unrestricted boat and Invert camera left and right | Discord | F1: "Quit the game" next to Close ends BlueWake (and the next launch shows no recovery message); with a controller, the d-pad reaches it. F1 › Mods: the three options have a line saying what they do. | Not in 0.5.0 (merged after `c56d6b6`) |
+| "Quit the game" in the settings menu; notes under Brisk Sail, Unrestricted boat and Invert camera left and right | Discord | F1: "Quit the game" next to Close ends BlueWake (and the next launch shows no recovery message); with a controller, the d-pad reaches it. F1 › Mods: the three options have a line saying what they do. | Not tested on 0.5.0 (F1 opens; menu clicks didn't reach the window in the test session) |
 | "Exact" sound no longer crashes at launch (fixed October 1, after 0.4.0) | #58 | F1 › Sound and files › Exact, restart: the game starts and plays sound. | Pass: started and ran with Exact on, no crash |
-| A launch that crashes is recovered: the next launch starts with Fast sound and mods off, backs up `settings.ini` and says so in plain words | #58 | Turn on a mod, end `BlueWake.exe` in Task Manager within a few seconds of starting, start it again: the message shows, a `settings.ini.before-safe-mode-*` file is beside `settings.ini`, and the next normal launch has no message. | Not in 0.5.0 (merged after `c56d6b6`) |
-| The camera-stick inversion now comes from a header shared with the Mac (no change intended on Windows) | #73 | F1 › Controls › "camera stick left and right inverted" on: the camera turns the same inverted way on land, swimming and on the boat. | Not in 0.5.0 (merged after `c56d6b6`) |
-| Mouse buttons and keyboard keys can be changed | Discord | F1 › Controls › Mouse buttons: set the right button to B; click the game, right-click, and Link uses his sword. Keyboard keys for the GameCube buttons: give A another key; it works in game, J no longer does, and both survive a restart (`mouse_buttons=` and `key_map=` in `settings.ini`). | Not in 0.5.0 (merged after `c56d6b6`) |
-| `gamecontrollerdb.txt` beside the saves adds controller mappings | #61 | Put the SDL_GameControllerDB file in `%APPDATA%\BlueWake`; the session log has `[pad] N controller mappings from ...` with N above 0, and a controller that worked before still works. | Not in 0.5.0 (merged after `c56d6b6`) |
-| Older CPUs get a message instead of nothing | #77 | Task 2 below: `sde64 -nhm -- BlueWake.exe` shows "BlueWake can't run on this processor"; a normal launch is unchanged. | Not in 0.5.0 (merged after `c56d6b6`) |
-| The first-launch disc prompt offers .rvz only when `nodtool.exe` is beside `BlueWake.exe` | #120 | From the release zip (no `nodtool.exe`), with no disc chosen yet: the message says .iso or .gcm and how to convert an .rvz in Dolphin, and the picker lists only *.iso and *.gcm. A self-built folder still offers .rvz. | Not in 0.5.0 (merged after `c56d6b6`) |
-| Portable mode keeps Aurora's shader and pipeline caches in the `user` folder too | #64 | With `portable.txt` and no `%APPDATA%\BlueWake` folder before: after a run, `dawn_cache.db` and `pipeline_cache.db` are in `user`. `%APPDATA%\BlueWake` may still appear holding only `imgui.ini` (needs a RecompCore change). Without `portable.txt`, the caches stay in `%APPDATA%\BlueWake` as before. | Not in 0.5.0 (merged after `c56d6b6`) |
-| Molgera's arena in the Wind Temple has its sand floor (it was black) | #126 | Go through the boss door in the Wind Temple, or load a copy of a save moved there with `scripts/save_set_restart.py IN.gci OUT.gci kazeB 0 0`: the floor is sand, and the session log's `[gx-core] shutdown` line has `array_unresolved=0`. Elsewhere looks as before. | Not in 0.5.0 (merged after `c56d6b6`) |
+| A launch that crashes is recovered: the next launch starts with Fast sound and mods off, backs up `settings.ini` and says so in plain words | #58 | Turn on a mod, end `BlueWake.exe` in Task Manager within a few seconds of starting, start it again: the message shows, a `settings.ini.before-safe-mode-*` file is beside `settings.ini`, and the next normal launch has no message. | Pass on 0.5.0: message, backup with the mod on, no message next launch |
+| The camera-stick inversion now comes from a header shared with the Mac (no change intended on Windows) | #73 | F1 › Controls › "camera stick left and right inverted" on: the camera turns the same inverted way on land, swimming and on the boat. | Not tested (no controller) |
+| Mouse buttons and keyboard keys can be changed | Discord | F1 › Controls › Mouse buttons: set the right button to B; click the game, right-click, and Link uses his sword. Keyboard keys for the GameCube buttons: give A another key; it works in game, J no longer does, and both survive a restart (`mouse_buttons=` and `key_map=` in `settings.ini`). | Keys pass on 0.5.0 (L as A, J off); mouse buttons and the menu by hand not tested |
+| `gamecontrollerdb.txt` beside the saves adds controller mappings | #61 | Put the SDL_GameControllerDB file in `%APPDATA%\BlueWake`; the session log has `[pad] N controller mappings from ...` with N above 0, and a controller that worked before still works. | Partial on 0.5.0: `[pad] 578 controller mappings`; no controller to confirm |
+| Older CPUs get a message instead of nothing | #77 | Task 2 below: `sde64 -nhm -- BlueWake.exe` shows "BlueWake can't run on this processor"; a normal launch is unchanged. | Pass on 0.5.0 under SDE `-nhm`; `-hsw` not run |
+| The first-launch disc prompt offers .rvz only when `nodtool.exe` is beside `BlueWake.exe` | #120 | From the release zip (no `nodtool.exe`), with no disc chosen yet: the message says .iso or .gcm and how to convert an .rvz in Dolphin, and the picker lists only *.iso and *.gcm. A self-built folder still offers .rvz. | Pass on 0.5.0 from the zip; self-built folder not checked |
+| Portable mode keeps Aurora's shader and pipeline caches in the `user` folder too | #64 | With `portable.txt` and no `%APPDATA%\BlueWake` folder before: after a run, `dawn_cache.db` and `pipeline_cache.db` are in `user`. `%APPDATA%\BlueWake` may still appear holding only `imgui.ini` (needs a RecompCore change). Without `portable.txt`, the caches stay in `%APPDATA%\BlueWake` as before. | Pass on 0.5.0; only `imgui.ini` in `%APPDATA%\BlueWake` |
+| Molgera's arena in the Wind Temple has its sand floor (it was black) | #126 | Go through the boss door in the Wind Temple, or load a copy of a save moved there with `scripts/save_set_restart.py IN.gci OUT.gci kazeB 0 0`: the floor is sand, and the session log's `[gx-core] shutdown` line has `array_unresolved=0`. Elsewhere looks as before. | Pass on 0.5.0: sand floor, `array_unresolved=0` |
 
 
 ### The second Windows run (added October 5)
@@ -54,6 +54,8 @@ rebuild from `main` and check only these rows of the table above, nothing else a
 7. The disc prompt offers .rvz only when `nodtool.exe` is there.
 8. Portable mode keeps the shader caches in the `user` folder (#64).
 9. Molgera's arena has its sand floor (#126).
+
+Results on the 0.5.0 build (`0d1f821`): [Windows build for 0.5.0](status/WINDOWS_BUILD_0.5.0.md). Still to do by hand: items 2, 4, the mouse half of 3, and a controller for 6.
 
 ## 1. A Windows build from BlueWake `main`
 
