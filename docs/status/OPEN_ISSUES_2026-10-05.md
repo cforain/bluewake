@@ -19,6 +19,8 @@ Every Windows player is still on Wind Waker Recomp 0.4.0, so a Windows report do
 | #74 dungeon map, sea charts | On the Mac, the Forsaken Fortress minimap, the sea chart and its Charts screen draw correctly (community saves from cbartondock/Windwaker, on scratch cards). No save inside a dungeon was at hand, so the large dungeon map is still unchecked; Chris was asked for one, and WINDOWS_TASKS.md says what to capture. |
 | #65, #97 cutscene sound | On the Mac, the opening cutscene logs `cues=4 sounds=4 missing=0 silent=0.4s` with default settings, mouse camera off, Better Wind Waker on and 16:9 (no HD pack installed to try). None of them drops its sound on the Mac, so the cause is on Windows or in a later scene (the bird dropping Tetra); a Windows `[demo] end` line decides it. |
 | Forsaken Fortress map and compass | No BlueWake patch touches dungeon items (only Tingle Chest markers and the new-game sea chart reveal), and the Mac shows the fortress minimap on the first visit with no patch involved. Most likely the original game; left as is. |
+| #77 and Discord: `BlueWake.exe` does nothing on older CPUs | A message box now names the AVX2 requirement instead of a silent exit ([#117](https://github.com/chrissotraidis/bluewake/pull/117)); checked by compiling for Windows on the Mac, still to run under Intel SDE on Windows (task 2). |
+| #61 8BitDo GameCube mod kit | Its Switch mode works with A and B swapped (Swap A and B is in `main`). Its generic mode needs an SDL mapping: BlueWake now loads `gamecontrollerdb.txt` from the folder with the saves ([#116](https://github.com/chrissotraidis/bluewake/pull/116)); the reporter was told how to try it with the next Windows build. |
 
 ## Fixed in `main`, waiting for a Windows build
 
