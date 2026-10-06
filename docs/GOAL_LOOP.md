@@ -1,16 +1,18 @@
 # BlueWake goal loop
 
-Latest checkpoint: [October 6 triage handoff](status/HANDOFF_2026-10-06.md), including
-installed iPad state, merged candidates, validation limits and the next bounded checks.
+Latest checkpoint: [October 6 targeted follow-up](status/TARGETED_PASS_2026-10-06.md).
+The [earlier handoff](status/HANDOFF_2026-10-06.md) retains the preceding investigation evidence.
 
 Updated October 6, 2026. Work from [TECH_DEBT.md](TECH_DEBT.md), the maintained queue of all known
 reports and technical debt. The earlier loop is preserved in [history](archive/GOAL_LOOP_HISTORY.md).
 
 ## Current checkpoint
 
-The October 6 investigation pass is complete. Chris requested documentation and will resume later.
-No further investigation or scheduled monitoring is active. On resumption, refresh current state
-and use the handoff before selecting another bounded task.
+Chris resumed with a targeted pass. The latest private host is installed on the iPad with
+17 save/configuration files verified unchanged; gameplay checks await an unlocked device.
+Linux shutdown evidence was reviewed and a log-summary repair prepared in PR #148.
+No scheduled monitoring is active. Resume from the targeted follow-up rather than repeating
+completed comparisons or assuming the installation proves gameplay.
 
 ## Objective
 
