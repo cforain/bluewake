@@ -61,6 +61,14 @@ Results on the 0.5.0 build (`0d1f821`): [Windows build for 0.5.0](status/WINDOWS
 
 After 0.5.0: check these on the next Windows build.
 
+For intro audio (#97), wait at the title until its music plays before starting a new scratch file.
+The immediate-entry route can miss the failure. The Mac reproduction and callback-order diagnosis
+are in [the October 6 record](status/TRIAGE_2026-10-06.md#title-to-intro-reproduction-and-callback-ordering).
+The optional automated equivalent uses `BLUEWAKE_PAD_PULSE_ON_TITLE_READY=1`,
+`BLUEWAKE_PAD_BUTTONS=0x0100`, `BLUEWAKE_PAD_TITLE_DELAY=900` and `BLUEWAKE_MAX_RETRACES=3600`
+with separate scratch card/settings/SRAM/cache paths. `[music-dvd]` reports the first four stream
+read completions. This is a reproduction aid, not an audio fix; preserve the session log.
+
 Merged after `0d1f821`, so 0.5.0 doesn't have them. Check only these on the next build:
 
 | Change | Issue | What to check | Result |
