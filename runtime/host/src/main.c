@@ -1176,8 +1176,20 @@ static void host_log_music_stream(CPUState* cpu) {
     if (id == g_music_stream_last_id && state == g_music_stream_last_state &&
         disabled == g_music_stream_last_disabled && strcmp(path, g_music_stream_last_path) == 0)
         return;
-    fprintf(stderr, "[music-stream] retrace=%llu path=\"%s\" id=0x%08X state=%u muted=%u\n",
-            (unsigned long long)g_host_retrace_count, path, id, state, disabled);
+    // A state-4 sample alone does not prove sustained music (#97). These
+    // StreamLib fields distinguish a stop/finish from a stalled load in the
+    // next state-change line. Read only on transitions, not on every sample.
+    // Addresses: tww config/GZLE01/symbols.txt (revision 0).
+    fprintf(stderr,
+            "[music-stream] retrace=%llu path=\"%s\" id=0x%08X state=%u muted=%u "
+            "sound=0x%08X stop=%u/%u play=%u/%u decoded=%u playback_samples=%u "
+            "buffer_state=%u dvd_pending=%u starting=%u dsp_finished=%u\n",
+            (unsigned long long)g_host_retrace_count, path, id, state, disabled, sound,
+            mem_read8(cpu, 0x803F768Cu), mem_read8(cpu, 0x803F768Du),
+            mem_read8(cpu, 0x803F768Eu), mem_read8(cpu, 0x803F768Fu),
+            mem_read32(cpu, 0x803F7680u), mem_read32(cpu, 0x803F767Cu),
+            mem_read32(cpu, 0x803F7684u), mem_read32(cpu, 0x803F76C4u),
+            mem_read32(cpu, 0x803F76C8u), mem_read8(cpu, 0x803F76DAu));
     g_music_stream_reports++;
     g_music_stream_last_id = id;
     g_music_stream_last_state = state;

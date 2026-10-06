@@ -61,6 +61,8 @@ If only intermediate frames fail, inspect matching and UV wrap/blend; if base fr
 inspect transform reuse/depth and texture sampling. Only test HD mip behavior with replacements enabled.
 The original 0.4.0 download came from Wind Waker Recomp; BlueWake's v0.2.0 is not a valid proxy baseline.
 The dungeon-map patch 0157 landed after 0.5.0 and cannot have caused this reported regression.
+The source comparison also includes pixel-colour interpolation, cloth blending and the D3D12-only
+ubershader fallback; see [the October 6 investigation](status/TRIAGE_2026-10-06.md).
 
 ### Audio: separate file presence, stream lifetime and audible output (#65/#97)
 
@@ -73,6 +75,10 @@ path and annotate short-lived playback; do not declare audio fixed from a state-
 The Mac M4 attachment lacks the detailed diagnostics and exact source revision, so its report is
 relevant but not a matched reproduction. Earlier option testing changed several variables at once.
 Disc file presence alone does not establish successful reads, correct decoding or sustained playback.
+The first diagnostics change extends stream-state lines with stop/play flags, decoded/playback sample
+counts and DVD/buffer state, and teaches the triage script to flag observed short playback spans.
+A bounded Mac run reaches and retains playing state; the affected Windows run still needs the new
+fields. This is instrumentation, not an audio fix. [Evidence and limits](status/TRIAGE_2026-10-06.md).
 
 ### Performance (#137/#59/#86)
 

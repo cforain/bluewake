@@ -65,6 +65,7 @@ Merged after `0d1f821`, so 0.5.0 doesn't have them. Check only these on the next
 
 | Change | Issue | What to check | Result |
 | --- | --- | --- | --- |
+| Stream-state diagnostics include stop/play, decode/buffer and DVD state; the triage script flags brief playback | #65, #97 | Play the silent history intro once without skipping; keep the log through the track stopping. Run `python scripts/triage_session_log.py LOG`. Compare `[music-stream]` state changes and the new fields; a state-4 sample alone is not acceptance. | Pending Windows hardware; Mac build and targeted diagnostics checks recorded in [October 6 triage](status/TRIAGE_2026-10-06.md) |
 | Dungeon maps draw their grid and rooms (eight texgens, sixteen TEV stages; RecompCore patch 0157) | #74 | Open the map in any dungeon you've reached (or a copy of a save moved into Dragon Roost Cavern with `scripts/save_set_restart.py IN.gci OUT.gci M_NewD2 0 0`): the grid and the rooms you've seen are drawn, not only the door marker. The session log's `[gx-core] shutdown` line has `unsupported_texgen=0` and `tev_stages_over=0`. A first launch logs `Seeded pipeline cache` and little shader compiling (`pipelines_made` in `[perf-summary]`) in places played before. | Not built yet |
 
 ## 1. A Windows build from BlueWake `main`
