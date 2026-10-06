@@ -86,3 +86,12 @@ texture coordinates; a vertex with TEX5..7 and no normal, as the map's quads are
 normal, binormal and tangent slots (`ShaderKey::raw_tex_hi_in_nbt`). The key grew, so the pipeline config
 is version 13, and BlueWake's bundled pipeline seeds were converted to it row by row (same pipelines, new
 layout) in the same pull request.
+
+Patch 0158 fixes two shutdown bugs the Linux port surfaced. Three wgpu::Device-bound statics in
+gxcore_draw.cpp were function-locals, so their destructors ran at exit() after webgpu::shutdown()/
+window::shutdown() had freed the Vulkan instance and XCB connection; the last device ref then aborted
+in xcb_send_request -> realloc ("double free or corruption (!prev)"). The statics are now file-scope
+and gxcore::shutdown() releases them in the right order. Fixing that unmasked the second bug: two
+detached background threads (texture_replacement's decoder_main and gxcore's interp_helper_main)
+waited forever with no stop signal, so exit() hung on the still-live threads. Each now has a stop flag
+signalled from its module's shutdown(), and the process exits cleanly.
