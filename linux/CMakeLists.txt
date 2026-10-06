@@ -199,6 +199,17 @@ if(BLUEWAKE_LINUX_REGRESSION_TESTS)
 
     add_executable(bluewake_restart_request_test ${BLUEWAKE_REPO_ROOT}/tests/restart_request_test.cpp)
     add_test(NAME bluewake_restart_request_test COMMAND bluewake_restart_request_test)
+
+    # Shared host tests that reach Linux just by building from main, the same
+    # way they reach Windows: the deferred-DVD-completion queue and the cache
+    # flush fallback. dvd_completion needs ZLIB for save_state.c's checksum.
+    include("${BLUEWAKE_REPO_ROOT}/cmake/dvd_completion_test.cmake")
+    target_include_directories(bluewake_dvd_completion_test PRIVATE ${BLUEWAKE_HOST_SRC} ${GXRUNTIME_DIR}/include)
+    target_link_libraries(bluewake_dvd_completion_test PRIVATE gxruntime ZLIB::ZLIB)
+    set_target_properties(bluewake_dvd_completion_test PROPERTIES LINKER_LANGUAGE CXX)
+    include("${BLUEWAKE_REPO_ROOT}/cmake/cache_flush_fallback_test.cmake")
+    target_link_libraries(bluewake_cache_flush_fallback_test PRIVATE gxruntime)
+    set_target_properties(bluewake_cache_flush_fallback_test PROPERTIES LINKER_LANGUAGE CXX)
 endif()
 
 # Aurora's bundled pipeline cache (the same seed the Windows build ships).
