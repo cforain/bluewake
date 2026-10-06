@@ -17,7 +17,10 @@ from statistics import median
 LINE = re.compile(r"^(?:(\d\d):(\d\d):(\d\d)\.\d+ )?\[([^\]]+)\] ?(.*)$")
 SETUP = ("[windows]", "[simulation]", "[aspect]", "CPU model", "OS:", "Device:", "Using framebuffer",
          "present mode", "Device lock", "[host] module", "[device]", "[smooth-motion]")
-FATAL = re.compile(r"\[crash\]|\[panic\]|Device lost|exception 0x|fatal", re.IGNORECASE)
+FATAL = re.compile(
+    r"\[crash\]|\[panic\]|Device lost|exception 0x|fatal|"
+    r"\bdouble free or corruption|free\(\): double free detected|"
+    r"\b(?:malloc|free|realloc)\(\): (?:invalid|corrupted)", re.IGNORECASE)
 # Not failures: a capped REL call trace once labelled [panic], the device released at exit, and
 # the Windows startup line naming where crash reports would go ([crash] reports=...).
 BENIGN = re.compile(r"\[panic\] vcall-after|Device lost: Device was destroyed|\[crash\] reports=")
@@ -94,6 +97,10 @@ def report(path):
     with open(path, errors="replace") as log:
         for raw in log:
             raw = raw.rstrip("\r\n")
+            # Allocator aborts and raw console failures may have no [tag]. A
+            # perf-summary before shutdown does not make that exit successful.
+            if FATAL.search(raw) and not BENIGN.search(raw):
+                fatal.append(raw[:200])
             m = LINE.match(raw)
             if not m:
                 continue
@@ -108,8 +115,6 @@ def report(path):
             tag, text = m[4], m[5]
             if any(s in raw for s in SETUP) and "settings menu" not in raw and len(setup) < 14:
                 setup.append(raw[raw.index("["):].strip()[:160])
-            if FATAL.search(raw) and not BENIGN.search(raw):
-                fatal.append(raw[:200])
             if tag == "fps-dip":
                 reason = text.split("reason=", 1)[-1] if "reason=" in text else "?"
                 stage = re.search(r"stage=(\S+) room=(-?\d+)", text)
