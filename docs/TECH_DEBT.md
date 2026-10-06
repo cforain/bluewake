@@ -29,7 +29,7 @@ crashes or progression blockers; these take precedence. All 30 currently open is
 | P1 | [#59 Bird scene at the beginning of the game is still very slow](https://github.com/chrissotraidis/bluewake/issues/59) | Performance | Bird opening slows down; #72 is already a duplicate. | One matching scene profile with warmed caches and known settings. |
 | P1 | [#74 Dungeon maps are not shown correctly](https://github.com/chrissotraidis/bluewake/issues/74) | Rendering / delivery | Fixed in main via #134; Mac visual checks and Windows CI passed. Not in 0.5.0. | Windows dungeon-map check and audited next release; reporter confirmation after delivery. |
 | P2 | [#55 Switch pro controller A-B input switch](https://github.com/chrissotraidis/bluewake/issues/55) | Confirmation | nextux confirms swaps work; original migrated reporter was manassm. | Record participating tester confirmation; decide closure in a later support pass. |
-| P2 | [#56 Linux Support](https://github.com/chrissotraidis/bluewake/issues/56) | Platform port | Linux PR #107 reports 434 watched seconds with one slow scene transition; log not yet attached. | Review actual log, main parity, CI, packaging and shutdown heap corruption before support. |
+| P2 | [#56 Linux Support](https://github.com/chrissotraidis/bluewake/issues/56) | Platform port | PR #107 reports 434 watched intervals with one below target; full log not attached. Approved CI now fails SDL XTEST configuration. | Contributor: add libxtst-dev, incorporate current main/shared queue test; full log, shutdown heap error and package audit still pending. |
 | P2 | [#58 Game won't launch](https://github.com/chrissotraidis/bluewake/issues/58) | Launch / acceptance | Exact launch and crash recovery checked on Windows 0.5.0. | Await affected reporter confirmation; preserve issue until confirmed. |
 | P2 | [#61 8BitDo GameCube Modkit Controller unsupported](https://github.com/chrissotraidis/bluewake/issues/61) | Controllers | Mappings load in 0.5.0; affected 8BitDo controller not tested. | Reporter test and controller identification; loading a mapping count is not input proof. |
 | P2 | [#64 Portable Mode - Allow user to set files folder and stop copying original game data](https://github.com/chrissotraidis/bluewake/issues/64) | Portable mode | Caches stay portable; imgui.ini still uses APPDATA. | Route UI ini with portable data path; check normal mode unaffected. |
@@ -120,7 +120,11 @@ No input behavior changed in this pass; a candidate curve still needs controller
 attach the full log, CPU, commit and settings; diagnose shutdown `double free or corruption (!prev)`;
 pass Linux and Windows checks; review main/pin/builder parity; check a packaged native build with a short
 launch, save/reload, controller, settings, Outset/sailing, dungeon-map and clean-quit pass. Run the release
-audit before distribution. A quoted performance summary and pending fork CI are not completed gates.
+audit before distribution. A quoted performance summary is not a completed hardware gate.
+The source-only CI runs for `9bec954` were reviewed and approved; audit and attribution passed.
+Linux then failed before host compilation because SDL's XTEST dependency is absent. The
+[specific follow-up](https://github.com/chrissotraidis/bluewake/pull/107#issuecomment-6007552494)
+requests `libxtst-dev`, current-main integration and the shared DVD queue test in Linux CI.
 Official support follows accepted implementation and hardware/package evidence, with Chris approving
 publication. No date promised. Requested an optional gameplay clip and permission to reuse it publicly;
 a promotional recording is not a merge gate. No Discord message was posted.
