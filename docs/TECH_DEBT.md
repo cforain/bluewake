@@ -1,5 +1,8 @@
 # Technical debt and known issues
 
+Latest checkpoint: [October 6 triage handoff](status/HANDOFF_2026-10-06.md), including
+installed iPad state, merged candidates, validation limits and the next bounded checks.
+
 Updated October 6, 2026 (JST). Owner: Chris. This is the maintained work queue for
 [the goal loop](GOAL_LOOP.md), covering reported bugs, unverified fixes and support debt.
 The dated [October 5 catalog](status/OPEN_ISSUES_2026-10-05.md) is historical evidence.
@@ -90,8 +93,8 @@ captured audio. A bounded follow-up reaches the track's full decoded sample coun
 scene; later bird cues and a subsequent streamed track remain untested. It handles ordinary async
 archive reads through the same queue and preserves accepted
 work in save states. A physical M2 iPad matched pair now reproduces the silent intro with the flag
-off and sustained intro output with it on (3600 retraces each). This checks captured mixed output,
-not speaker playback or later scenes. It remains off by default: Windows hardware, later transitions
+off and sustained intro output with it on (3600 retraces each). A later listening launch also logs full intro-track completion and the next sea event.
+This checks captured output/stream state, not speaker quality or all later music. It remains off by default: Windows hardware, later transitions
 and broader loading checks are unverified. Keep #65's other missing cues separate. [Reproduction and candidate limits](status/TRIAGE_2026-10-06.md#deferred-completion-candidate).
 
 ### Performance (#137/#59/#86)
