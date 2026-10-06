@@ -61,19 +61,20 @@ def music_playback_spans(changes):
     guest time; don't turn them into wall-clock milliseconds. A restart/load
     can rewind the counter, and an unfinished log cannot prove a stop.
     """
-    spans, active = [], None
+    spans, active, previous_retrace = [], None, None
     for text in changes:
         retrace = field(text, "retrace", int)
         state = field(text, "state", int)
         track = re.search(r'path="([^"]*)".*?\bid=(0x[0-9a-fA-F]+)', text)
         if retrace is None or state is None or track is None:
             continue
+        if previous_retrace is not None and retrace < previous_retrace:
+            active = None  # save-state restore/restart invalidates the span
+        previous_retrace = retrace
         key = (track[1], track[2].lower())
         if active is not None:
             start, previous_key = active
-            if retrace < start:
-                active = None  # save-state restore/restart, not a huge lifetime
-            elif state != 4 or key != previous_key:
+            if state != 4 or key != previous_key:
                 spans.append((previous_key[0], retrace - start,
                               "state=" + str(state) if state != 4 else "track changed"))
                 active = None

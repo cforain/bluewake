@@ -42,6 +42,8 @@ class MusicEvidenceTest(unittest.TestCase):
         self.assertEqual(triage.music_playback_spans([line(1000, 4), line(5, 0)]), [])
         self.assertEqual(triage.music_playback_spans(['no diagnostics', 'state=4']), [])
         self.assertEqual(triage.music_playback_spans([line(1000, 4), line(5, 4), line(9, 0)])[0][1], 4)
+        # A partial rewind can stay above the original start and still invalidate it.
+        self.assertEqual(triage.music_playback_spans([line(100, 4), line(200, 4), line(150, 0)]), [])
 
 
 if __name__ == '__main__':
