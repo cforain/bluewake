@@ -1,7 +1,8 @@
 # Technical debt and known issues
 
-Latest checkpoint: [October 6 triage handoff](status/HANDOFF_2026-10-06.md), including
-installed iPad state, merged candidates, validation limits and the next bounded checks.
+Latest checkpoint: [October 6 targeted follow-up](status/TARGETED_PASS_2026-10-06.md):
+latest private iPad host installed and player data verified; gameplay awaits device unlock.
+The [earlier handoff](status/HANDOFF_2026-10-06.md) retains prior candidate evidence.
 
 Updated October 6, 2026 (JST). Owner: Chris. This is the maintained work queue for
 [the goal loop](GOAL_LOOP.md), covering reported bugs, unverified fixes and support debt.
