@@ -30,7 +30,7 @@ class MusicEvidenceTest(unittest.TestCase):
             self.assertIn('not a diagnosed failure', out.getvalue())
 
     def test_state_four_changes_do_not_reset_duration(self):
-        changes = [line(100, 4), line(120, 4) + ' decoded=4096 consumed=32', line(220, 0)]
+        changes = [line(100, 4), line(120, 4) + ' decoded=4096 playback_samples=64000', line(220, 0)]
         self.assertEqual(triage.music_playback_spans(changes)[0][1], 120)
 
     def test_track_switch_and_truncated_log(self):

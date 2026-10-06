@@ -165,7 +165,7 @@ def report(path):
     print(f"  slow render/present frames: {render_slow}")
     print(f"  streamed music changes ([music-stream]): {len(music)}")
     for text in music[:12]:
-        print("   ", text[:150])
+        print("   ", text[:350])
     spans = music_playback_spans(music)
     short = [span for span in spans if span[1] < 60]
     if music:
