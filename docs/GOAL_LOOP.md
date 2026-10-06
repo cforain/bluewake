@@ -1,7 +1,16 @@
 # BlueWake goal loop
 
+Latest checkpoint: [October 6 triage handoff](status/HANDOFF_2026-10-06.md), including
+installed iPad state, merged candidates, validation limits and the next bounded checks.
+
 Updated October 6, 2026. Work from [TECH_DEBT.md](TECH_DEBT.md), the maintained queue of all known
 reports and technical debt. The earlier loop is preserved in [history](archive/GOAL_LOOP_HISTORY.md).
+
+## Current checkpoint
+
+The October 6 investigation pass is complete. Chris requested documentation and will resume later.
+No further investigation or scheduled monitoring is active. On resumption, refresh current state
+and use the handoff before selecting another bounded task.
 
 ## Objective
 

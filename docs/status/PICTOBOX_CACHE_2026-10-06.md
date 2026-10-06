@@ -59,7 +59,12 @@ Private screenshots, checkpoints, card copies, binaries and logs stay local.
 
 - Mac host compiles; focused cache fallback contract checks cover opcode filtering,
   rA=0, indexed addressing, PC advancement, preserved registers and dirty-epoch aliasing.
-- Repository audit, attribution and Windows CI results are recorded in the PR.
+- [PR #146](https://github.com/chrissotraidis/bluewake/pull/146) merged as `fd93225`.
+  Repository audit and attribution passed; Windows host CI passed 60/60 tests, including
+  the cache-writeback contract. This is not a Windows gameplay result.
+- One follow-up Mac run supplied left-stick X=-80 for 30 retraces at 6508. The capture
+  at 6801 selected Yes. This verifies scripted menu input, not a physical controller.
+  The saved off/on captures also retain the question text and surrounding menu.
 - iPad and Windows gameplay are untested for this candidate. The earlier iPad audio
   candidate remains separate and has not been replaced by this Pictobox build.
 - Next: two distinct regular and Deluxe photos; save/reload one photo; separately

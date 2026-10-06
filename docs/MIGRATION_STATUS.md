@@ -1,5 +1,8 @@
 # Wind Waker Recomp is moving to BlueWake
 
+Latest checkpoint: [October 6 triage handoff](status/HANDOFF_2026-10-06.md), including
+installed iPad state, merged candidates, validation limits and the next bounded checks.
+
 Updated October 6, 2026.
 
 Current bug and support queue: [Technical debt and known issues](TECH_DEBT.md).
