@@ -1,6 +1,7 @@
 # BlueWake goal loop
 
-Latest checkpoint: [October 6 simulator pass](status/SIMULATOR_PASS_2026-10-06.md).
+Latest checkpoint: [October 6 input pass](status/SIMULATOR_INPUT_2026-10-06.md).
+Earlier [rendering/audio simulator pass](status/SIMULATOR_PASS_2026-10-06.md) retains the matched candidate results.
 Use the [earlier handoff](status/HANDOFF_2026-10-06.md) for preceding investigation evidence.
 
 Updated October 6, 2026. Work from [TECH_DEBT.md](TECH_DEBT.md), the maintained queue of all known
@@ -14,6 +15,10 @@ candidate on. Dragon Roost's grid and visited room render correctly. Keep the ph
 untouched until Chris requests otherwise; Windows hardware remains deferred. No scheduled
 monitoring is active. Both experimental defaults remain off. Use the latest record for precise
 save/reload and input acceptance rather than treating simulated input as hardware validation.
+
+The input follow-up found and repaired stale touch state after opening settings. Matched simulator
+button/stick checks pass; settings-code swap/reset persistence also passes. Real touch/menu and physical
+controller acceptance remain separate. No experimental rendering/audio default was enabled.
 
 ## Objective
 
