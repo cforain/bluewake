@@ -21,7 +21,7 @@ crashes or progression blockers; these take precedence. All 30 currently open is
 | P1 | [#136 Clouds and waves flickering (v0.5.0)](https://github.com/chrissotraidis/bluewake/issues/136) | Rendering regression | Reported in 0.5.0 on NVIDIA at 60/120 FPS. Mac title-view base frames match with interpolation off/on; reporter's failure remains unreproduced. | Follow the [short Windows capture procedure](WINDOWS_TASKS.md#flickering-capture-136); distinguish intermediate-frame failure from a base-frame or cold-cache problem. |
 | P1 | [#97 No sound during the game intro](https://github.com/chrissotraidis/bluewake/issues/97) | Audio / opt-in fix | Deferred DVD completion restores the title-to-intro track on Mac, including a save/load run. Default remains off pending other-platform checks. | Windows/iPad test with `BLUEWAKE_DEFER_DVD_COMPLETION=1`, including later transitions, before enabling by default or shipping a fix claim. |
 | P1 | [#65 Music Cues Missing in Scripted Scenes](https://github.com/chrissotraidis/bluewake/issues/65) | Audio | Scripted music/effects absent; changing three settings together once helped. No single cause established. | Track with #97, but compare history intro and bird scene separately; retain possible separate causes. |
-| P1 | [#137 Game Frame Rate averaging low 20s](https://github.com/chrissotraidis/bluewake/issues/137) | Performance | Ryzen 2700/RTX 4070; 70/83 watched seconds slow, no new pipelines; mixed game/GX classifications. | Bounded Outset profile; compare shared builder optimizations with Linux #107 before enabling anything. |
+| P1 | [#137 Game Frame Rate averaging low 20s](https://github.com/chrissotraidis/bluewake/issues/137) | Performance | Ryzen 2700/RTX 4070; 70/83 intervals miss the display target, but only 35 log slow game speed. No new pipelines; native accelerators active. | Same Outset camera at 30 vs 60/120; isolate interpolation workload before profiling the remaining game/GX bottleneck. Linux's optimization set already matches Windows. |
 | P1 | [#138 Windows: left stick has a large dead zone, then jumps to ~20–30%](https://github.com/chrissotraidis/bluewake/issues/138) | Controls | Wired Xbox One; host cutoff and local GZLE01 guest clamp explain an axial jump to 16/72 (22%). No hardware fix tested. | Correct the combined input curve; test fine aiming, full travel, diagonals and drift on controller hardware. |
 | P1 | [#13 pictobox freezes game picture but sound keeps running](https://github.com/chrissotraidis/bluewake/issues/13) | Rendering / controls | 0.5.0 freeze resolved for knapman; stale photo preview and gamepad save-selection failure remain. | Reproduce two successive photos and left selection separately on scratch save. |
 | P1 | [#80 HD Texture packs seem to cause shadows issues and tone oddities](https://github.com/chrissotraidis/bluewake/issues/80) | HD textures | Both DDS and PNG affected; pack off reportedly normal. Radeon 860M; 5741 replacements; no skipped draws. | Matched on/off camera view; inspect replacement format/palette/shading. AMD-only cause unproven. |
@@ -93,10 +93,14 @@ are unverified. Keep #65's other missing cues separate. [Reproduction and candid
 ### Performance (#137/#59/#86)
 
 The [new Outset log](https://github.com/chrissotraidis/bluewake/issues/137#issuecomment-6000997715)
-has zero new pipelines but 70/83 watched seconds below target. Classifications are mixed: game thread
-27 s, GX worker 8 s, Smooth Motion paused 21 s, unclear 14 s. Do not prescribe lower resolution or
-attribute all of it to the GPU. Compare scene/settings/build flags before adopting the Linux contributor's
-optimization changes. Counters identify where to profile, not proof of a shared root cause.
+has zero new pipelines but 70/83 watched intervals below the requested display target. Of those,
+35 say `game below full speed`, 23 `frames not interpolated` and 12 `presents late`. The latter
+35 retain 98–102% game speed: all 70 must not be described as game slowdowns. Cause classifications
+are mixed: game thread 27, GX worker 8, Smooth Motion paused 21, unclear 14. The log confirms native
+accelerators are on and used. First compare the same Outset camera with Smooth Motion off versus
+60/120; retain settings and warmed caches. Do not prescribe lower resolution or copy the Linux
+optimization set, which already matches Windows. Counters identify where to profile, not proof of
+a shared root cause. [Breakdown and next probe](status/TRIAGE_2026-10-06.md#performance--linux).
 
 ### Controller dead zone (#138)
 
