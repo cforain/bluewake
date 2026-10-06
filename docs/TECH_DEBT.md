@@ -1,5 +1,9 @@
 # Technical debt and known issues
 
+Latest checkpoint: [October 6 simulator pass](status/SIMULATOR_PASS_2026-10-06.md).
+Chris requested simulator-only testing; physical iPad and Windows hardware checks are deferred.
+The [earlier handoff](status/HANDOFF_2026-10-06.md) retains prior candidate evidence.
+
 Updated October 6, 2026 (JST). Owner: Chris. This is the maintained work queue for
 [the goal loop](GOAL_LOOP.md), covering reported bugs, unverified fixes and support debt.
 The dated [October 5 catalog](status/OPEN_ISSUES_2026-10-05.md) is historical evidence.
@@ -19,17 +23,17 @@ crashes or progression blockers; these take precedence. All 30 currently open is
 | Priority | Issue | Classification | Evidence / current state | Next check or gate |
 | --- | --- | --- | --- | --- |
 | P1 | [#136 Clouds and waves flickering (v0.5.0)](https://github.com/chrissotraidis/bluewake/issues/136) | Rendering regression | Reported in 0.5.0 on NVIDIA at 60/120 FPS. Mac title-view base frames match with interpolation off/on; reporter's failure remains unreproduced. | Follow the [short Windows capture procedure](WINDOWS_TASKS.md#flickering-capture-136); distinguish intermediate-frame failure from a base-frame or cold-cache problem. |
-| P1 | [#97 No sound during the game intro](https://github.com/chrissotraidis/bluewake/issues/97) | Audio / opt-in fix | Deferred DVD completion restores the title-to-intro track in matched Mac and physical M2 iPad runs; Mac save/load also checked. Default remains off. | Windows test with `BLUEWAKE_DEFER_DVD_COMPLETION=1`; later music transitions, normal loading and speaker listening remain gates. See the physical iPad evidence below. |
+| P1 | [#97 No sound during the game intro](https://github.com/chrissotraidis/bluewake/issues/97) | Audio / opt-in fix | Deferred DVD completion restores the title-to-intro track in matched Mac, physical M2 iPad and iPad simulator runs; Mac save/load also checked. Default remains off. | Windows test with `BLUEWAKE_DEFER_DVD_COMPLETION=1`; later music transitions, normal loading and speaker listening remain gates. See the physical iPad evidence below. |
 | P1 | [#65 Music Cues Missing in Scripted Scenes](https://github.com/chrissotraidis/bluewake/issues/65) | Audio | Scripted music/effects absent; changing three settings together once helped. No single cause established. | Track with #97, but compare history intro and bird scene separately; retain possible separate causes. |
 | P1 | [#137 Game Frame Rate averaging low 20s](https://github.com/chrissotraidis/bluewake/issues/137) | Performance | Ryzen 2700/RTX 4070; 70/83 intervals miss the display target, but only 35 log slow game speed. No new pipelines; native accelerators active. | Same Outset camera at 30 vs 60/120; isolate interpolation workload before profiling the remaining game/GX bottleneck. Linux's optimization set already matches Windows. |
 | P1 | [#138 Windows: left stick has a large dead zone, then jumps to ~20–30%](https://github.com/chrissotraidis/bluewake/issues/138) | Controls | Wired Xbox One; host cutoff and local GZLE01 guest clamp explain an axial jump to 16/72 (22%). No hardware fix tested. | Correct the combined input curve; test fine aiming, full travel, diagonals and drift on controller hardware. |
-| P1 | [#13 pictobox freezes game picture but sound keeps running](https://github.com/chrissotraidis/bluewake/issues/13) | Rendering / controls | 0.5.0 freeze resolved for knapman; stale photo preview and gamepad save-selection failure remain. | Reproduce two successive photos and left selection separately on scratch save. |
-| P1 | [#80 HD Texture packs seem to cause shadows issues and tone oddities](https://github.com/chrissotraidis/bluewake/issues/80) | HD textures | Both DDS and PNG affected; pack off reportedly normal. Radeon 860M; 5741 replacements; no skipped draws. | Matched on/off camera view; inspect replacement format/palette/shading. AMD-only cause unproven. |
+| P1 | [#13 pictobox freezes game picture but sound keeps running](https://github.com/chrissotraidis/bluewake/issues/13) | Rendering / controls | 0.5.0 freeze resolved for knapman. Stale second preview reproduced on Mac and repaired by opt-in forwarding of skipped cache-flush instructions. Gamepad save selection is separate. | Regular/Deluxe second previews, scripted photo selection and regular-photo normal save/relaunch/reload checked in the iPad simulator with the flag on. Physical iPad/Windows and real-controller checks remain; keep default off. [Latest evidence](status/SIMULATOR_PASS_2026-10-06.md#pictobox-13). |
+| P1 | [#80 HD Texture packs seem to cause shadows issues and tone oddities](https://github.com/chrissotraidis/bluewake/issues/80) | HD textures | Both DDS and PNG affected on Radeon 860M. A matched local Mac PNG pair does not reproduce the reported shading; forced/normal shader final frames match. Local and reporter pack variants differ. | Match exact pack/save and isolate BetterWW, widescreen and interpolation; then compare D3D12 fallback mode after compilation. [Evidence and limits](status/TRIAGE_2026-10-06.md#hd-shading-comparison-80). |
 | P1 | [#86 Constant FPS drops](https://github.com/chrissotraidis/bluewake/issues/86) | Performance | Existing recurring frame drops; waiting for current-version comparison. | Group evidence with #137/#59 without assuming identical cause. |
 | P1 | [#59 Bird scene at the beginning of the game is still very slow](https://github.com/chrissotraidis/bluewake/issues/59) | Performance | Bird opening slows down; #72 is already a duplicate. | One matching scene profile with warmed caches and known settings. |
-| P1 | [#74 Dungeon maps are not shown correctly](https://github.com/chrissotraidis/bluewake/issues/74) | Rendering / delivery | Fixed in main via #134; Mac visual checks and Windows CI passed. Not in 0.5.0. | Windows dungeon-map check and audited next release; reporter confirmation after delivery. |
+| P1 | [#74 Dungeon maps are not shown correctly](https://github.com/chrissotraidis/bluewake/issues/74) | Rendering / delivery | Fixed in main via #134; Mac and iPad simulator visual checks and Windows CI passed. Not in 0.5.0. | Windows dungeon-map check and audited next release; reporter confirmation after delivery. |
 | P2 | [#55 Switch pro controller A-B input switch](https://github.com/chrissotraidis/bluewake/issues/55) | Confirmation | nextux confirms swaps work; original migrated reporter was manassm. | Record participating tester confirmation; decide closure in a later support pass. |
-| P2 | [#56 Linux Support](https://github.com/chrissotraidis/bluewake/issues/56) | Platform port | PR #107 reports 434 watched intervals with one below target; full log not attached. Approved CI now fails SDL XTEST configuration. | Contributor: add libxtst-dev, incorporate current main/shared queue test; full log, shutdown heap error and package audit still pending. |
+| P2 | [#56 Linux Support](https://github.com/chrissotraidis/bluewake/issues/56) | Platform port | Full PR #107 log confirms 434 watched intervals/one below target but ends in a double-free abort. Proposed shutdown patch is not yet in the pinned runtime. | Review/integrate the runtime patch, obtain a clean post-fix exit, add libxtst-dev and current shared tests; manual hardware/package checks remain. [Review](status/LINUX_REVIEW_2026-10-06.md). |
 | P2 | [#58 Game won't launch](https://github.com/chrissotraidis/bluewake/issues/58) | Launch / acceptance | Exact launch and crash recovery checked on Windows 0.5.0. | Await affected reporter confirmation; preserve issue until confirmed. |
 | P2 | [#61 8BitDo GameCube Modkit Controller unsupported](https://github.com/chrissotraidis/bluewake/issues/61) | Controllers | Mappings load in 0.5.0; affected 8BitDo controller not tested. | Reporter test and controller identification; loading a mapping count is not input proof. |
 | P2 | [#64 Portable Mode - Allow user to set files folder and stop copying original game data](https://github.com/chrissotraidis/bluewake/issues/64) | Portable mode | Caches stay portable; imgui.ini still uses APPDATA. | Route UI ini with portable data path; check normal mode unaffected. |
@@ -90,8 +94,8 @@ captured audio. A bounded follow-up reaches the track's full decoded sample coun
 scene; later bird cues and a subsequent streamed track remain untested. It handles ordinary async
 archive reads through the same queue and preserves accepted
 work in save states. A physical M2 iPad matched pair now reproduces the silent intro with the flag
-off and sustained intro output with it on (3600 retraces each). This checks captured mixed output,
-not speaker playback or later scenes. It remains off by default: Windows hardware, later transitions
+off and sustained intro output with it on (3600 retraces each). A later listening launch also logs full intro-track completion and the next sea event.
+This checks captured output/stream state, not speaker quality or all later music. It remains off by default: Windows hardware, later transitions
 and broader loading checks are unverified. Keep #65's other missing cues separate. [Reproduction and candidate limits](status/TRIAGE_2026-10-06.md#deferred-completion-candidate).
 
 ### Performance (#137/#59/#86)
@@ -117,6 +121,11 @@ clamp expecting it to fix BlueWake. [Input-chain evidence](status/TRIAGE_2026-10
 No input behavior changed in this pass; a candidate curve still needs controller testing.
 
 ### Linux support (#107/#56)
+
+Latest [patch/log review](status/LINUX_REVIEW_2026-10-06.md): the full log is now available,
+but still ends in an allocator abort. The proposed patch applies to current runtime source;
+its pinned-build integration, post-fix exit evidence and manual checks remain pending.
+
 
 [Follow-up sent](https://github.com/chrissotraidis/bluewake/pull/107#issuecomment-6006055403): keep one PR,
 attach the full log, CPU, commit and settings; diagnose shutdown `double free or corruption (!prev)`;
