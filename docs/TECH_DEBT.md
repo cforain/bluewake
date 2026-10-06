@@ -18,7 +18,7 @@ crashes or progression blockers; these take precedence. All 30 currently open is
 
 | Priority | Issue | Classification | Evidence / current state | Next check or gate |
 | --- | --- | --- | --- | --- |
-| P1 | [#136 Clouds and waves flickering (v0.5.0)](https://github.com/chrissotraidis/bluewake/issues/136) | Rendering regression | Reported in 0.5.0 on NVIDIA at 60/120 FPS. No log or capture yet. | Compare original textures at 30, 60 and 120; isolate interpolation changes before HD mip sampling. |
+| P1 | [#136 Clouds and waves flickering (v0.5.0)](https://github.com/chrissotraidis/bluewake/issues/136) | Rendering regression | Reported in 0.5.0 on NVIDIA at 60/120 FPS. Mac title-view base frames match with interpolation off/on; reporter's failure remains unreproduced. | Follow the [short Windows capture procedure](WINDOWS_TASKS.md#flickering-capture-136); distinguish intermediate-frame failure from a base-frame or cold-cache problem. |
 | P1 | [#97 No sound during the game intro](https://github.com/chrissotraidis/bluewake/issues/97) | Audio / opt-in fix | Deferred DVD completion restores the title-to-intro track on Mac, including a save/load run. Default remains off pending other-platform checks. | Windows/iPad test with `BLUEWAKE_DEFER_DVD_COMPLETION=1`, including later transitions, before enabling by default or shipping a fix claim. |
 | P1 | [#65 Music Cues Missing in Scripted Scenes](https://github.com/chrissotraidis/bluewake/issues/65) | Audio | Scripted music/effects absent; changing three settings together once helped. No single cause established. | Track with #97, but compare history intro and bird scene separately; retain possible separate causes. |
 | P1 | [#137 Game Frame Rate averaging low 20s](https://github.com/chrissotraidis/bluewake/issues/137) | Performance | Ryzen 2700/RTX 4070; 70/83 watched seconds slow, no new pipelines; mixed game/GX classifications. | Bounded Outset profile; compare shared builder optimizations with Linux #107 before enabling anything. |
@@ -63,6 +63,11 @@ The original 0.4.0 download came from Wind Waker Recomp; BlueWake's v0.2.0 is no
 The dungeon-map patch 0157 landed after 0.5.0 and cannot have caused this reported regression.
 The source comparison also includes pixel-colour interpolation, cloth blending and the D3D12-only
 ubershader fallback; see [the October 6 investigation](status/TRIAGE_2026-10-06.md).
+The follow-up Mac control used the regular host capture path with interpolation off: all 13 common
+retrace captures are pixel-identical to the on run. Six sampled intermediate-frame pairs show motion
+without obvious cloud disappearance. This is a limited Metal/title-view result, not a negative test
+of the NVIDIA sea report or a historical 0.4.0 comparison. Existing bounded capture/trace facilities
+are sufficient for the next probe; do not add continuous per-draw logging before locating a bad frame.
 
 ### Audio: separate file presence, stream lifetime and audible output (#65/#97)
 

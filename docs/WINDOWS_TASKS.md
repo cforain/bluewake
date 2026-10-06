@@ -77,6 +77,30 @@ Merged after `0d1f821`, so 0.5.0 doesn't have them. Check only these on the next
 | Stream-state diagnostics include stop/play, decode/buffer and DVD state; the triage script flags brief playback | #65, #97 | Play the silent history intro once without skipping; keep the log through the track stopping. Run `python scripts/triage_session_log.py LOG`. Compare `[music-stream]` state changes and the new fields; a state-4 sample alone is not acceptance. | Pending Windows hardware; Mac build and targeted diagnostics checks recorded in [October 6 triage](status/TRIAGE_2026-10-06.md) |
 | Dungeon maps draw their grid and rooms (eight texgens, sixteen TEV stages; RecompCore patch 0157) | #74 | Open the map in any dungeon you've reached (or a copy of a save moved into Dragon Roost Cavern with `scripts/save_set_restart.py IN.gci OUT.gci M_NewD2 0 0`): the grid and the rooms you've seen are drawn, not only the door marker. The session log's `[gx-core] shutdown` line has `unsupported_texgen=0` and `tev_stages_over=0`. A first launch logs `Seeded pipeline cache` and little shader compiling (`pipelines_made` in `[perf-summary]`) in places played before. | Not built yet |
 
+### Flickering capture (#136)
+
+The NVIDIA report is still unreproduced on Mac. Use a copy of the affected save and keep the same
+camera, resolution and original textures. Record the exact BlueWake version/commit, GPU and driver;
+do not delete caches or player data. This is a short comparison, not an hours-long soak:
+
+1. Record roughly ten seconds at original 30 FPS, then the same view at Smooth Motion 60 and 120.
+   Note exactly which cloud/wave disappears and whether the camera is moving. Keep the session log.
+2. Return to that view once with the existing caches warmed. If the flicker disappears, inspect the
+   D3D12 fallback/specialized-shader transition; if it persists, prioritize matching, UV and colour
+   interpolation. A cold/warm difference is evidence, not a cause by itself.
+3. Only after finding a repeatable bad interval, use the existing renderer dump with a small range:
+   `DOL_AURORA_FRAME_INTERP_DUMP` names a private output directory; `DOL_AURORA_FRAME_INTERP_DUMP_FROM`
+   and `DOL_AURORA_FRAME_INTERP_DUMP_TO` must both be set, preferably for no more than 30 frames.
+   Read frame numbers from a short run with `DOL_AURORA_FRAME_INTERP_LOG_FRAMES=1`. The dump is
+   inactive at 30 FPS; regular host screenshots are needed for that control. Keep original images
+   private for analysis and ask before publishing promotional footage.
+4. Compare real and intermediate frames. If only intermediate frames fail, use
+   `DOL_AURORA_FRAME_INTERP_TRACE=first-last` for that narrow range to identify the draw's match or
+   rejection. If real frames fail too, investigate transform/texture/depth or backend behavior.
+   Remove diagnostic environment variables after the run; do not use a traced run to claim speed.
+
+No rendering change is proposed from the current Mac sample. [Exact findings and limits](status/TRIAGE_2026-10-06.md#matched-mac-capture-follow-up).
+
 ## 1. A Windows build from BlueWake `main`
 
 **Why:** ships everything in the list above to Windows players.
