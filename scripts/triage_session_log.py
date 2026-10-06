@@ -54,6 +54,35 @@ def bottleneck(text):
     return "unclear"
 
 
+def music_playback_spans(changes):
+    """Observed state-4 spans, not proof of audible music or why a track stopped.
+
+    Works on existing releases as well as new diagnostic lines. Retraces are
+    guest time; don't turn them into wall-clock milliseconds. A restart/load
+    can rewind the counter, and an unfinished log cannot prove a stop.
+    """
+    spans, active, previous_retrace = [], None, None
+    for text in changes:
+        retrace = field(text, "retrace", int)
+        state = field(text, "state", int)
+        track = re.search(r'path="([^"]*)".*?\bid=(0x[0-9a-fA-F]+)', text)
+        if retrace is None or state is None or track is None:
+            continue
+        if previous_retrace is not None and retrace < previous_retrace:
+            active = None  # save-state restore/restart invalidates the span
+        previous_retrace = retrace
+        key = (track[1], track[2].lower())
+        if active is not None:
+            start, previous_key = active
+            if state != 4 or key != previous_key:
+                spans.append((previous_key[0], retrace - start,
+                              "state=" + str(state) if state != 4 else "track changed"))
+                active = None
+        if state == 4 and active is None:
+            active = (retrace, key)
+    return spans
+
+
 def report(path):
     setup, fatal, dips, paces = [], [], [], []
     reasons, places, causes = Counter(), Counter(), Counter()
@@ -137,7 +166,19 @@ def report(path):
     print(f"  slow render/present frames: {render_slow}")
     print(f"  streamed music changes ([music-stream]): {len(music)}")
     for text in music[:12]:
-        print("   ", text[:150])
+        print("   ", text[:350])
+    spans = music_playback_spans(music)
+    short = [span for span in spans if span[1] < 60]
+    if music:
+        print(f"  streamed playback ended within 60 retraces: {len(short)}")
+    else:
+        print("  streamed playback: unknown (no [music-stream] diagnostics in this log)")
+    for track, duration, end in short[:12]:
+        print(f"    {track}: playing for {duration} retraces, then {end}")
+    if short:
+        print("    Check for an intentional skip/stop or premature finish; this is not a diagnosed failure.")
+    if music or demos:
+        print("  Audio caveat: a sound handle or mixed-output activity does not prove the expected music was audible.")
     quiet = [d for d in demos if " missing=0 " not in d or float(field(d, "silent") or 0) >= 2]
     print(f"  cutscenes ([demo]): {len(demos)}, with a missing sound or 2 s of silence: {len(quiet)}")
     for text in quiet[:12]:

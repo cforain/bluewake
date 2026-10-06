@@ -190,6 +190,8 @@ add_test(NAME bluewake_save_state_test COMMAND bluewake_save_state_test)
 set(BLUEWAKE_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 set(BLUEWAKE_HOST_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 include("${BLUEWAKE_REPO_ROOT}/cmake/host_state_save_test.cmake")
+include("${BLUEWAKE_REPO_ROOT}/cmake/dvd_completion_test.cmake")
+target_link_libraries(bluewake_dvd_completion_test PRIVATE z)
 include("${BLUEWAKE_REPO_ROOT}/cmake/haptics_test.cmake")
 target_link_libraries(bluewake_host_state_save_failure_test PRIVATE z)
 

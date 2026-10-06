@@ -6,16 +6,16 @@ Read [AGENTS.md](../AGENTS.md) first. One pull request per task, results in the 
 **You need:** Windows 10 or 11 (x64), a CPU with AVX2, a Direct3D 12 GPU, your own USA `GZLE01` revision 0
 disc, and the build tools in [BlueWake on Windows](WINDOWS.md#what-you-need).
 
-**Where things stand (October 5, 2026):** the published Windows download is still Elliott's Wind Waker
-Recomp 0.4.0 build. The first Windows build from BlueWake `main` (`c56d6b6`) was built and checked on one PC
-and is a draft release, `v0.5.0-windows`, waiting for Chris to run the release gate and publish it. Results:
-[Windows build, October 5](status/WINDOWS_BUILD_2026-10-05.md).
+**Where things stand (October 5, 2026):** BlueWake 0.5.0 is the published Windows download, built from
+`main` (`0d1f821`) and checked on one PC: [Windows build for 0.5.0](status/WINDOWS_BUILD_0.5.0.md). Everything
+in the table below is in it. Still to do by hand: the camera-stick invert, "Quit the game" and the option
+notes, mouse buttons, and a controller.
 
-## In `main`, waiting for a Windows build
+## Shipped in 0.5.0: checks and remaining verification
 
-Fixes and features already in `main` that the current Windows download doesn't have. Task 1 ships them;
-check each one on a Windows PC and tell the linked issue. New entries are added by the pull request that
-lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
+These changes shipped in 0.5.0. Results below describe the original release checks; reporter updates
+and remaining defects are tracked in [TECH_DEBT.md](TECH_DEBT.md). New unreleased changes belong in
+"In `main`, waiting for a Windows build" below.
 
 | Change | Issue | What to check | Windows result, October 5 |
 | --- | --- | --- | --- |
@@ -57,6 +57,50 @@ rebuild from `main` and check only these rows of the table above, nothing else a
 
 Results on the 0.5.0 build (`0d1f821`): [Windows build for 0.5.0](status/WINDOWS_BUILD_0.5.0.md). Still to do by hand: items 2, 4, the mouse half of 3, and a controller for 6.
 
+## In `main`, waiting for a Windows build
+
+After 0.5.0: check these on the next Windows build.
+
+For intro audio (#97), wait at the title until its music plays before starting a new scratch file.
+The immediate-entry route can miss the failure. The Mac reproduction and callback-order diagnosis
+are in [the October 6 record](status/TRIAGE_2026-10-06.md#title-to-intro-reproduction-and-callback-ordering).
+The optional automated equivalent uses `BLUEWAKE_PAD_PULSE_ON_TITLE_READY=1`,
+`BLUEWAKE_PAD_BUTTONS=0x0100`, `BLUEWAKE_PAD_TITLE_DELAY=900` and `BLUEWAKE_MAX_RETRACES=3600`
+with separate scratch card/settings/SRAM/cache paths. `[music-dvd]` reports the first four stream
+read completions. This is a reproduction aid, not an audio fix; preserve the session log.
+
+Merged after `0d1f821`, so 0.5.0 doesn't have them. Check only these on the next build:
+
+| Change | Issue | What to check | Result |
+| --- | --- | --- | --- |
+| Opt-in deferred DVD completion for title-to-intro music | #97, related #65 | Launch from PowerShell with `$env:BLUEWAKE_DEFER_DVD_COMPLETION="1"`; wait for title music, start a new scratch file and listen to the history intro without skipping. Check one later music transition, room loading and a copied save-state reload. Keep the session log, including `[dvd] deferred completion=on (experimental)`. Remove the variable to compare the default path. | Mac reproduction repaired with captured audio and save/load checks; off by default until Windows/iPad hardware validation. See [candidate evidence](status/TRIAGE_2026-10-06.md#deferred-completion-candidate). |
+| Stream-state diagnostics include stop/play, decode/buffer and DVD state; the triage script flags brief playback | #65, #97 | Play the silent history intro once without skipping; keep the log through the track stopping. Run `python scripts/triage_session_log.py LOG`. Compare `[music-stream]` state changes and the new fields; a state-4 sample alone is not acceptance. | Pending Windows hardware; Mac build and targeted diagnostics checks recorded in [October 6 triage](status/TRIAGE_2026-10-06.md) |
+| Dungeon maps draw their grid and rooms (eight texgens, sixteen TEV stages; RecompCore patch 0157) | #74 | Open the map in any dungeon you've reached (or a copy of a save moved into Dragon Roost Cavern with `scripts/save_set_restart.py IN.gci OUT.gci M_NewD2 0 0`): the grid and the rooms you've seen are drawn, not only the door marker. The session log's `[gx-core] shutdown` line has `unsupported_texgen=0` and `tev_stages_over=0`. A first launch logs `Seeded pipeline cache` and little shader compiling (`pipelines_made` in `[perf-summary]`) in places played before. | Not built yet |
+
+### Flickering capture (#136)
+
+The NVIDIA report is still unreproduced on Mac. Use a copy of the affected save and keep the same
+camera, resolution and original textures. Record the exact BlueWake version/commit, GPU and driver;
+do not delete caches or player data. This is a short comparison, not an hours-long soak:
+
+1. Record roughly ten seconds at original 30 FPS, then the same view at Smooth Motion 60 and 120.
+   Note exactly which cloud/wave disappears and whether the camera is moving. Keep the session log.
+2. Return to that view once with the existing caches warmed. If the flicker disappears, inspect the
+   D3D12 fallback/specialized-shader transition; if it persists, prioritize matching, UV and colour
+   interpolation. A cold/warm difference is evidence, not a cause by itself.
+3. Only after finding a repeatable bad interval, use the existing renderer dump with a small range:
+   `DOL_AURORA_FRAME_INTERP_DUMP` names a private output directory; `DOL_AURORA_FRAME_INTERP_DUMP_FROM`
+   and `DOL_AURORA_FRAME_INTERP_DUMP_TO` must both be set, preferably for no more than 30 frames.
+   Read frame numbers from a short run with `DOL_AURORA_FRAME_INTERP_LOG_FRAMES=1`. The dump is
+   inactive at 30 FPS; regular host screenshots are needed for that control. Keep original images
+   private for analysis and ask before publishing promotional footage.
+4. Compare real and intermediate frames. If only intermediate frames fail, use
+   `DOL_AURORA_FRAME_INTERP_TRACE=first-last` for that narrow range to identify the draw's match or
+   rejection. If real frames fail too, investigate transform/texture/depth or backend behavior.
+   Remove diagnostic environment variables after the run; do not use a traced run to claim speed.
+
+No rendering change is proposed from the current Mac sample. [Exact findings and limits](status/TRIAGE_2026-10-06.md#matched-mac-capture-follow-up).
+
 ## 1. A Windows build from BlueWake `main`
 
 **Why:** ships everything in the list above to Windows players.
@@ -71,9 +115,9 @@ Results on the 0.5.0 build (`0d1f821`): [Windows build for 0.5.0](status/WINDOWS
 
 **Done when:** the draft has both zips and the checklist results are posted.
 
-**Status (October 5, 2026):** built from `c56d6b6` and packaged with `scripts/windows/package_release.py`
-(#119). The draft release `v0.5.0-windows` has both zips. The checks in the table above that need a save, a
-controller or the settings menu by hand are still open.
+**Status (October 5, 2026):** done. 0.5.0 was built from `0d1f821`, packaged with
+`scripts/windows/package_release.py` (#119) and published with the Mac, iPhone and iPad files. The checks in
+the table above that need a controller or the settings menu by hand are still open.
 
 ## 2. A clear message on CPUs without AVX2 (#77)
 
@@ -118,7 +162,7 @@ Use `python3 scripts/triage_session_log.py session-*.log` on any attached log.
 | #61 8BitDo GameCube controller | Check whether SDL sees it and what it maps to. |
 | #76 Forsaken Fortress soft lock | Try to reproduce on the tower with the Moblins; it may be the original game's behaviour. |
 | #74 dungeon map without its drawing | Not Windows-only: reproduced on the Mac on October 5 (see [OPEN_ISSUES_2026-10-05.md](status/OPEN_ISSUES_2026-10-05.md#what-the-october-5-loop-found)). The cause is RecompCore's shader limits, so the fix is a runtime change; nothing to capture on Windows until it lands. |
-| #65, #97 missing music or sound in cutscenes | Play an affected scene (the intro after naming Link, the bird scenes) with task 1's build and read the `[demo] end` line for it (see below). The Mac plays them: the opening cutscene logs `cues=4 sounds=4 missing=0 silent=0.4s of 104.7s`. On the Mac (October 5), the opening cutscene also logs `cues=4 sounds=4 missing=0` with mouse camera off, with Better Wind Waker on and at 16:9, so if a scene is silent on Windows, the option-by-option comparison (HD textures, Better Wind Waker, mouse camera, 16:9 vs 4:3) belongs in that scene, on Windows. |
+| #65, #97 missing music or sound in cutscenes | Still reported on Windows 0.5.0 and Mac M4. The Windows log shows `1tale.afc` in playing state for two retraces, then idle. Check the history intro after naming Link separately from the title demo and bird scene. A cue count or one state=4 line does not prove sustained audible music. See [TECH_DEBT.md](TECH_DEBT.md). |
 | #59, #72, #79, #86 slowdowns | Measure the scenes with the triage script. The #76 log already shows the Forsaken Fortress exterior limited by the GX worker (83 of 97 slow seconds). |
 
 Close an issue only when the reporter confirms the fix, or with a clear explanation.
@@ -130,13 +174,15 @@ story's streamed music, goes silent for 6 seconds.
 
 | What the log shows | What it means | Where to look |
 | --- | --- | --- |
-| `cues=0` on a cutscene that should have sound | The cutscene never asked for its sounds: its sound track didn't run. | Settings that change game timing: the experimental 60 Hz gameplay and the native math in Wind Waker Recomp 0.4.0 (`BLUEWAKE_NATIVE_MATH=1`). Both are off in `main`. |
+| `cues=0` on a cutscene that should have sound | The cutscene never asked for its sounds: its sound track didn't run. | Scene/cue dispatch and timing. Record the actual `[chassis]` settings: Windows 0.5.0 enables supported native accelerators by default; the Mac comparison can have them off. |
 | `missing` above 0, with `[demo-sound] ... no sound` lines | The cutscene asked, but the game couldn't start the sound, usually because its sound data wasn't loaded in time. | Slow disc or ARAM reads; compare the slow seconds (`[fps-dip]`) around the cue. |
 | `sounds` equal to `cues` but `[audio-lost]` or a long `silent=` | The sounds started but nothing reached the speakers. | The audio output: Smooth Motion (on by default in 0.4.0, off in `main`), and drops when the game falls behind real time. |
+| `[music-stream]` reaches `state=4` then quickly returns to idle | The track started but stopped early; the reason is not established by this line. | Track lifetime, explicit stop requests, stream reads/decoder and scene changes. |
 | No `[music-stream]` line with `state=4` during the intro | The streamed music never started playing. | Reading `Audiores/Stream/*.afc` from the disc image. |
 
-On Mac, iPad and Windows `main`, the audio pacing settings are the same (`BLUEWAKE_WALL_PACE=1`,
-`DOL_AUDIO_NO_THROTTLE=1`, `BLUEWAKE_CLOCK=now`), so they don't explain a Windows-only problem by
-themselves. What differs on the 0.4.0 download is the native math, Smooth Motion's default and the
-60 Hz option. A Windows build from `main` turns those off, so if the cutscenes have sound there, one
-of them was the cause.
+On Mac, iPad and Windows `main`, the audio pacing defaults are the same (`BLUEWAKE_WALL_PACE=1`,
+`DOL_AUDIO_NO_THROTTLE=1`, `BLUEWAKE_CLOCK=now`), but that does not establish identical execution.
+The affected Windows 0.5.0 log has the native accelerators on, while the bounded Mac comparison has
+them off. The experimental 60 Hz gameplay option is absent, and Smooth Motion is off by default.
+Record actual settings and module capabilities before comparing platforms; none of these differences
+is established as the cause of the stream ending early.
