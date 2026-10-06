@@ -19,7 +19,7 @@ crashes or progression blockers; these take precedence. All 30 currently open is
 | Priority | Issue | Classification | Evidence / current state | Next check or gate |
 | --- | --- | --- | --- | --- |
 | P1 | [#136 Clouds and waves flickering (v0.5.0)](https://github.com/chrissotraidis/bluewake/issues/136) | Rendering regression | Reported in 0.5.0 on NVIDIA at 60/120 FPS. No log or capture yet. | Compare original textures at 30, 60 and 120; isolate interpolation changes before HD mip sampling. |
-| P1 | [#97 No sound during the game intro](https://github.com/chrissotraidis/bluewake/issues/97) | Audio / callback ordering | Reproduced on Mac after title music: intro state 4 lasts two retraces; captured output then silent. Inline DVD completion runs before the caller sets its pending flag. | Correct asynchronous completion ordering with save-state coverage, then check title-to-intro and later music transitions on Windows. |
+| P1 | [#97 No sound during the game intro](https://github.com/chrissotraidis/bluewake/issues/97) | Audio / opt-in fix | Deferred DVD completion restores the title-to-intro track on Mac, including a save/load run. Default remains off pending other-platform checks. | Windows/iPad test with `BLUEWAKE_DEFER_DVD_COMPLETION=1`, including later transitions, before enabling by default or shipping a fix claim. |
 | P1 | [#65 Music Cues Missing in Scripted Scenes](https://github.com/chrissotraidis/bluewake/issues/65) | Audio | Scripted music/effects absent; changing three settings together once helped. No single cause established. | Track with #97, but compare history intro and bird scene separately; retain possible separate causes. |
 | P1 | [#137 Game Frame Rate averaging low 20s](https://github.com/chrissotraidis/bluewake/issues/137) | Performance | Ryzen 2700/RTX 4070; 70/83 watched seconds slow, no new pipelines; mixed game/GX classifications. | Bounded Outset profile; compare shared builder optimizations with Linux #107 before enabling anything. |
 | P1 | [#138 Windows: left stick has a large dead zone, then jumps to ~20–30%](https://github.com/chrissotraidis/bluewake/issues/138) | Controls | Wired Xbox One; host cutoff and local GZLE01 guest clamp explain an axial jump to 16/72 (22%). No hardware fix tested. | Correct the combined input curve; test fine aiming, full travel, diagonals and drift on controller hardware. |
@@ -80,8 +80,10 @@ counts and DVD/buffer state, and teaches the triage script to flag observed shor
 A bounded Mac run that skips title music reaches and retains playing state. The next pass reproduced
 the failure by waiting at the title: the host completes the asynchronous read callback inline, before
 the caller sets its pending flag. The flag remains set, blocking the next stream's initialization.
-The new probe and callback trace establish this ordering; they do not fix it. Windows validation of a
-corrected completion path remains open. [Reproduction and limits](status/TRIAGE_2026-10-06.md#title-to-intro-reproduction-and-callback-ordering).
+The opt-in deferred-completion candidate now keeps the intro playing on Mac and restores nonzero
+captured audio. It handles ordinary async archive reads through the same queue and preserves accepted
+work in save states. It remains off by default: Windows/iPad hardware and later scene transitions
+are unverified. Keep #65's other missing cues separate. [Reproduction and candidate limits](status/TRIAGE_2026-10-06.md#deferred-completion-candidate).
 
 ### Performance (#137/#59/#86)
 

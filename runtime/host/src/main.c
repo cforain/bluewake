@@ -40,6 +40,7 @@
 #include "draw_tags.h"
 #include "mouse_camera.h"
 #include "callback_delivery.h"
+#include "dvd_completion.h"
 #include "cycle_domain.h"
 #include "interrupt_sources.h"
 #include "delivery_digest.h"
@@ -1054,6 +1055,9 @@ static unsigned g_di_read_reports;
 static unsigned g_vi_ack_reports;
 static unsigned g_dvd_open_reports;
 static unsigned g_dvd_read_reports;
+static bool g_deferred_dvd_enabled;
+static BluewakeDvdCompletions g_dvd_completions;
+static unsigned g_dvd_completion_reports;
 static unsigned g_archive_reports;
 static unsigned g_dynamic_load_reports;
 static bool g_dynamic_link_header_reported;
@@ -6215,6 +6219,7 @@ static const BwStateField k_host_state_fields[] = {
     HS_FIELD(g_di.status), HS_FIELD(g_di.cover), HS_FIELD(g_di.command),
     HS_FIELD(g_di.dma_address), HS_FIELD(g_di.dma_length), HS_FIELD(g_di.control),
     HS_FIELD(g_di.immediate_data), HS_FIELD(g_di.config),
+    HS_FIELD(g_dvd_completions),
     // Guest time: the decrementer, the cycle domain and each device's cursor.
     HS_FIELD(g_guest_clock_decrementer), HS_FIELD(g_guest_clock_decrementer_valid),
     HS_FIELD(g_guest_clock_decrementer_expired), HS_FIELD(g_guest_clock_cycle_remainder),
@@ -6505,6 +6510,15 @@ static bool host_state_load(const char* path, CPUState* cpu,
         fprintf(stderr, "[state] %s: invalid host or alias chunk\n", path);
         goto done;
     }
+    BluewakeDvdCompletions saved_dvd = {0};
+    const BwStateField dvd_field = {"g_dvd_completions", &saved_dvd, sizeof(saved_dvd)};
+    uint32_t dvd_mismatched = 0;
+    if (!bw_state_fields_unpack(&dvd_field, 1u, vars->data, vars->size,
+                                NULL, NULL, &dvd_mismatched) || dvd_mismatched != 0u ||
+        saved_dvd.count > BLUEWAKE_DVD_COMPLETION_CAPACITY) {
+        fprintf(stderr, "[state] %s: invalid DVD completion queue\n", path);
+        goto done;
+    }
     {
         u32 count;
         memcpy(&count, aliases->data, sizeof count);
@@ -6589,6 +6603,8 @@ static bool host_state_load(const char* path, CPUState* cpu,
 
     chunk = bw_state_find(&reader, "HOSTVARS");
     uint32_t restored = 0u, missing = 0u, mismatched = 0u;
+    // Old states have no pending queue. Never retain completions from the future.
+    memset(&g_dvd_completions, 0, sizeof(g_dvd_completions));
     if (chunk == NULL ||
         !bw_state_fields_unpack(k_host_state_fields,
                                 (u32)(sizeof k_host_state_fields / sizeof k_host_state_fields[0]),
@@ -7343,6 +7359,9 @@ int main(int argc, char** argv) {
     g_di_read_reports = 0;
     g_dvd_open_reports = 0;
     g_dvd_read_reports = 0;
+    const char* deferred_dvd = getenv("BLUEWAKE_DEFER_DVD_COMPLETION");
+    g_deferred_dvd_enabled = deferred_dvd != NULL && strcmp(deferred_dvd, "1") == 0;
+    fprintf(stderr, "[dvd] deferred completion=%s\n", g_deferred_dvd_enabled ? "on (experimental)" : "off");
     g_archive_reports = 0;
     g_dynamic_load_reports = 0;
     g_dynamic_link_header_reported = false;
@@ -11223,8 +11242,9 @@ int main(int argc, char** argv) {
             if (title_proc >= 0x80000000u &&
                 mem_read32(&cpu, title_proc + 0x30u) == 1u &&
                 (g_title_pad_delay == 0u ||
-                 g_host_retrace_count >= g_title_pad_pulse.start_retrace +
-                                            g_title_pad_pulse.length) &&
+                 (g_host_retrace_count >= g_title_pad_pulse.start_retrace +
+                                             g_title_pad_pulse.length &&
+                  host_guest_cpad_a_released(&cpu))) &&
                 bluewake_pad_event_schedule_trigger(
                     &g_title_confirm_pulse, g_host_retrace_count)) {
                 fprintf(stderr,
@@ -12188,7 +12208,11 @@ int main(int argc, char** argv) {
             const u32 file_start = mem_read32(&cpu, file_info + DVD_FI_STARTADDR);
             const u32 file_length = mem_read32(&cpu, file_info + DVD_FI_LENGTH);
             const u32 callback_data = mem_read32(&cpu, file_info + 0x3Cu);
-            const bool valid = file_info != 0u && address != 0u &&
+            const bool defer = g_deferred_dvd_enabled && !synchronous;
+            if (defer && g_dvd_completions.count >= BLUEWAKE_DVD_COMPLETION_CAPACITY)
+                fprintf(stderr, "[dvd] async read rejected: completion queue full\n");
+            const bool valid = (!defer || g_dvd_completions.count < BLUEWAKE_DVD_COMPLETION_CAPACITY) &&
+                               file_info != 0u && address != 0u &&
                                offset <= file_length &&
                                length <= file_length - offset + DVD_MIN_TRANSFER_SIZE;
             const u64 read_end = (u64)address + (u64)length;
@@ -12214,12 +12238,21 @@ int main(int argc, char** argv) {
                         mem_read32(&cpu, 0x80AD2148u),
                         mem_read32(&cpu, 0x80AD214Cu));
             }
-            mem_write32(&cpu, file_info + DVD_CB_STATE, 0u);
-            mem_write32(&cpu, file_info + DVD_CB_CURRXFER, valid ? length : 0u);
-            mem_write32(&cpu, file_info + DVD_CB_XFERRED, valid ? length : 0u);
+            mem_write32(&cpu, file_info + DVD_CB_STATE, defer && valid ? 1u : 0u);
+            mem_write32(&cpu, file_info + DVD_CB_CURRXFER, valid && !defer ? length : 0u);
+            mem_write32(&cpu, file_info + DVD_CB_XFERRED, valid && !defer ? length : 0u);
             cpu.gpr[3] = synchronous ? (valid ? length : 0u) : (valid ? 1u : 0u);
             cpu.pc = cpu.lr & ~3u;
-            if (!synchronous && valid && callback != 0u) {
+            if (defer && valid) {
+                // A nonzero device latency prevents completion inside its caller.
+                // One guest millisecond is a compatibility floor, not a disc-speed model.
+                const BluewakeDvdCompletion completion = {
+                    .ready_cycle = g_cycle_domain.absolute_cycles + GUEST_CPU_CYCLES_PER_SECOND / 1000u,
+                    .callback = callback, .file_info = file_info, .length = length,
+                };
+                if (!bluewake_dvd_enqueue(&g_dvd_completions, completion))
+                    stop_reason = "DVD completion queue overflow";
+            } else if (!synchronous && valid && callback != 0u) {
                 const bool trace_music_read = callback == 0x8029D1C8u &&
                                               g_music_dvd_reports < 4u;
                 const u32 music_pending_before = trace_music_read ?
@@ -15235,6 +15268,32 @@ int main(int argc, char** argv) {
                 g_credit_lag_max = lag;
         }
         host_sync_cycle_devices_end_turn(&cpu);
+        BluewakeDvdCompletion completion;
+        if (g_dvd_completions.count != 0u &&
+            bluewake_dvd_take_ready(&g_dvd_completions, g_cycle_domain.absolute_cycles,
+                (cpu.msr & PPC_MSR_EE) != 0u && cpu.exception == 0u &&
+                bluewake_scheduler_interrupt_safe(cpu.pc), &completion)) {
+            mem_write32(&cpu, completion.file_info + DVD_CB_STATE, 0u);
+            mem_write32(&cpu, completion.file_info + DVD_CB_CURRXFER, completion.length);
+            mem_write32(&cpu, completion.file_info + DVD_CB_XFERRED, completion.length);
+            bool completed = true;
+            if (completion.callback != 0u) {
+                const BluewakeCallbackDeliveryResult delivery = bluewake_deliver_guest_callback(
+                    &cpu, mod, completion.callback, completion.length, completion.file_info,
+                    4096u, host_prepare_guest_dispatch, &g_cycle_domain);
+                // This callback runs after the regular end-of-turn flush.
+                // Account for its last block before begin_turn resets downcount.
+                (void)bluewake_cycle_domain_flush(&g_cycle_domain, &cpu);
+                host_sync_cycle_devices_end_turn(&cpu);
+                completed = delivery.completed;
+                if (!completed)
+                    stop_reason = "deferred DVD callback delivery";
+            }
+            if (g_dvd_completion_reports++ < 8u || !completed)
+                fprintf(stderr, "[dvd-completion] callback=0x%08X file=0x%08X bytes=%u "
+                        "completed=%u pending=%u\n", completion.callback, completion.file_info,
+                        completion.length, completed ? 1u : 0u, g_dvd_completions.count);
+        }
         if (g_delivery_safety_census_enabled) {
             if (g_guest_decrementer_pending) {
                 g_decrementer_pending_turns++;
