@@ -86,7 +86,9 @@ A bounded Mac run that skips title music reaches and retains playing state. The 
 the failure by waiting at the title: the host completes the asynchronous read callback inline, before
 the caller sets its pending flag. The flag remains set, blocking the next stream's initialization.
 The opt-in deferred-completion candidate now keeps the intro playing on Mac and restores nonzero
-captured audio. It handles ordinary async archive reads through the same queue and preserves accepted
+captured audio. A bounded follow-up reaches the track's full decoded sample count and the next Outset
+scene; later bird cues and a subsequent streamed track remain untested. It handles ordinary async
+archive reads through the same queue and preserves accepted
 work in save states. It remains off by default: Windows/iPad hardware and later scene transitions
 are unverified. Keep #65's other missing cues separate. [Reproduction and candidate limits](status/TRIAGE_2026-10-06.md#deferred-completion-candidate).
 
