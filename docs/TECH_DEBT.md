@@ -22,7 +22,7 @@ crashes or progression blockers; these take precedence. All 30 currently open is
 | P1 | [#97 No sound during the game intro](https://github.com/chrissotraidis/bluewake/issues/97) | Audio | 0.5.0 Windows intro still silent; Mac M4 report too. Windows 1tale.afc state 4 lasts two retraces then returns to 0. | Trace premature stream stop; verify music independently of title-demo sound counters. |
 | P1 | [#65 Music Cues Missing in Scripted Scenes](https://github.com/chrissotraidis/bluewake/issues/65) | Audio | Scripted music/effects absent; changing three settings together once helped. No single cause established. | Track with #97, but compare history intro and bird scene separately; retain possible separate causes. |
 | P1 | [#137 Game Frame Rate averaging low 20s](https://github.com/chrissotraidis/bluewake/issues/137) | Performance | Ryzen 2700/RTX 4070; 70/83 watched seconds slow, no new pipelines; mixed game/GX classifications. | Bounded Outset profile; compare shared builder optimizations with Linux #107 before enabling anything. |
-| P1 | [#138 Windows: left stick has a large dead zone, then jumps to ~20–30%](https://github.com/chrissotraidis/bluewake/issues/138) | Controls | Wired Xbox One; source confirms 8000 cutoff without rescaling. Game clamp interaction remains unverified. | Trace full stick range through host and guest clamp; test fine aiming and drift on controller hardware. |
+| P1 | [#138 Windows: left stick has a large dead zone, then jumps to ~20–30%](https://github.com/chrissotraidis/bluewake/issues/138) | Controls | Wired Xbox One; host cutoff and local GZLE01 guest clamp explain an axial jump to 16/72 (22%). No hardware fix tested. | Correct the combined input curve; test fine aiming, full travel, diagonals and drift on controller hardware. |
 | P1 | [#13 pictobox freezes game picture but sound keeps running](https://github.com/chrissotraidis/bluewake/issues/13) | Rendering / controls | 0.5.0 freeze resolved for knapman; stale photo preview and gamepad save-selection failure remain. | Reproduce two successive photos and left selection separately on scratch save. |
 | P1 | [#80 HD Texture packs seem to cause shadows issues and tone oddities](https://github.com/chrissotraidis/bluewake/issues/80) | HD textures | Both DDS and PNG affected; pack off reportedly normal. Radeon 860M; 5741 replacements; no skipped draws. | Matched on/off camera view; inspect replacement format/palette/shading. AMD-only cause unproven. |
 | P1 | [#86 Constant FPS drops](https://github.com/chrissotraidis/bluewake/issues/86) | Performance | Existing recurring frame drops; waiting for current-version comparison. | Group evidence with #137/#59 without assuming identical cause. |
@@ -61,6 +61,8 @@ If only intermediate frames fail, inspect matching and UV wrap/blend; if base fr
 inspect transform reuse/depth and texture sampling. Only test HD mip behavior with replacements enabled.
 The original 0.4.0 download came from Wind Waker Recomp; BlueWake's v0.2.0 is not a valid proxy baseline.
 The dungeon-map patch 0157 landed after 0.5.0 and cannot have caused this reported regression.
+The source comparison also includes pixel-colour interpolation, cloth blending and the D3D12-only
+ubershader fallback; see [the October 6 investigation](status/TRIAGE_2026-10-06.md).
 
 ### Audio: separate file presence, stream lifetime and audible output (#65/#97)
 
@@ -73,6 +75,10 @@ path and annotate short-lived playback; do not declare audio fixed from a state-
 The Mac M4 attachment lacks the detailed diagnostics and exact source revision, so its report is
 relevant but not a matched reproduction. Earlier option testing changed several variables at once.
 Disc file presence alone does not establish successful reads, correct decoding or sustained playback.
+The first diagnostics change extends stream-state lines with stop/play flags, decoded/playback sample
+counts and DVD/buffer state, and teaches the triage script to flag observed short playback spans.
+A bounded Mac run reaches and retains playing state; the affected Windows run still needs the new
+fields. This is instrumentation, not an audio fix. [Evidence and limits](status/TRIAGE_2026-10-06.md).
 
 ### Performance (#137/#59/#86)
 
@@ -81,6 +87,16 @@ has zero new pipelines but 70/83 watched seconds below target. Classifications a
 27 s, GX worker 8 s, Smooth Motion paused 21 s, unclear 14 s. Do not prescribe lower resolution or
 attribute all of it to the GPU. Compare scene/settings/build flags before adopting the Linux contributor's
 optimization changes. Counters identify where to profile, not proof of a shared root cause.
+
+### Controller dead zone (#138)
+
+Source and local GZLE01 inspection confirm the default host cutoff stacks with the guest's own clamp.
+The first positive axial value is 31 at the host and 16 after the guest subtracts 15, or 22% of its
+maximum 72. This matches the reported jump. Axial saturation is around 68% of SDL range, not the
+reporter's estimated 56%, because the guest subtracts the dead zone before limiting the value.
+The host backend does not call Aurora's separate PADClamp implementation; do not change that unused
+clamp expecting it to fix BlueWake. [Input-chain evidence](status/TRIAGE_2026-10-06.md#controller-dead-zone-138).
+No input behavior changed in this pass; a candidate curve still needs controller testing.
 
 ### Linux support (#107/#56)
 

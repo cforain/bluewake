@@ -65,6 +65,7 @@ Merged after `0d1f821`, so 0.5.0 doesn't have them. Check only these on the next
 
 | Change | Issue | What to check | Result |
 | --- | --- | --- | --- |
+| Stream-state diagnostics include stop/play, decode/buffer and DVD state; the triage script flags brief playback | #65, #97 | Play the silent history intro once without skipping; keep the log through the track stopping. Run `python scripts/triage_session_log.py LOG`. Compare `[music-stream]` state changes and the new fields; a state-4 sample alone is not acceptance. | Pending Windows hardware; Mac build and targeted diagnostics checks recorded in [October 6 triage](status/TRIAGE_2026-10-06.md) |
 | Dungeon maps draw their grid and rooms (eight texgens, sixteen TEV stages; RecompCore patch 0157) | #74 | Open the map in any dungeon you've reached (or a copy of a save moved into Dragon Roost Cavern with `scripts/save_set_restart.py IN.gci OUT.gci M_NewD2 0 0`): the grid and the rooms you've seen are drawn, not only the door marker. The session log's `[gx-core] shutdown` line has `unsupported_texgen=0` and `tev_stages_over=0`. A first launch logs `Seeded pipeline cache` and little shader compiling (`pipelines_made` in `[perf-summary]`) in places played before. | Not built yet |
 
 ## 1. A Windows build from BlueWake `main`
@@ -140,13 +141,15 @@ story's streamed music, goes silent for 6 seconds.
 
 | What the log shows | What it means | Where to look |
 | --- | --- | --- |
-| `cues=0` on a cutscene that should have sound | The cutscene never asked for its sounds: its sound track didn't run. | Settings that change game timing: the experimental 60 Hz gameplay and the native math in Wind Waker Recomp 0.4.0 (`BLUEWAKE_NATIVE_MATH=1`). Both are off in `main`. |
+| `cues=0` on a cutscene that should have sound | The cutscene never asked for its sounds: its sound track didn't run. | Scene/cue dispatch and timing. Record the actual `[chassis]` settings: Windows 0.5.0 enables supported native accelerators by default; the Mac comparison can have them off. |
 | `missing` above 0, with `[demo-sound] ... no sound` lines | The cutscene asked, but the game couldn't start the sound, usually because its sound data wasn't loaded in time. | Slow disc or ARAM reads; compare the slow seconds (`[fps-dip]`) around the cue. |
 | `sounds` equal to `cues` but `[audio-lost]` or a long `silent=` | The sounds started but nothing reached the speakers. | The audio output: Smooth Motion (on by default in 0.4.0, off in `main`), and drops when the game falls behind real time. |
 | `[music-stream]` reaches `state=4` then quickly returns to idle | The track started but stopped early; the reason is not established by this line. | Track lifetime, explicit stop requests, stream reads/decoder and scene changes. |
 | No `[music-stream]` line with `state=4` during the intro | The streamed music never started playing. | Reading `Audiores/Stream/*.afc` from the disc image. |
 
-On Mac, iPad and Windows `main`, the audio pacing settings are the same (`BLUEWAKE_WALL_PACE=1`,
-`DOL_AUDIO_NO_THROTTLE=1`, `BLUEWAKE_CLOCK=now`), so they don't explain a Windows-only problem by
-themselves. What differs on the 0.4.0 download is the native math, Smooth Motion's default and the
-60 Hz option. A Windows build from `main` turns those off, but the 0.5.0 reports still show failures. None is established as the common cause.
+On Mac, iPad and Windows `main`, the audio pacing defaults are the same (`BLUEWAKE_WALL_PACE=1`,
+`DOL_AUDIO_NO_THROTTLE=1`, `BLUEWAKE_CLOCK=now`), but that does not establish identical execution.
+The affected Windows 0.5.0 log has the native accelerators on, while the bounded Mac comparison has
+them off. The experimental 60 Hz gameplay option is absent, and Smooth Motion is off by default.
+Record actual settings and module capabilities before comparing platforms; none of these differences
+is established as the cause of the stream ending early.
