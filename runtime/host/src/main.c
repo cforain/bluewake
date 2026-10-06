@@ -14,6 +14,7 @@
 #include "gxruntime/vi_clock.h"
 #include "gxruntime/aram.h"
 #include "core/cpu.h"
+#include "cache_flush_fallback.h"
 #include "StaticRecompABI.h"
 #include "../../../cmake/composite/module_cpu_contract.h"
 #include <stdatomic.h>
@@ -1056,6 +1057,7 @@ static unsigned g_vi_ack_reports;
 static unsigned g_dvd_open_reports;
 static unsigned g_dvd_read_reports;
 static bool g_deferred_dvd_enabled;
+static bool g_cache_flush_fallback_enabled;
 static BluewakeDvdCompletions g_dvd_completions;
 static unsigned g_dvd_completion_reports;
 static unsigned g_archive_reports;
@@ -5849,6 +5851,8 @@ static bool configure_virtual_pad(DolHeadlessBackend* backend) {
 }
 
 static void instruction_fallback(CPUState* ctx, u32 raw, u32 cia) {
+    if (g_cache_flush_fallback_enabled && bluewake_cache_flush_fallback(ctx, raw, cia))
+        return;
     if ((raw >> 26) == 31u) {
         u32 xo = (raw >> 1) & 0x3FFu;
         u16 spr = (u16)(((raw >> 16) & 0x1Fu) | ((raw >> 6) & 0x3E0u));
@@ -7362,6 +7366,10 @@ int main(int argc, char** argv) {
     const char* deferred_dvd = getenv("BLUEWAKE_DEFER_DVD_COMPLETION");
     g_deferred_dvd_enabled = deferred_dvd != NULL && strcmp(deferred_dvd, "1") == 0;
     fprintf(stderr, "[dvd] deferred completion=%s\n", g_deferred_dvd_enabled ? "on (experimental)" : "off");
+    const char* cache_flush = getenv("BLUEWAKE_CACHE_FLUSH_FALLBACK");
+    g_cache_flush_fallback_enabled = cache_flush != NULL && strcmp(cache_flush, "1") == 0;
+    fprintf(stderr, "[texture-cache] fallback writeback=%s\n",
+            g_cache_flush_fallback_enabled ? "on (experimental)" : "off");
     g_archive_reports = 0;
     g_dynamic_load_reports = 0;
     g_dynamic_link_header_reported = false;
