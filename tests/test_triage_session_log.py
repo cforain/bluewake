@@ -46,5 +46,40 @@ class MusicEvidenceTest(unittest.TestCase):
         self.assertEqual(triage.music_playback_spans([line(100, 4), line(200, 4), line(150, 0)]), [])
 
 
+class FatalEvidenceTest(unittest.TestCase):
+    def render(self, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'session.log'
+            path.write_text(text)
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                triage.report(path)
+            return out.getvalue()
+
+    def test_shutdown_abort_after_performance_summary(self):
+        out = self.render('18:05:03.521 [perf-summary] exit watched_s=434 below_target_s=1\n'
+                          '18:05:03.526 double free or corruption (!prev)\n')
+        self.assertIn('fatal lines: 1', out)
+        self.assertIn('double free or corruption (!prev)', out)
+        self.assertIn('last [perf-summary]: exit watched_s=434 below_target_s=1', out)
+
+    def test_untagged_allocator_and_console_failures(self):
+        for failure in ('free(): double free detected in tcache 2',
+                        'malloc(): invalid size (unsorted)',
+                        'realloc(): invalid pointer', 'fatal: failed to initialize'):
+            with self.subTest(failure=failure):
+                out = self.render(failure + '\n')
+                self.assertIn('fatal lines: 1', out)
+                self.assertIn(failure, out)
+
+    def test_tagged_failure_counted_once_and_benign_teardown_ignored(self):
+        out = self.render('[crash] access violation\n'
+                          '[crash] reports=/example/reports\n'
+                          '[gpu] Device lost: Device was destroyed\n'
+                          '[panic] vcall-after trace\n'
+                          'allocator: 42 free blocks\n')
+        self.assertIn('fatal lines: 1', out)
+
+
 if __name__ == '__main__':
     unittest.main()

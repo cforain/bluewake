@@ -32,7 +32,7 @@ crashes or progression blockers; these take precedence. All 30 currently open is
 | P1 | [#59 Bird scene at the beginning of the game is still very slow](https://github.com/chrissotraidis/bluewake/issues/59) | Performance | Bird opening slows down; #72 is already a duplicate. | One matching scene profile with warmed caches and known settings. |
 | P1 | [#74 Dungeon maps are not shown correctly](https://github.com/chrissotraidis/bluewake/issues/74) | Rendering / delivery | Fixed in main via #134; Mac visual checks and Windows CI passed. Not in 0.5.0. | Windows dungeon-map check and audited next release; reporter confirmation after delivery. |
 | P2 | [#55 Switch pro controller A-B input switch](https://github.com/chrissotraidis/bluewake/issues/55) | Confirmation | nextux confirms swaps work; original migrated reporter was manassm. | Record participating tester confirmation; decide closure in a later support pass. |
-| P2 | [#56 Linux Support](https://github.com/chrissotraidis/bluewake/issues/56) | Platform port | PR #107 reports 434 watched intervals with one below target; full log not attached. Approved CI now fails SDL XTEST configuration. | Contributor: add libxtst-dev, incorporate current main/shared queue test; full log, shutdown heap error and package audit still pending. |
+| P2 | [#56 Linux Support](https://github.com/chrissotraidis/bluewake/issues/56) | Platform port | Full PR #107 log confirms 434 watched intervals/one below target but ends in a double-free abort. Proposed shutdown patch is not yet in the pinned runtime. | Review/integrate the runtime patch, obtain a clean post-fix exit, add libxtst-dev and current shared tests; manual hardware/package checks remain. [Review](status/LINUX_REVIEW_2026-10-06.md). |
 | P2 | [#58 Game won't launch](https://github.com/chrissotraidis/bluewake/issues/58) | Launch / acceptance | Exact launch and crash recovery checked on Windows 0.5.0. | Await affected reporter confirmation; preserve issue until confirmed. |
 | P2 | [#61 8BitDo GameCube Modkit Controller unsupported](https://github.com/chrissotraidis/bluewake/issues/61) | Controllers | Mappings load in 0.5.0; affected 8BitDo controller not tested. | Reporter test and controller identification; loading a mapping count is not input proof. |
 | P2 | [#64 Portable Mode - Allow user to set files folder and stop copying original game data](https://github.com/chrissotraidis/bluewake/issues/64) | Portable mode | Caches stay portable; imgui.ini still uses APPDATA. | Route UI ini with portable data path; check normal mode unaffected. |
@@ -120,6 +120,11 @@ clamp expecting it to fix BlueWake. [Input-chain evidence](status/TRIAGE_2026-10
 No input behavior changed in this pass; a candidate curve still needs controller testing.
 
 ### Linux support (#107/#56)
+
+Latest [patch/log review](status/LINUX_REVIEW_2026-10-06.md): the full log is now available,
+but still ends in an allocator abort. The proposed patch applies to current runtime source;
+its pinned-build integration, post-fix exit evidence and manual checks remain pending.
+
 
 [Follow-up sent](https://github.com/chrissotraidis/bluewake/pull/107#issuecomment-6006055403): keep one PR,
 attach the full log, CPU, commit and settings; diagnose shutdown `double free or corruption (!prev)`;
