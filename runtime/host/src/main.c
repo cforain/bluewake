@@ -319,6 +319,7 @@ static bool g_name_character_jut_trigger_reported;
 static bool g_name_character_cpad_hold_reported;
 static bool g_name_character_cpad_trigger_reported;
 static BluewakePadEventSchedule g_title_pad_pulse;
+static u64 g_title_pad_delay;
 static BluewakePadEventSchedule g_title_confirm_pulse;
 static BluewakePadEventSchedule g_no_card_dismiss_pulse;
 static BluewakePadAxisEventSchedule g_no_save_left_pulse;
@@ -1150,6 +1151,7 @@ static unsigned g_audio_object_watch_reports;
 // scene's music started. GZLE01 revision 0: JAIZelBasic's zel_basic SDA slot,
 // the stream object's sound and id, and the stream path buffer.
 static unsigned g_music_stream_reports;
+static unsigned g_music_dvd_reports;
 static u32 g_music_stream_last_id;
 static u8 g_music_stream_last_state, g_music_stream_last_disabled;
 static char g_music_stream_last_path[64];
@@ -5592,6 +5594,18 @@ static bool configure_virtual_pad(DolHeadlessBackend* backend) {
             return false;
         }
         char* end = NULL;
+        // Let a diagnostic route exercise title-music -> intro transitions.
+        // Zero preserves the existing immediate route; no live input changes.
+        const char* title_delay = getenv("BLUEWAKE_PAD_TITLE_DELAY");
+        if (title_delay != NULL && title_delay[0] != '\0') {
+            g_title_pad_delay = strtoull(title_delay, &end, 10);
+            if (title_delay[0] == '-' || end == title_delay || *end != '\0' ||
+                g_title_pad_delay > 3600u) {
+                fprintf(stderr, "invalid BLUEWAKE_PAD_TITLE_DELAY=%s (0..3600 retraces)\n",
+                        title_delay);
+                return false;
+            }
+        }
         u64 event_length = 2u;
         if (pulse_length != NULL && pulse_length[0] != '\0') {
             event_length = strtoull(pulse_length, &end, 0);
@@ -5641,8 +5655,9 @@ static bool configure_virtual_pad(DolHeadlessBackend* backend) {
         g_virtual_pad[0].button = 0u;
         fprintf(stderr,
                 "[pad] channel 0 pulse armed on title-ready length=%llu "
-                "buttons=0x%04X\n",
-                (unsigned long long)event_length, g_pad_pulse_buttons);
+                "buttons=0x%04X delay=%llu\n",
+                (unsigned long long)event_length, g_pad_pulse_buttons,
+                (unsigned long long)g_title_pad_delay);
     }
     // The in-game save route (P4 milestone 9). Its own schedules: START, A,
     // and the two stick axes it steps the pause menu's cursor with. Off unless
@@ -10891,7 +10906,7 @@ int main(int argc, char** argv) {
                     mem_read32(&cpu, 0x803F7B3Cu), cpu.gpr[3],
                     (unsigned long long)blocks);
             if (bluewake_pad_event_schedule_trigger(
-                    &g_title_pad_pulse, g_host_retrace_count)) {
+                    &g_title_pad_pulse, g_host_retrace_count + g_title_pad_delay)) {
                 fprintf(stderr,
                         "[pad] title-ready pulse trigger start=%llu length=%llu "
                         "buttons=0x%04X\n",
@@ -11207,6 +11222,9 @@ int main(int argc, char** argv) {
             const u32 title_proc = mem_read32(&cpu, cpu.gpr[31] + 0x298u);
             if (title_proc >= 0x80000000u &&
                 mem_read32(&cpu, title_proc + 0x30u) == 1u &&
+                (g_title_pad_delay == 0u ||
+                 g_host_retrace_count >= g_title_pad_pulse.start_retrace +
+                                            g_title_pad_pulse.length) &&
                 bluewake_pad_event_schedule_trigger(
                     &g_title_confirm_pulse, g_host_retrace_count)) {
                 fprintf(stderr,
@@ -12202,6 +12220,11 @@ int main(int argc, char** argv) {
             cpu.gpr[3] = synchronous ? (valid ? length : 0u) : (valid ? 1u : 0u);
             cpu.pc = cpu.lr & ~3u;
             if (!synchronous && valid && callback != 0u) {
+                const bool trace_music_read = callback == 0x8029D1C8u &&
+                                              g_music_dvd_reports < 4u;
+                const u32 music_pending_before = trace_music_read ?
+                    mem_read32(&cpu, 0x803F76C4u) : 0u;
+                const u32 callback_return = cpu.pc;
                 if (g_dvd_read_reports < 4u)
                     fprintf(stderr,
                             "[dvd] callback-enter callback=0x%08X result=%u "
@@ -12212,6 +12235,15 @@ int main(int argc, char** argv) {
                                                     length, file_info, 4096u,
                                                     host_prepare_guest_dispatch,
                                                     &g_cycle_domain);
+                if (trace_music_read) {
+                    fprintf(stderr,
+                            "[music-dvd] retrace=%llu callback=0x%08X return=0x%08X "
+                            "msr=0x%08X pending_before=%u pending_after=%u completed=%u\n",
+                            (unsigned long long)g_host_retrace_count, callback,
+                            callback_return, cpu.msr, music_pending_before,
+                            mem_read32(&cpu, 0x803F76C4u), delivery.completed ? 1u : 0u);
+                    g_music_dvd_reports++;
+                }
                 if (!delivery.completed) {
                     fprintf(stderr,
                             "[dvd] callback incomplete callback=0x%08X pc=0x%08X "
