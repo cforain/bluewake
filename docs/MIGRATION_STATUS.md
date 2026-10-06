@@ -1,7 +1,7 @@
 # Wind Waker Recomp is moving to BlueWake
 
-Latest checkpoint: [October 6 triage handoff](status/HANDOFF_2026-10-06.md), including
-installed iPad state, merged candidates, validation limits and the next bounded checks.
+Latest checkpoint: [October 6 simulator pass](status/SIMULATOR_PASS_2026-10-06.md), including
+Pictobox, dungeon-map and intro-audio evidence. Physical-device checks remain separate.
 
 Updated October 6, 2026.
 
@@ -55,7 +55,7 @@ New bug reports, feature requests and pull requests should go to
 | Fresh build of current `main` | BlueWake | Done October 4 on the Mac: a complete build from a disc at `1c50db5` (88-minute compile, local training) plays a new game to control on Outset with Smooth Motion at 120 FPS, no slow seconds and no drops. The iPad app from the same source does the same in the iOS Simulator. Physical iPad not rechecked. |
 | Longer gameplay session | BlueWake | About 30 minutes of real play with a controller and audio on Mac and iPad, to catch problems short checks miss. |
 | Matched performance comparison | BlueWake and Elliott | Compare BlueWake with Wind-Waker-Recomp in the same scenes, settings and hardware. |
-| Pictobox freeze | BlueWake | [#13](https://github.com/chrissotraidis/bluewake/issues/13). 0.5.0 no longer freezes for a Windows tester. An opt-in shared-host fix repairs stale second previews in matched Mac runs; iPad/Windows validation and controller save selection remain. See [Pictobox evidence](status/PICTOBOX_CACHE_2026-10-06.md). |
+| Pictobox freeze | BlueWake | [#13](https://github.com/chrissotraidis/bluewake/issues/13). 0.5.0 no longer freezes for a Windows tester. An opt-in shared-host fix repairs stale second previews in matched Mac and iPad simulator runs; regular/Deluxe simulator previews, scripted photo selection and regular-photo normal save/relaunch/reload passed. Physical iPad/Windows and controller checks remain. See [latest simulator evidence](status/SIMULATOR_PASS_2026-10-06.md#pictobox-13). |
 | Point Wind-Waker-Recomp to BlueWake | Chris and Elliott | Done October 3: its README and issue form point here ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)). The repository description needs Elliott (admin). Its ten releases were unpublished on October 4 (kept as drafts, files intact) and its download links point here ([adac1e6](https://github.com/elliotttate/Wind-Waker-Recomp/commit/adac1e616376ab0d7d57eda51d82acf4dc607079)). Archiving the fork waits until issues are moved, Windows is checked and both agree. |
 
 Other game regions and an Android port are later work and not part of this move. Linux: on October 4

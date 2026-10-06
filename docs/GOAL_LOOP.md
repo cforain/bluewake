@@ -1,18 +1,19 @@
 # BlueWake goal loop
 
-Latest checkpoint: [October 6 targeted follow-up](status/TARGETED_PASS_2026-10-06.md).
-The [earlier handoff](status/HANDOFF_2026-10-06.md) retains the preceding investigation evidence.
+Latest checkpoint: [October 6 simulator pass](status/SIMULATOR_PASS_2026-10-06.md).
+Use the [earlier handoff](status/HANDOFF_2026-10-06.md) for preceding investigation evidence.
 
 Updated October 6, 2026. Work from [TECH_DEBT.md](TECH_DEBT.md), the maintained queue of all known
 reports and technical debt. The earlier loop is preserved in [history](archive/GOAL_LOOP_HISTORY.md).
 
 ## Current checkpoint
 
-Chris resumed with a targeted pass. The latest private host is installed on the iPad with
-17 save/configuration files verified unchanged; gameplay checks await an unlocked device.
-Linux shutdown evidence was reviewed and a log-summary repair prepared in PR #148.
-No scheduled monitoring is active. Resume from the targeted follow-up rather than repeating
-completed comparisons or assuming the installation proves gameplay.
+Chris requested simulator-only testing. The targeted simulator comparisons reproduce the regular
+Pictobox and intro-audio failures with their candidates off, and correct them with the relevant
+candidate on. Dragon Roost's grid and visited room render correctly. Keep the physical iPad
+untouched until Chris requests otherwise; Windows hardware remains deferred. No scheduled
+monitoring is active. Both experimental defaults remain off. Use the latest record for precise
+save/reload and input acceptance rather than treating simulated input as hardware validation.
 
 ## Objective
 
