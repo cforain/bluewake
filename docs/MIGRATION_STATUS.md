@@ -1,6 +1,8 @@
 # Wind Waker Recomp is moving to BlueWake
 
-Updated October 4, 2026.
+Updated October 6, 2026.
+
+Current bug and support queue: [Technical debt and known issues](TECH_DEBT.md).
 
 Elliott's [Wind-Waker-Recomp](https://github.com/elliotttate/Wind-Waker-Recomp) and BlueWake are
 combining into one project. BlueWake is where development continues. This page tracks what is done
@@ -50,13 +52,14 @@ New bug reports, feature requests and pull requests should go to
 | Fresh build of current `main` | BlueWake | Done October 4 on the Mac: a complete build from a disc at `1c50db5` (88-minute compile, local training) plays a new game to control on Outset with Smooth Motion at 120 FPS, no slow seconds and no drops. The iPad app from the same source does the same in the iOS Simulator. Physical iPad not rechecked. |
 | Longer gameplay session | BlueWake | About 30 minutes of real play with a controller and audio on Mac and iPad, to catch problems short checks miss. |
 | Matched performance comparison | BlueWake and Elliott | Compare BlueWake with Wind-Waker-Recomp in the same scenes, settings and hardware. |
-| Pictobox freeze | BlueWake | [#13](https://github.com/chrissotraidis/bluewake/issues/13). A fix passes on Mac. Windows confirmation is part of the checklist above. |
+| Pictobox freeze | BlueWake | [#13](https://github.com/chrissotraidis/bluewake/issues/13). 0.5.0 no longer freezes for a Windows tester, but stale previews and controller save selection remain. See TECH_DEBT.md. |
 | Point Wind-Waker-Recomp to BlueWake | Chris and Elliott | Done October 3: its README and issue form point here ([7b6a2c3](https://github.com/elliotttate/Wind-Waker-Recomp/commit/7b6a2c3aafa7619229a2dd9316251872f1cb9c9d)). The repository description needs Elliott (admin). Its ten releases were unpublished on October 4 (kept as drafts, files intact) and its download links point here ([adac1e6](https://github.com/elliotttate/Wind-Waker-Recomp/commit/adac1e616376ab0d7d57eda51d82acf4dc607079)). Archiving the fork waits until issues are moved, Windows is checked and both agree. |
 
 Other game regions and an Android port are later work and not part of this move. Linux: on October 4
 the maintainers decided BlueWake may publish a ready-made Linux build, like the Windows one
-([AGENTS.md](../AGENTS.md#releases)). A community port exists (Wind-Waker-Recomp PR #33) and has not
-been brought over or tested yet.
+([AGENTS.md](../AGENTS.md#releases)). The native port is under review in [PR #107](https://github.com/chrissotraidis/bluewake/pull/107).
+Its contributor reports near-steady 30 FPS; full log review, CI, package checks and a shutdown memory
+error remain before official support. See TECH_DEBT.md.
 
 ## Releases
 

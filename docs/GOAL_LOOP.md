@@ -1,72 +1,49 @@
 # BlueWake goal loop
 
-## Current loop: Mac fixes for the next Windows build and Mac release, October 5, 2026
+Updated October 6, 2026. Work from [TECH_DEBT.md](TECH_DEBT.md), the maintained queue of all known
+reports and technical debt. The earlier loop is preserved in [history](archive/GOAL_LOOP_HISTORY.md).
 
-Fix the reported problems that can be fixed or reproduced on a Mac, so the next Windows build and the next
-Mac release get them. A separate agent is building and checking Windows 0.5.0 on Chris's Windows PC at the
-same time: it owns the Windows build, packaging and the release draft. This loop doesn't wait for it and
-doesn't repeat its work.
+## Objective
 
-The reports this loop works from are catalogued in
-[OPEN_ISSUES_2026-10-05.md](status/OPEN_ISSUES_2026-10-05.md).
+Diagnose and fix the most disruptive rendering, cutscene-audio, input and performance problems after
+0.5.0, while keeping Mac, Windows and Apple mobile code in step. Evaluate Linux for official support
+from contributor evidence and the existing PR. Publication is a separate decision for Chris.
 
-### How to work
+## Each iteration
 
-- Targeted, not exhaustive. Each step has a time limit; when it runs out, write down what was found, mark
-  the step "not finished" and move on.
-- Read code and logs before running the game. Short automated runs only, one run per question. No long
-  play sessions, no performance work, no repeated runs that can't tell causes apart.
-- Fixes go in shared code (`runtime/host/src`, or RecompCore `bluewake-next` with the pin and patch
-  export). A desktop setting goes in both menus, `runtime/host/src/settings_menu.cpp` and
-  `windows/src/win_settings.cpp`, sharing a header where possible as `button_remap.h` does. Host tests
-  pass and the Windows CI is green before merging, and the change gets a row under "In `main`, waiting
-  for a Windows build" in [WINDOWS_TASKS.md](WINDOWS_TASKS.md) in the same pull request.
-- Anything that changes gameplay, timing or rendering is off by default.
-- One concern per pull request, on a `codex/<topic>` branch from `origin/main`. Never push to `main`.
-- The Windows agent's files are left alone: `codex/win-*` branches, `scripts/windows/package_release.py`
-  and `docs/status/WINDOWS_BUILD_*.md`.
+1. Read AGENTS.md, check working changes, current main, open PRs and new issue responses. Avoid duplicate
+   work and preserve player data. Update the queue when evidence changes, not merely its date.
+2. Pick the highest-priority actionable item. Write a hypothesis, competing explanation and one check that
+   distinguishes them. For regressions, identify the actual old/new build and relevant source/runtime delta.
+3. Inspect existing logs/source first. Reproduce on a scratch save with matched scene/settings. Spend roughly
+   30 minutes on a diagnostic question; extend only if new evidence makes the next step specific. Never loop
+   on the same unchanged result, run hours of soak testing or broaden a passing test without a reason.
+4. Make the smallest verified fix or diagnostic improvement. One concern per PR. Runtime work uses RecompCore
+   bluewake-next and the pin/patch workflow. Shared host changes reach Windows; settings belong in both menus.
+   Gameplay/timing/rendering behavior stays off by default until tested on the affected platform.
+5. Run relevant tests, repository/attribution checks and Windows CI before merging. Report actual device,
+   source revision, settings and limits. Compilation is not gameplay and logging is not an audible/visual test.
+6. Update TECH_DEBT.md and any detailed evidence record in the same PR, and WINDOWS_TASKS.md when a Windows
+   hardware check is pending. Distinguish diagnosed, fixed in source, shipped and reporter-confirmed.
+7. Continue to the next actionable item. If hardware or reporter evidence is missing, record the precise
+   handoff and continue independent work. End a bounded pass with changes, evidence and remaining gates.
 
-### Every pass
+## Initial order and acceptance
 
-1. `git fetch` and `gh pr list`. If the Windows report (`docs/status/WINDOWS_BUILD_2026-10-05.md`) has
-   appeared, add its findings to the catalog; anything it shows broken in shared code moves to the front.
-2. Take the first step that isn't done, make the smallest change that finishes it, and update the progress
-   below.
-
-### Steps
-
-| Step | Limit | Done when |
+| Work | First discriminating check | Done for this pass when |
 | --- | --- | --- |
-| 1. Catalog and loop | 30 min | The catalog lists every open issue and the Discord reports; this loop replaces the last one, which is archived. |
-| 2. Replies on GitHub | 45 min | #58, #66, #64, #65, #108, #70, #75, #60, #61 and #57 are answered in Chris's voice and labeled. Nothing is closed. Discord reports get no replies. |
-| 3. Exact sound crash (#58) | 1 h | Exact works, or a crash with it on can't trap the player: the next launch uses Fast and says so. |
-| 4. Camera invert and settings that revert | 45 min | Each camera control does one clear thing and Controls settings survive a restart on the Mac, or the cause is written up. |
-| 5. Mouse buttons and keyboard rebinding | 2 h | In both menus, the right, middle and side mouse buttons can press any GameCube button (or nothing) and the keyboard keys can be changed; on the Mac, right-click set to B presses B and survives a restart. |
-| 6. Small menu fixes | 45 min | Windows has the Mac's "Quit the game" button; Brisk Sail and Unrestricted Boat have plain descriptions in both menus. |
-| 7. Dungeon map and sea charts (#74) | 1.5 h | Reproduced on the Mac and fixed or explained, or shown not to happen on the Mac and written up for Windows. Without a save that reaches a dungeon after 20 minutes, ask Chris and move on. |
-| 8. Cutscene sound (#65, #97) | 1 h | One opening-cutscene run per option (Better Wind Waker, mouse camera, 16:9 vs 4:3, HD textures if installed), each `[demo] end` line recorded, and either the cause fixed or the result written down. |
-| 9. Forsaken Fortress map and compass | 30 min | Code reading shows whether a BlueWake patch hands them out; fixed if so, written up if not. |
-| 10. Hand-off for the second Windows run | 15 min | When steps 3 to 6 are merged, WINDOWS_TASKS.md lists exactly the new rows the Windows PC should check. |
+| Flickering #136 | Actual 0.4.0 to 0.5.0 render delta; original textures at 30 vs 60/120 | Cause isolated and tested, or narrowed suspects with a precise capture/hardware request and diagnostic path |
+| Audio #97/#65 | Trace why 1tale.afc returns from playing to idle after two retraces | Specific stop/read/decoder cause or a bounded diagnostic that exposes the missing link; no cue-count-only acceptance |
+| Performance #137/#59/#86 | Matching Outset profile with warm caches; compare optimization sets | Measured bottleneck and validated bounded improvement, or exact next probe and hardware handoff |
+| Controls/Pictobox #138/#13 | Stick curve through both clamps; two photos and gamepad save selection | Separate minimal fixes with meaningful controller/render acceptance, or reproducible explanation |
+| HD shading / flag #80/#69 | Matched on/off frames and draw context | Cause isolated or location-specific evidence that distinguishes replacement/sampler/palette/draw issues |
+| Dungeon map #74 | Windows check of merged #134 | Hardware result recorded; release delivery remains separate |
+| Linux #107 | Full session log, current-main parity, CI, shutdown backtrace | Clear merge/support gates communicated; reviewed evidence recorded without premature support claims |
 
-Not in this loop: performance (#86, Steam Deck), ultrawide (#70), the graphics hotkey (#108), Android, the
-European disc, the Wii U interface, reviewing PRs #106 and #107, and releases (only Chris publishes).
+GitHub: the Linux follow-up is authorized. Other replies must be useful, evidence-backed and consistent
+with Chris's current communication instructions; never close without reporter confirmation or a clear
+duplicate/off-topic reason. Discord remains draft-only. Optional promotional footage needs permission to
+reuse, carries no private paths/notifications, and is not a prerequisite for a technical merge.
 
-Stop when steps 1 to 10 are done or blocked, and say which. A step that needs Windows hardware is done once
-it is written up in WINDOWS_TASKS.md; finishing doesn't depend on the Windows PC.
-
-### Progress
-
-- **1. Catalog and loop:** done ([#110](https://github.com/chrissotraidis/bluewake/pull/110)).
-- **2. Replies:** done. #58, #66, #64, #65, #108, #70, #75, #60, #61 and #57 answered and labeled; nothing closed.
-- **3. Exact sound crash:** done. The crash was already fixed in `main` (October 1, after 0.4.0), and the launch recovery already existed; its message is now plain ([#111](https://github.com/chrissotraidis/bluewake/pull/111)).
-- **4. Camera invert and settings:** done. The Mac's invert now reaches the game's own camera ([#112](https://github.com/chrissotraidis/bluewake/pull/112)); the reverting settings were fixed in `main` on October 1 and 2.
-- **5. Mouse and keyboard rebinding:** done ([#113](https://github.com/chrissotraidis/bluewake/pull/113)), checked on the Mac with the pad trace.
-- **6. Small menu fixes:** done ([#114](https://github.com/chrissotraidis/bluewake/pull/114)).
-- **7. Dungeon map:** not finished. The Mac draws the minimap, sea chart and Charts screen correctly; the large dungeon map needs a save inside a dungeon (asked Chris), and the Windows capture is in WINDOWS_TASKS.md.
-- **8. Cutscene sound:** done. No option drops the opening cutscene's sound on the Mac (four runs, all `cues=4 sounds=4 missing=0`).
-- **9. Forsaken Fortress map and compass:** done. No BlueWake patch hands them out; most likely the original game.
-- **10. Hand-off:** done. "The second Windows run" in WINDOWS_TASKS.md lists the five rows to check.
-
-Details: [OPEN_ISSUES_2026-10-05.md](status/OPEN_ISSUES_2026-10-05.md#what-the-october-5-loop-found).
-
-Earlier loops are in [the archive](archive/GOAL_LOOP_HISTORY.md).
+This is an execution loop, not a scheduled background monitor. Refresh documentation on each substantive
+work pass. Do not create recurring notifications unless Chris asks.

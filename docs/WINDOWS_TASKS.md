@@ -11,11 +11,11 @@ disc, and the build tools in [BlueWake on Windows](WINDOWS.md#what-you-need).
 in the table below is in it. Still to do by hand: the camera-stick invert, "Quit the game" and the option
 notes, mouse buttons, and a controller.
 
-## In `main`, waiting for a Windows build
+## Shipped in 0.5.0: checks and remaining verification
 
-Fixes and features already in `main` that the current Windows download doesn't have. Task 1 ships them;
-check each one on a Windows PC and tell the linked issue. New entries are added by the pull request that
-lands the change ([AGENTS.md](../AGENTS.md#keep-windows-in-step)).
+These changes shipped in 0.5.0. Results below describe the original release checks; reporter updates
+and remaining defects are tracked in [TECH_DEBT.md](TECH_DEBT.md). New unreleased changes belong in
+"In `main`, waiting for a Windows build" below.
 
 | Change | Issue | What to check | Windows result, October 5 |
 | --- | --- | --- | --- |
@@ -57,7 +57,9 @@ rebuild from `main` and check only these rows of the table above, nothing else a
 
 Results on the 0.5.0 build (`0d1f821`): [Windows build for 0.5.0](status/WINDOWS_BUILD_0.5.0.md). Still to do by hand: items 2, 4, the mouse half of 3, and a controller for 6.
 
-### After 0.5.0 (for the next Windows build)
+## In `main`, waiting for a Windows build
+
+After 0.5.0: check these on the next Windows build.
 
 Merged after `0d1f821`, so 0.5.0 doesn't have them. Check only these on the next build:
 
@@ -126,7 +128,7 @@ Use `python3 scripts/triage_session_log.py session-*.log` on any attached log.
 | #61 8BitDo GameCube controller | Check whether SDL sees it and what it maps to. |
 | #76 Forsaken Fortress soft lock | Try to reproduce on the tower with the Moblins; it may be the original game's behaviour. |
 | #74 dungeon map without its drawing | Not Windows-only: reproduced on the Mac on October 5 (see [OPEN_ISSUES_2026-10-05.md](status/OPEN_ISSUES_2026-10-05.md#what-the-october-5-loop-found)). The cause is RecompCore's shader limits, so the fix is a runtime change; nothing to capture on Windows until it lands. |
-| #65, #97 missing music or sound in cutscenes | Play an affected scene (the intro after naming Link, the bird scenes) with task 1's build and read the `[demo] end` line for it (see below). The Mac plays them: the opening cutscene logs `cues=4 sounds=4 missing=0 silent=0.4s of 104.7s`. On the Mac (October 5), the opening cutscene also logs `cues=4 sounds=4 missing=0` with mouse camera off, with Better Wind Waker on and at 16:9, so if a scene is silent on Windows, the option-by-option comparison (HD textures, Better Wind Waker, mouse camera, 16:9 vs 4:3) belongs in that scene, on Windows. |
+| #65, #97 missing music or sound in cutscenes | Still reported on Windows 0.5.0 and Mac M4. The Windows log shows `1tale.afc` in playing state for two retraces, then idle. Check the history intro after naming Link separately from the title demo and bird scene. A cue count or one state=4 line does not prove sustained audible music. See [TECH_DEBT.md](TECH_DEBT.md). |
 | #59, #72, #79, #86 slowdowns | Measure the scenes with the triage script. The #76 log already shows the Forsaken Fortress exterior limited by the GX worker (83 of 97 slow seconds). |
 
 Close an issue only when the reporter confirms the fix, or with a clear explanation.
@@ -141,10 +143,10 @@ story's streamed music, goes silent for 6 seconds.
 | `cues=0` on a cutscene that should have sound | The cutscene never asked for its sounds: its sound track didn't run. | Settings that change game timing: the experimental 60 Hz gameplay and the native math in Wind Waker Recomp 0.4.0 (`BLUEWAKE_NATIVE_MATH=1`). Both are off in `main`. |
 | `missing` above 0, with `[demo-sound] ... no sound` lines | The cutscene asked, but the game couldn't start the sound, usually because its sound data wasn't loaded in time. | Slow disc or ARAM reads; compare the slow seconds (`[fps-dip]`) around the cue. |
 | `sounds` equal to `cues` but `[audio-lost]` or a long `silent=` | The sounds started but nothing reached the speakers. | The audio output: Smooth Motion (on by default in 0.4.0, off in `main`), and drops when the game falls behind real time. |
+| `[music-stream]` reaches `state=4` then quickly returns to idle | The track started but stopped early; the reason is not established by this line. | Track lifetime, explicit stop requests, stream reads/decoder and scene changes. |
 | No `[music-stream]` line with `state=4` during the intro | The streamed music never started playing. | Reading `Audiores/Stream/*.afc` from the disc image. |
 
 On Mac, iPad and Windows `main`, the audio pacing settings are the same (`BLUEWAKE_WALL_PACE=1`,
 `DOL_AUDIO_NO_THROTTLE=1`, `BLUEWAKE_CLOCK=now`), so they don't explain a Windows-only problem by
 themselves. What differs on the 0.4.0 download is the native math, Smooth Motion's default and the
-60 Hz option. A Windows build from `main` turns those off, so if the cutscenes have sound there, one
-of them was the cause.
+60 Hz option. A Windows build from `main` turns those off, but the 0.5.0 reports still show failures. None is established as the common cause.
