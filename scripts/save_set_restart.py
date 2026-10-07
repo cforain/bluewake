@@ -32,19 +32,12 @@ def block_checksum(block):
     return total << 16 | inverse
 
 
-def main():
-    if len(sys.argv) not in (6, 7):
-        sys.exit(__doc__)
-    src, out, stage = sys.argv[1], sys.argv[2], sys.argv[3].encode('ascii')
-    room, point = int(sys.argv[4], 0), int(sys.argv[5], 0)
-    slot = int(sys.argv[6]) if len(sys.argv) == 7 else 1
+def set_restart(data, stage, room, point, slot, base=HEADER):
+    """Change quest log SLOT's restart place in DATA, the save's blocks starting at BASE."""
     if not 1 <= len(stage) <= 7 or not 1 <= slot <= 3 or not -128 <= room <= 127 or not 0 <= point <= 255:
         sys.exit('STAGE is 1-7 characters, ROOM -128..127, POINT 0..255, SLOT 1..3')
-    data = bytearray(open(src, 'rb').read())
-    if len(data) != HEADER + 12 * BLOCK or data[0:4] != b'GZLE':
-        sys.exit('%s is not a Wind Waker (GZLE) .gci' % src)
     for copy in (0, 1):
-        block = HEADER + BLOCK * (1 + copy)
+        block = base + BLOCK * (1 + copy)
         quest = block + 8 + (slot - 1) * QUEST
         if struct.unpack('>Q', data[quest + QUEST_DATA:quest + QUEST_DATA + 8])[0] != quest_checksum(data[quest:quest + QUEST]):
             sys.exit('quest log %d, copy %d, has a bad checksum' % (slot, copy + 1))
@@ -53,6 +46,18 @@ def main():
         data[quest + RESTART + 9] = point
         data[quest + QUEST_DATA:quest + QUEST_DATA + 8] = struct.pack('>Q', quest_checksum(data[quest:quest + QUEST]))
         data[block + BLOCK - 4:block + BLOCK] = struct.pack('>I', block_checksum(data[block:block + BLOCK]))
+
+
+def main():
+    if len(sys.argv) not in (6, 7):
+        sys.exit(__doc__)
+    src, out, stage = sys.argv[1], sys.argv[2], sys.argv[3].encode('ascii')
+    room, point = int(sys.argv[4], 0), int(sys.argv[5], 0)
+    slot = int(sys.argv[6]) if len(sys.argv) == 7 else 1
+    data = bytearray(open(src, 'rb').read())
+    if len(data) != HEADER + 12 * BLOCK or data[0:4] != b'GZLE':
+        sys.exit('%s is not a Wind Waker (GZLE) .gci' % src)
+    set_restart(data, stage, room, point, slot)
     open(out, 'wb').write(data)
     print('wrote %s: quest log %d restarts at %s room %d point %d' % (out, slot, stage.decode(), room, point))
 
