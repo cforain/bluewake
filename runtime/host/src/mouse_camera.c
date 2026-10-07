@@ -246,6 +246,8 @@ static void observe(const void* sdl_event, void* user) {
     // recognized may leave player 1 free (controller_ports.h).
     if (event->type == SDL_EVENT_GAMEPAD_ADDED || event->type == SDL_EVENT_GAMEPAD_REMOVED ||
         event->type == SDL_EVENT_GAMEPAD_REMAPPED) {
+        if (event->type != SDL_EVENT_GAMEPAD_REMOVED)
+            bw_log_gamepad_mapping(event->gdevice.which);
         bw_claim_player_one();
         bw_game_dead_zone(0);
     }
