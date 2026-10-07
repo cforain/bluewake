@@ -1,67 +1,54 @@
-# BlueWake goal loop
+# BlueWake goal loop: release 0.6.0
 
-Latest checkpoint: [October 7 fix pass](status/FIXES_2026-10-07.md) (controllers, the baton, the left stick,
-intro music on Apple platforms, the Windows builder, performance findings). Before it: [October 6 input pass](status/SIMULATOR_INPUT_2026-10-06.md).
-Earlier [rendering/audio simulator pass](status/SIMULATOR_PASS_2026-10-06.md) retains the matched candidate results.
-Use the [earlier handoff](status/HANDOFF_2026-10-06.md) for preceding investigation evidence.
+Updated October 7, 2026. The previous loop (finding and fixing the post-0.5.0 bugs) is done and kept in
+[archive/GOAL_LOOP_2026-10-07.md](archive/GOAL_LOOP_2026-10-07.md). What to build after this release is in
+[PRIORITIES.md](PRIORITIES.md).
 
-Updated October 7, 2026. Work from [PRIORITIES.md](PRIORITIES.md), the ranked list of all known
-reports; [TECH_DEBT.md](TECH_DEBT.md) keeps the investigation notes. The earlier loop is preserved in [history](archive/GOAL_LOOP_HISTORY.md).
+## Goal
 
-## Current checkpoint
+Publish **BlueWake 0.6.0** from one frozen commit of `main`: the ready-made Windows build, the iPhone and iPad
+app without game code, the source zip and the PadMint recipe. Each fix below is checked on the platforms it ships to,
+as far as the hardware at hand allows, and the reporters are asked to confirm. PadMint picks up the new release by
+itself: it reads the latest release's `padmint.json` and app.
 
-Chris requested simulator-only testing. The targeted simulator comparisons reproduce the regular
-Pictobox and intro-audio failures with their candidates off, and correct them with the relevant
-candidate on. Dragon Roost's grid and visited room render correctly. Keep the physical iPad
-untouched until Chris requests otherwise; Windows hardware remains deferred. No scheduled
-monitoring is active. Both experimental defaults remain off. Use the latest record for precise
-save/reload and input acceptance rather than treating simulated input as hardware validation.
+The code is done and merged. What is left is building, checking on real hardware and publishing.
 
-The input follow-up found and repaired stale touch state after opening settings. Matched simulator
-button/stick checks pass; settings-code swap/reset persistence also passes. Real touch/menu and physical
-controller acceptance remain separate. No experimental rendering/audio default was enabled.
+## What 0.6.0 contains
 
-## Objective
+| Change | Issue | Ships to | Checked so far | Still to check |
+| --- | --- | --- | --- | --- |
+| Dungeon maps draw their grid and rooms | #74 | All | Mac, iPad simulator | Windows |
+| Intro music after the title music | #97 | On by default: Mac, iPhone, iPad. Windows: step 4 decides | Mac (captured audio), physical iPad | Windows with the variable on |
+| A controller recognized late, or left as player 2, plays as player 1 | #61 | Mac, Windows | Unit test with real SDL and Aurora | A physical controller |
+| The Wind Waker baton is not mirrored | #156 | Mac, Windows | Live Mac run (the conducting flag) | Conducting with a controller |
+| No big dead zone or jump on the left stick | #138 | All controllers | Unit test, Windows compile | A physical controller |
+| Option: invert the left stick when aiming | #154 | Mac, Windows | Live Mac run (aiming detected) | Windows menu |
+| Touch controls released when Apple menus open | none | iPhone, iPad | Simulator | A physical device |
+| Clean quit (shutdown fix from the Linux port) | #56 | All | Mac quit with Smooth Motion on | Windows quit |
+| The session log names the controller mapping in use | #61 | Mac, Windows | Unit test | None |
+| Visual Studio 2022 builds from source | #153 | Windows builder | LLVM 18, 20 and 22 against the real profile | The reporter's build |
 
-Diagnose and fix the most disruptive rendering, cutscene-audio, input and performance problems after
-0.5.0, while keeping Mac, Windows and Apple mobile code in step. Evaluate Linux for official support
-from contributor evidence and the existing PR. Publication is a separate decision for Chris.
+Not in 0.6.0: the Linux build (#107), the performance work (PRIORITIES Tier 2), later cutscene sound (#65), the
+flicker (#136), HD pack shading (#80), the controller picker (#155). The Pictobox fallback stays opt-in.
 
-## Each iteration
+## Steps
 
-1. Read AGENTS.md, check working changes, current main, open PRs and new issue responses. Avoid duplicate
-   work and preserve player data. Update the queue when evidence changes, not merely its date.
-2. Pick the highest-priority actionable item. Write a hypothesis, competing explanation and one check that
-   distinguishes them. For regressions, identify the actual old/new build and relevant source/runtime delta.
-3. Inspect existing logs/source first. Reproduce on a scratch save with matched scene/settings. Spend roughly
-   30 minutes on a diagnostic question; extend only if new evidence makes the next step specific. Never loop
-   on the same unchanged result, run hours of soak testing or broaden a passing test without a reason.
-4. Make the smallest verified fix or diagnostic improvement. One concern per PR. Runtime work uses RecompCore
-   bluewake-next and the pin/patch workflow. Shared host changes reach Windows; settings belong in both menus.
-   Gameplay/timing/rendering behavior stays off by default until tested on the affected platform.
-5. Run relevant tests, repository/attribution checks and Windows CI before merging. Report actual device,
-   source revision, settings and limits. Compilation is not gameplay and logging is not an audible/visual test.
-6. Update PRIORITIES.md and any detailed evidence record in the same PR, and WINDOWS_TASKS.md when a Windows
-   hardware check is pending. Distinguish diagnosed, fixed in source, shipped and reporter-confirmed.
-7. Continue to the next actionable item. If hardware or reporter evidence is missing, record the precise
-   handoff and continue independent work. End a bounded pass with changes, evidence and remaining gates.
+| # | Step | Who | Done when |
+| --- | --- | --- | --- |
+| 1 | **Freeze.** `version.json` to 0.6.0 build 5, README download names, release notes in `docs/status/RELEASE_0.6.0.md`. Merge, and record the commit as the candidate. | Codex | CI green; candidate commit written in the notes |
+| 2 | **Apple.** From the candidate: `scripts/builder/build.sh --app-only --ipa BlueWake-v0.6.0-ios-unsigned.ipa`, PadMint's audit and `scripts/release/check_public_assets.sh`. Then a full PadMint build from the owned disc (the player's route), kept private. On the Mac and in the iOS Simulator: launch, wait for the title music and check the intro's captured audio, load a copied save, open a dungeon map, quit. | Codex, on Chris's Mac | Every check passes; logs and builds stay local. A physical iPhone or iPad only if Chris asks, with a backup and readback first |
+| 3 | **Windows build.** On Chris's PC, from the candidate: `python scripts\windows\build.py DISC.iso` (about two hours the first time). Then, in this order: the intro with `$env:BLUEWAKE_DEFER_DVD_COMPLETION="1"` (wait for the title music, new file, listen through the intro, one room load); the same without it; a dungeon map with a copied save; quit from the menu. With a controller at hand, the controller rows in [WINDOWS_TASKS.md](WINDOWS_TASKS.md#in-main-waiting-for-a-windows-build). Keep the session logs. | Chris | Results written into the release notes |
+| 4 | **Windows intro default.** If step 3's intro passes, a one-line pull request turns deferred completion on for Windows; rebuild the app (the game module is reused, a few minutes) and run the intro once more. If it fails, ship with it off and the variable documented. | Codex writes, Chris builds | The default and its evidence recorded |
+| 5 | **Package.** `python scripts\windows\package_release.py 0.6.0` on the PC; copy the zip to the Mac; `check_public_assets.sh` on every asset (for the Windows zip, `containsTranslatedGameCode: true` is the only accepted finding); source zip, `padmint.json`, `SHA256SUMS`; a draft release with the notes. | Codex, Chris for the PC | Draft release with five audited assets |
+| 6 | **Publish.** Chris publishes and tags. Then: PadMint's `doctor` and `plan` see 0.6.0; each issue above gets a note asking its reporter to confirm; PRIORITIES moves these rows to "shipped". | Chris publishes; Codex follows up | Release live; issues updated |
 
-## Initial order and acceptance
+## Rules for each turn
 
-| Work | First discriminating check | Done for this pass when |
-| --- | --- | --- |
-| Flickering #136 | Actual 0.4.0 to 0.5.0 render delta; original textures at 30 vs 60/120 | Cause isolated and tested, or narrowed suspects with a precise capture/hardware request and diagnostic path |
-| Audio #97/#65 | Trace why 1tale.afc returns from playing to idle after two retraces | Specific stop/read/decoder cause or a bounded diagnostic that exposes the missing link; no cue-count-only acceptance |
-| Performance #137/#59/#86 | Matching Outset profile with warm caches; compare optimization sets | Measured bottleneck and validated bounded improvement, or exact next probe and hardware handoff |
-| Controls/Pictobox #138/#13 | Stick curve through both clamps; two photos and gamepad save selection | Separate minimal fixes with meaningful controller/render acceptance, or reproducible explanation |
-| HD shading / flag #80/#69 | Matched on/off frames and draw context | Cause isolated or location-specific evidence that distinguishes replacement/sampler/palette/draw issues |
-| Dungeon map #74 | Windows check of merged #134 | Hardware result recorded; release delivery remains separate |
-| Linux #107 | Full session log, current-main parity, CI, shutdown backtrace | Clear merge/support gates communicated; reviewed evidence recorded without premature support claims |
-
-GitHub: the Linux follow-up is authorized. Other replies must be useful, evidence-backed and consistent
-with Chris's current communication instructions; never close without reporter confirmation or a clear
-duplicate/off-topic reason. Discord remains draft-only. Optional promotional footage needs permission to
-reuse, carries no private paths/notifications, and is not a prerequisite for a technical merge.
-
-This is an execution loop, not a scheduled background monitor. Refresh documentation on each substantive
-work pass. Do not create recurring notifications unless Chris asks.
+1. Read [AGENTS.md](../AGENTS.md), check `main`, open pull requests and new issue replies before acting.
+2. A problem found during the candidate gets its own small pull request. Then freeze again and rerun only the checks
+   it affects. Never move a passing result to a different build without saying so.
+3. Write what was run, on which device and from which commit in `docs/status/RELEASE_0.6.0.md`. A build that compiles
+   is not a game that plays; a simulator is not a device.
+4. Personal builds, game modules, discs, saves and logs stay private. Only the five public assets are uploaded.
+5. Ask Chris before publishing, deleting anything, or installing on his devices. Don't wait on him for anything else.
+6. If a step is blocked on hardware Chris has, say exactly what to run and keep going with the other steps.
