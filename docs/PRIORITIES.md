@@ -1,8 +1,8 @@
 # BlueWake priorities
 
 The ranked list of what to fix and build next. Read this first if you are picking up work in this
-repository, then [AGENTS.md](../AGENTS.md) for the rules and [GOAL_LOOP.md](GOAL_LOOP.md) for how to run
-an investigation.
+repository, then [AGENTS.md](../AGENTS.md) for the rules and [GOAL_LOOP.md](GOAL_LOOP.md) for the current work loop
+(release 0.6.0).
 
 Updated October 7, 2026 (JST) from every open issue and pull request, after the [October 7 fix pass](status/FIXES_2026-10-07.md) and a second pass over GitHub and the Discord
 conversations the same day. Owner: Chris.
