@@ -135,6 +135,34 @@ int main() {
     aurora::input::remove_controller(second);
     SDL_CloseJoystick(second_joystick); assert(SDL_DetachVirtualJoystick(second));
     assert(!bw_claim_player_one());                        // nothing connected: nothing to claim
+
+    // #138: the stick's scale. Aurora's cutoff dropped everything below 8000 of 32767 and then
+    // jumped to 31; with the game's own dead zone, the full travel is a GameCube stick's 100.
+    SDL_JoystickID stick = SDL_AttachVirtualJoystick(&desc); assert(stick);
+    joystick = SDL_OpenJoystick(stick); assert(joystick);
+    assert(aurora::input::add_controller(stick) == stick);
+    aurora::input::set_player_index(stick, 0);
+    auto left = [&](Sint16 x, Sint16 y) {
+        assert(SDL_SetJoystickVirtualAxis(joystick, SDL_GAMEPAD_AXIS_LEFTX, x));
+        assert(SDL_SetJoystickVirtualAxis(joystick, SDL_GAMEPAD_AXIS_LEFTY, y));
+        SDL_UpdateJoysticks(); SDL_UpdateGamepads(); PADRead(status);
+    };
+    left(7000, 0); assert(status[0].stickX == 0);    // the old cutoff
+    left(8001, 0); assert(status[0].stickX == 31);   // then straight to 31
+    bw_game_dead_zone(0);
+    assert(!PADGetDeadZones(0)->useDeadzones);
+    left(7000, 0); assert(status[0].stickX == 21);
+    left(32767, 0); assert(status[0].stickX == 100);
+    left(-32768, 0); assert(status[0].stickX == -100);
+    left(0, -32768); assert(status[0].stickX == 0 && status[0].stickY == 100);   // SDL's up is negative
+    left(0, 32767); assert(status[0].stickY == -100);
+    left(16384, 0); assert(status[0].stickX == 50);
+    assert(SDL_SetJoystickVirtualAxis(joystick, SDL_GAMEPAD_AXIS_RIGHTX, -16384));
+    SDL_UpdateJoysticks(); SDL_UpdateGamepads(); PADRead(status);
+    assert(status[0].substickX == -50);
+    bw_game_dead_zone(0);                              // once is enough; a second call changes nothing
+    aurora::input::remove_controller(stick);
+    SDL_CloseJoystick(joystick); assert(SDL_DetachVirtualJoystick(stick));
     SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
     std::filesystem::remove_all(directory);
 }
