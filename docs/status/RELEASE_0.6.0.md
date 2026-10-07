@@ -37,10 +37,12 @@ Windows: the intro-music fix is [on / off, after step 4]. To try it when it's of
 | Check | Platform and device | Commit | Result |
 | --- | --- | --- | --- |
 | App-only IPA, PadMint audit, release check | Mac (M3 Max) | `2c8a659` | Pass: `BlueWake-v0.6.0-ios-unsigned.ipa` reports 0.6.0 build 5 and has no Frameworks folder (no game module); PadMint 0.4.10 `audit` and `check_public_assets.sh` pass (0 address-named functions). The source zip (960 files) and the recipe (unchanged since 0.5.0, `check-manifest` ok) pass too. |
-| Full PadMint build from an owned disc | Mac (M3 Max), PadMint 0.4.10 (`v0.4.10`), scratch `PADMINT_HOME` | `2c8a659` | Running: fresh clone at the candidate, RecompCore `35e037f`, the new app-only IPA |
+| Full PadMint build from an owned disc | Mac (M3 Max), PadMint 0.4.10 (`v0.4.10`), scratch `PADMINT_HOME` | `2c8a659` | Pass: `padmint make bluewake ios --ref main` with the new app-only IPA, fresh clone at the candidate, RecompCore `35e037f`. About 2 hours with 16 jobs (training about 26 minutes, compile about 72). The personal IPA reports 0.6.0 build 5 and holds the iOS module; it stays private. |
 | Intro after title music, captured audio | Mac (M3 Max), headless, builder-configured host | `c82f375` (the candidate differs only in docs and `version.json`) | Pass: the default is on; `1tale.afc` plays through 3600; last 10 s 639,010 nonzero samples. A Windfall save loads (play scene at 609). All 72 host tests pass. |
-| Intro, load a save, dungeon map, quit | iOS Simulator | | not yet |
+| Intro after title music, with the PadMint-built module | iOS Simulator (iPad Pro 12.9), container backed up first | `2c8a659` | Pass: log shows `deferred completion=on (default)`; `1tale.afc` starts at 1953; last 10 s of a 59.8 s capture have 639,118 nonzero samples. The card and settings were unchanged afterwards. |
+| Load a save, dungeon map, quit | iOS Simulator or a device | | not yet: covered on the Mac host above; the Windows rows below repeat it |
 | Windows build from the candidate | Chris's PC | | not yet: steps in [WINDOWS_BUILD_0.6.0.md](WINDOWS_BUILD_0.6.0.md) |
+| Intro bug on players' Windows PCs (cause, not the fix) | Windows 10 (KTroopA9, #97) and Windows 11 i7-6500U (#159), both on 0.5.0 | 0.5.0 | Same cause as on the Mac: after the title music plays, `1tale.afc` reaches state 4 and stops 2 retraces later (1941 to 1943; 4620 to 4622). Starting a new file before the title music plays avoids it. 0.5.0 has no `BLUEWAKE_DEFER_DVD_COMPLETION`, so these logs do not test the fix; check a does. |
 | Intro with the variable on, then off | Windows | | not yet |
 | Dungeon map with a copied save | Windows | | not yet |
 | Quit from the menu | Windows | | not yet |
