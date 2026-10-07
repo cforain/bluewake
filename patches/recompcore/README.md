@@ -87,9 +87,18 @@ normal, binormal and tangent slots (`ShaderKey::raw_tex_hi_in_nbt`). The key gre
 is version 13, and BlueWake's bundled pipeline seeds were converted to it row by row (same pipelines, new
 layout) in the same pull request.
 
+Patch 0158 fixes two shutdown bugs the Linux port surfaced. Three wgpu::Device-bound statics in
+gxcore_draw.cpp were function-locals, so their destructors ran at exit() after webgpu::shutdown()/
+window::shutdown() had freed the Vulkan instance and XCB connection; the last device ref then aborted
+in xcb_send_request -> realloc ("double free or corruption (!prev)"). The statics are now file-scope
+and gxcore::shutdown() releases them in the right order. Fixing that unmasked the second bug: two
+detached background threads (texture_replacement's decoder_main and gxcore's interp_helper_main)
+waited forever with no stop signal, so exit() hung on the still-live threads. Each now has a stop flag
+signalled from its module's shutdown(), and the process exits cleanly. By James Koehler-Killeen
+(RecompCore pull request #16, from BlueWake pull request #107).
+
 Patch 0159 scales a controller's sticks to a GameCube stick's travel when Aurora's dead-zone cutoff is
 off (`gamecube_axis`: full travel is 100, where a GameCube stick's gate stops it), so the game's own
 `PADClamp` is the only dead zone. BlueWake turns the cutoff off for player 1's controller
 (`runtime/host/src/controller_ports.h`, issue #138). With it on, the first value the game saw was 22% of
-its range and full tilt came at two thirds of the travel. Number 0158 is taken by the Linux port's
-shutdown fix in pull request #107.
+its range and full tilt came at two thirds of the travel. Number 0158 is the Linux port's shutdown fix above.
