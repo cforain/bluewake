@@ -19,6 +19,51 @@ The short version, as shared with the community on October 7:
 4. The native Linux build into BlueWake (#107).
 5. Community tools and test saves (the "Community ideas" table).
 
+## What's next after 0.6.0
+
+The plan as of October 7, 2026, agreed with Chris. Answer "what are we doing next for BlueWake?" from this section,
+checked against current issues and pull requests.
+
+**Finish 0.6.0.** The Windows build is running on Chris's PC from [WINDOWS_BUILD_0.6.0.md](status/WINDOWS_BUILD_0.6.0.md).
+The Mac then assembles the draft release, and Chris publishes ([GOAL_LOOP.md](GOAL_LOOP.md)). After that, ask each
+reporter to confirm. How well each fix is proven so far:
+
+| Fix | Proven by | Still needs |
+| --- | --- | --- |
+| Dungeon maps (#74) | Reproduced and fixed on the Mac with a save in Dragon Roost; three other scenes unchanged | Windows (Direct3D 12): the 0.6.0 Windows run, check c |
+| Intro music (#97) | Captured audio on the Mac, a physical iPad and the iPad simulator; two players' Windows logs show the same cause | Windows with the fix on: check a, which decides #172 |
+| Controller as player 1 (#61) | A test with the real SDL and Aurora libraries reproduces the report and passes with the fix | A physical controller; the scrambled layout is a separate open problem |
+| Baton (#156) | Cause in code; a live Mac trace of the conducting flag | Conducting with a physical controller |
+| Left stick (#138) | A test reproduces the reporter's numbers and fails on the old code | A physical stick |
+| Aim invert (#154) | New option; compiled and tested in CI | Trying it in game |
+| VS2022 builder (#153) | The reporter's error reproduced with LLVM 18 and 20 | The reporter's rebuild |
+
+**Then, in order:**
+
+1. **A shared performance benchmark.** One save placed at the same spot on Outset with `scripts/card_set_restart.py`
+   (sea, room 44), the same settings and warm caches, read from the session log's `[perf-summary]` and `[fps-dip]`
+   lines. The Mac, a Windows laptop and the Steam Deck use the same test, so every performance change is measured,
+   not guessed. KongMing's RecompCore work starts from it too.
+2. **Smooth Motion's cost on small CPUs** (Tier 2, rank 3). Its helper thread used 62 to 70% of a core at the title.
+   On 2-core laptops (#159) that competes with the game. Measure it with the benchmark, then decide whether it should
+   start off, or switch off by itself, on CPUs with few cores. A cheap first win if the numbers support it.
+3. **The game thread** (Tier 2, rank 1), the biggest lever. Find which of Elliott's lean memory block copies cause the
+   boot-route difference, keep the safe ones, measure. Expect roughly 5 to 10%, not a doubling. KongMing's
+   RecompCore pull requests (aiming at the about 30% the Steam Deck needs for 30 FPS) belong here, each with
+   before and after numbers from the benchmark and identical game behavior.
+4. **The graphics thread** (Tier 2, rank 2). Profile command conversion and vertex decoding at the benchmark spot.
+5. **The remaining game-breaking bugs:** missing sound in later cutscenes (#65), scrambled controller layouts
+   (#61's second half, #155), the cloud and wave flicker (#136).
+6. **Linux release** (#107), once it is on current `main` and audited. Steam Deck speed is items 1 to 4, not a
+   Linux gate.
+7. **iPhone and iPad builds from Windows through PadMint** (#100, draft). It needs a full end-to-end run on a real
+   PC and an install on a device before it ships. Mac apps can't be built on Windows.
+8. **Long term: native rendering** (wowjinxy's idea), replacing the CPU-side drawing conversion piece by piece with
+   the decompilation. The largest gain and the most work, after items 3 and 4.
+
+No promise of 30 FPS on a Steam Deck yet: no single change gets there, so it takes several measured gains stacked
+together.
+
 ## How this list is ordered
 
 1. **Game-breaking bugs first:** a crash, a soft lock, a controller that can't play, missing sound or
