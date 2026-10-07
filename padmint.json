@@ -37,6 +37,27 @@
       "steps": [
         {
           "stage": "translate",
+          "on": [
+            "macos"
+          ],
+          "command": [
+            "/bin/bash",
+            "{repo}/scripts/builder/build.sh",
+            "{disc}",
+            "--out",
+            "{work}",
+            "--jobs",
+            "{jobs}",
+            "--train-pgo",
+            "--app",
+            "{app}"
+          ]
+        },
+        {
+          "stage": "translate",
+          "on": [
+            "linux"
+          ],
           "command": [
             "/bin/bash",
             "{repo}/scripts/builder/build.sh",
@@ -46,10 +67,6 @@
             "--jobs",
             "{jobs}",
             "--source-only"
-          ],
-          "on": [
-            "macos",
-            "linux"
           ]
         },
         {
@@ -70,6 +87,10 @@
         },
         {
           "stage": "configure",
+          "on": [
+            "linux",
+            "windows"
+          ],
           "command": [
             "cmake",
             "-S",
@@ -80,7 +101,7 @@
             "Ninja",
             "-DCMAKE_TOOLCHAIN_FILE={ios_toolchain}",
             "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_C_FLAGS=-mcpu=apple-a13 -fno-slp-vectorize -mllvm -large-interval-freq-threshold=10",
+            "-DCMAKE_C_FLAGS=-mcpu=apple-a13 -fno-slp-vectorize -mllvm -large-interval-freq-threshold=10 -fprofile-instr-use={repo}/scripts/builder/profiles/bluewake/composite-rt.profdata -Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date -Wno-backend-plugin -mllvm -enable-machine-outliner=never",
             "-DCOMPOSITE_OPTIMIZATION_LEVEL=2",
             "-DCOMPOSITE_DIR={work}/composite-src",
             "-DGXRUNTIME_DIR={repo}/ref/recompcore/GXRuntime",
@@ -89,6 +110,10 @@
         },
         {
           "stage": "compile",
+          "on": [
+            "linux",
+            "windows"
+          ],
           "command": [
             "cmake",
             "--build",
