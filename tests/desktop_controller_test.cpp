@@ -106,6 +106,7 @@ int main() {
                              "start:b6,leftx:a0,lefty:a1,rightx:a2,righty:a3";
     assert(SDL_AddGamepadMapping(line.c_str()) >= 0);
     assert(SDL_IsGamepad(late));
+    bw_log_gamepad_mapping(late);                           // names the line above in the log
     joystick = SDL_OpenJoystick(late); assert(joystick);
     assert(aurora::input::add_controller(late) == late);   // what Aurora does on SDL_EVENT_GAMEPAD_ADDED
     assert(SDL_GetGamepadPlayerIndex(SDL_GetGamepadFromID(late)) < 0);

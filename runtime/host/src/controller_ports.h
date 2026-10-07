@@ -17,6 +17,18 @@
 #include <dolphin/pad.h>
 #include <SDL3/SDL_gamepad.h>
 
+// The mapping SDL chose for a controller, in the session log: with a mapping
+// from gamecontrollerdb.txt, SDL uses a line with a crc: field only when the
+// controller's CRC matches, and otherwise one without, so the line a player
+// added may not be the one in use (#61).
+static inline void bw_log_gamepad_mapping(SDL_JoystickID id) {
+    char* mapping = SDL_GetGamepadMappingForID(id);
+    if (mapping != NULL) {
+        fprintf(stderr, "[pad] mapping in use: %s\n", mapping);
+        SDL_free(mapping);
+    }
+}
+
 static inline bool bw_claim_player_one(void) {
     if (PADGetIndexForPort(0) >= 0)
         return false;
