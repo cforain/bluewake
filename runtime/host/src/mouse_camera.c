@@ -204,6 +204,8 @@ static bool g_stick_zooms;      // ... one that zooms (telescope, Picto Box): th
 // much of their 1x-9x zoom a second.
 static const double kPadZoomPerSecond = 1.2;
 static bool g_first_person;     // ... or first person (C-stick up's view, SS01)
+static bool g_aiming;     // first person or an item's aim, the player in control
+static bool g_aim_invert_y; // BLUEWAKE_AIM_INVERT_Y: the left stick's up and down the other way there (#154)
 static bool g_conducting; // the Wind Waker is out: its C-stick picks the notes (#156)
 static bool g_stick_click_down; // the stick's click, as last read
 static unsigned long long g_exit_from; // retrace a click in first person started its push down
@@ -396,6 +398,7 @@ static bool env_is(const char* name, char value) {
 }
 
 static void read_stick_settings(void) {
+    g_aim_invert_y = env_is("BLUEWAKE_AIM_INVERT_Y", '1');
 #if defined(__APPLE__) && TARGET_OS_IPHONE
     // Not tried with the touch controls yet: off unless asked for.
     g_stick_on = env_is("BLUEWAKE_STICK_CAMERA", '1');
@@ -567,6 +570,11 @@ static void stick_turn(double x, double y, double seconds, double speed, double*
 }
 
 void bluewake_mouse_camera_pad(DolPadState* pad) {
+    // First person and items aim with the left stick the way a flight stick
+    // does (up aims down). The GameCube game has no setting for it; this one
+    // turns it the other way while aiming, and only then (#154).
+    if (g_aim_invert_y && g_aiming)
+        pad->stick_y = pad->stick_y == -128 ? 127 : (s8)-pad->stick_y;
     const unsigned held = g_buttons_down | g_buttons_latched;
     g_buttons_latched = 0;
     for (int i = 0; i < BW_MOUSE_BUTTONS; i++) {
@@ -985,7 +993,8 @@ static void camera_frame(CPUState* cpu, u32 process) {
     g_conducting = (mem_read32(cpu, kPlayerStatus1) & kStatus1Conduct) != 0u;
     g_subject_step = g_first_person ? (int)mem_read32(cpu, camera + kSubjectStep) : -1;
     g_stick_owns = false;
-    g_stick_aims = aiming && g_stick_on && player_in_control(cpu);
+    g_aiming = aiming && player_in_control(cpu);
+    g_stick_aims = g_aiming && g_stick_on;
     g_stick_zooms = g_stick_aims && (mem_read16(cpu, style + kStyleFlags) & kStyleZoom) != 0u;
     if (aiming && player_in_control(cpu)) {
         // First person or an item's aim: aim_frame, at the player's next
@@ -1049,7 +1058,7 @@ static void trace_camera(CPUState* cpu, u32 process) {
     const u32 name = style != 0u ? mem_read32(cpu, style) : 0x3F3F3F3Fu;
     fprintf(stderr,
             "[mouse-trace] retrace=%llu mode=%u style=%c%c%c%c event=%u demo=%u view V=%d U=%d final V=%d U=%d "
-            "reach=%.1f held=%d stick=%d conduct=%d radius=%.1f limits=%.1f..%.1f zoom=%.2f/%.2f link=%d eye_y=%.1f "
+            "reach=%.1f held=%d stick=%d conduct=%d aim=%d radius=%.1f limits=%.1f..%.1f zoom=%.2f/%.2f link=%d eye_y=%.1f "
             "center_y=%.1f floor=%.1f/%.1f\n",
             g_retrace, mem_read32(cpu, camera + kMode), (char)(name >> 24), (char)(name >> 16), (char)(name >> 8),
             (char)name, mem_read8(cpu, kEventMode),
@@ -1059,6 +1068,7 @@ static void trace_camera(CPUState* cpu, u32 process) {
             distance(cpu, process + kLookatEye, process + kLookatCenter), g_held ? 1 : 0,
             g_stick_owns ? 1 : g_first_person ? 2 : 0,
             g_conducting ? 1 : 0,
+            g_aiming ? 1 : 0,
             read_f32(cpu, camera + kViewRadius), read_f32(cpu, camera + kFollowMinRadius),
             read_f32(cpu, camera + kFollowMaxRadius), g_zoom_live, g_zoom,
             guest_pointer(player) ? (s16)mem_read16(cpu, player + kPlayerShapeY) : 0,
