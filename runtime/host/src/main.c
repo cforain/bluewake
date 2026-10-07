@@ -7396,9 +7396,22 @@ int main(int argc, char** argv) {
     g_di_read_reports = 0;
     g_dvd_open_reports = 0;
     g_dvd_read_reports = 0;
+    // Asynchronous disc reads complete after the caller returns, as on the
+    // hardware. Completing them inside the call left the music stream's load
+    // flag set, so the history intro after the title music played silently
+    // (#97). On by default where it has been checked (Mac, iPhone and iPad);
+    // Windows and Linux keep the old path until a Windows check
+    // (docs/WINDOWS_TASKS.md). BLUEWAKE_DEFER_DVD_COMPLETION=1 or 0 chooses.
+#if defined(__APPLE__)
+    const bool deferred_dvd_default = true;
+#else
+    const bool deferred_dvd_default = false;
+#endif
     const char* deferred_dvd = getenv("BLUEWAKE_DEFER_DVD_COMPLETION");
-    g_deferred_dvd_enabled = deferred_dvd != NULL && strcmp(deferred_dvd, "1") == 0;
-    fprintf(stderr, "[dvd] deferred completion=%s\n", g_deferred_dvd_enabled ? "on (experimental)" : "off");
+    const bool deferred_dvd_set = deferred_dvd != NULL && deferred_dvd[0] != '\0';
+    g_deferred_dvd_enabled = deferred_dvd_set ? strcmp(deferred_dvd, "1") == 0 : deferred_dvd_default;
+    fprintf(stderr, "[dvd] deferred completion=%s (%s)\n", g_deferred_dvd_enabled ? "on" : "off",
+            deferred_dvd_set ? "BLUEWAKE_DEFER_DVD_COMPLETION" : "default");
     const char* cache_flush = getenv("BLUEWAKE_CACHE_FLUSH_FALLBACK");
     g_cache_flush_fallback_enabled = cache_flush != NULL && strcmp(cache_flush, "1") == 0;
     fprintf(stderr, "[texture-cache] fallback writeback=%s\n",

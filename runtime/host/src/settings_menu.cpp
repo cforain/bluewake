@@ -63,6 +63,7 @@ const char* const kKeys[] = {
     "BLUEWAKE_MOUSE_INVERT_Y",  "BLUEWAKE_MOUSE_BUTTONS",   "BLUEWAKE_KEY_MAP",
     "BLUEWAKE_STICK_CAMERA",    "BLUEWAKE_STICK_CAMERA_SPEED",
     "BLUEWAKE_STICK_CAMERA_INVERT_X", "BLUEWAKE_STICK_CAMERA_INVERT_Y", "BLUEWAKE_STICK_AIM_SPEED",
+    "BLUEWAKE_AIM_INVERT_Y",
     "BLUEWAKE_HAPTICS", "BLUEWAKE_HAPTICS_STRENGTH", "BLUEWAKE_HAPTICS_TRIGGERS",
     "BLUEWAKE_CLIMB",           "BLUEWAKE_CLIMB_STAMINA",
     "BLUEWAKE_FOREST_WATER_KEEP_TREES", "BLUEWAKE_FOREST_WATER_30_MINUTES",
@@ -576,6 +577,11 @@ void controls_tab() {
         bluewake_mouse_camera_reload();
     }
     ImGui::EndDisabled();
+    bool aim_invert = env_on("BLUEWAKE_AIM_INVERT_Y", false);
+    if (ImGui::Checkbox("Invert the left stick's up and down when aiming (first person, items)", &aim_invert)) {
+        set_env("BLUEWAKE_AIM_INVERT_Y", aim_invert ? "1" : "0");
+        bluewake_mouse_camera_reload();
+    }
     ImGui::PushTextWrapPos();
     ImGui::TextDisabled(stick ? "Click the right stick for first person. In the telescope and Picto Box, the left stick or D-pad zooms."
                               : "The game's right stick: its left and right follow Better Wind Waker's "

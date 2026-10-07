@@ -8,6 +8,7 @@ one, this one wins.
 
 - `README.md`: for players.
 - `AGENTS.md` (this file): the rules.
+- `docs/PRIORITIES.md`: the ranked list of bugs, performance work and requests. Start here.
 - `docs/MIGRATION_STATUS.md`: what is done and what is open. `docs/GOAL_LOOP.md`: the current work loop.
 - `docs/BUILD_YOUR_OWN.md`, `docs/BUILDER.md`, `docs/WINDOWS.md`, `docs/MODS.md`, `docs/WWHD_TEXTURES.md`:
   how things work.

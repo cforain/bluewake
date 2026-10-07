@@ -146,6 +146,7 @@ void load_file() {
         else if (k == "stick_camera") d.stick_camera = parse_bool(v);
         else if (k == "stick_camera_speed") d.stick_speed = std::clamp(std::atoi(v.c_str()), 60, 1080);
         else if (k == "stick_aim_speed") d.stick_aim_speed = std::clamp(std::atoi(v.c_str()), 30, 720);
+        else if (k == "aim_invert_y") d.aim_invert_y = parse_bool(v);
         else if (k == "climb") d.climb = parse_bool(v);
         else if (k == "climb_stamina") d.climb_stamina = std::clamp(std::atoi(v.c_str()), 4, 30);
         else if (k == "forest_water_keep_trees") d.forest_keep_trees = parse_bool(v);
@@ -195,6 +196,7 @@ void save_file() {
     std::fprintf(f, "controller_invert_x=%d\ncontroller_invert_y=%d\n", d.pad_invert_x, d.pad_invert_y);
     std::fprintf(f, "stick_camera=%d\nstick_camera_speed=%d\nstick_aim_speed=%d\n", d.stick_camera, d.stick_speed,
                  d.stick_aim_speed);
+    std::fprintf(f, "aim_invert_y=%d\n", d.aim_invert_y);
     std::fprintf(f, "climb=%d\nclimb_stamina=%d\n", d.climb, d.climb_stamina);
     std::fprintf(f, "forest_water_keep_trees=%d\nforest_water_30_minutes=%d\n", d.forest_keep_trees,
                  d.forest_30_minutes);
@@ -413,6 +415,7 @@ void apply_stick() {
     _putenv_s("BLUEWAKE_STICK_AIM_SPEED", std::to_string(d.stick_aim_speed).c_str());
     _putenv_s("BLUEWAKE_STICK_CAMERA_INVERT_X", d.pad_invert_x ? "1" : "0");
     _putenv_s("BLUEWAKE_STICK_CAMERA_INVERT_Y", d.pad_invert_y ? "1" : "0");
+    _putenv_s("BLUEWAKE_AIM_INVERT_Y", d.aim_invert_y ? "1" : "0");
     bluewake_mouse_camera_reload();
 }
 
@@ -620,6 +623,7 @@ void tab_controls() {
     ImGui::EndDisabled();
     bool pad = ImGui::Checkbox("Controller: camera stick left and right inverted", &d.pad_invert_x);
     pad |= ImGui::Checkbox("Controller: camera stick up and down inverted", &d.pad_invert_y);
+    stick |= ImGui::Checkbox("Left stick up and down inverted when aiming (first person, items)", &d.aim_invert_y);
     BwButtonMap map;
     const bool remapped = bw_button_map_parse(d.button_map, &map);
     ImGui::BeginDisabled(remapped);

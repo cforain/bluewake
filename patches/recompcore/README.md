@@ -94,4 +94,11 @@ in xcb_send_request -> realloc ("double free or corruption (!prev)"). The static
 and gxcore::shutdown() releases them in the right order. Fixing that unmasked the second bug: two
 detached background threads (texture_replacement's decoder_main and gxcore's interp_helper_main)
 waited forever with no stop signal, so exit() hung on the still-live threads. Each now has a stop flag
-signalled from its module's shutdown(), and the process exits cleanly.
+signalled from its module's shutdown(), and the process exits cleanly. By James Koehler-Killeen
+(RecompCore pull request #16, from BlueWake pull request #107).
+
+Patch 0159 scales a controller's sticks to a GameCube stick's travel when Aurora's dead-zone cutoff is
+off (`gamecube_axis`: full travel is 100, where a GameCube stick's gate stops it), so the game's own
+`PADClamp` is the only dead zone. BlueWake turns the cutoff off for player 1's controller
+(`runtime/host/src/controller_ports.h`, issue #138). With it on, the first value the game saw was 22% of
+its range and full tilt came at two thirds of the travel. Number 0158 is the Linux port's shutdown fix above.

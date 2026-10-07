@@ -1,57 +1,14 @@
 # Technical debt and known issues
 
-Latest checkpoint: [October 6 simulator pass](status/SIMULATOR_PASS_2026-10-06.md).
-Chris requested simulator-only testing; physical iPad and Windows hardware checks are deferred.
-The [earlier handoff](status/HANDOFF_2026-10-06.md) retains prior candidate evidence.
+**The ranked work list is now [PRIORITIES.md](PRIORITIES.md).** This page keeps the investigation notes
+behind it, the support and delivery debt, and the logging priorities. The priority table that used to be
+here moved there on October 7, 2026, with the issues opened since. Today's evidence is in
+[the October 7 triage](status/TRIAGE_2026-10-07.md) and
+[the October 7 fix pass](status/FIXES_2026-10-07.md); the October 6 notes below still apply.
 
-Updated October 6, 2026 (JST). Owner: Chris. This is the maintained work queue for
-[the goal loop](GOAL_LOOP.md), covering reported bugs, unverified fixes and support debt.
-The dated [October 5 catalog](status/OPEN_ISSUES_2026-10-05.md) is historical evidence.
-
-Update this page after each meaningful investigation, new reporter result, fix or release.
-Each update must retain the issue link, affected version/platform, evidence, next discriminating
-check and remaining hardware/release gate. Put detailed findings in dated `docs/status/` records
-and link them here. A hypothesis, passing CI and a reporter-confirmed fix are different states.
-Do not count a request for logs as a completed investigation or repeatedly ask for evidence already supplied.
-
-P1: rendering/audio/progression/performance problems or fixes awaiting delivery. P2: narrower defects,
-verification and port readiness. P3: new features/platforms. Re-rank if evidence shows data loss,
-crashes or progression blockers; these take precedence. All 30 currently open issues are assigned to Chris.
-
-## Priority queue
-
-| Priority | Issue | Classification | Evidence / current state | Next check or gate |
-| --- | --- | --- | --- | --- |
-| P1 | [#136 Clouds and waves flickering (v0.5.0)](https://github.com/chrissotraidis/bluewake/issues/136) | Rendering regression | Reported in 0.5.0 on NVIDIA at 60/120 FPS. Mac title-view base frames match with interpolation off/on; reporter's failure remains unreproduced. | Follow the [short Windows capture procedure](WINDOWS_TASKS.md#flickering-capture-136); distinguish intermediate-frame failure from a base-frame or cold-cache problem. |
-| P1 | [#97 No sound during the game intro](https://github.com/chrissotraidis/bluewake/issues/97) | Audio / opt-in fix | Deferred DVD completion restores the title-to-intro track in matched Mac, physical M2 iPad and iPad simulator runs; Mac save/load also checked. Default remains off. | Windows test with `BLUEWAKE_DEFER_DVD_COMPLETION=1`; later music transitions, normal loading and speaker listening remain gates. See the physical iPad evidence below. |
-| P1 | [#65 Music Cues Missing in Scripted Scenes](https://github.com/chrissotraidis/bluewake/issues/65) | Audio | Scripted music/effects absent; changing three settings together once helped. No single cause established. | Track with #97, but compare history intro and bird scene separately; retain possible separate causes. |
-| P1 | [#137 Game Frame Rate averaging low 20s](https://github.com/chrissotraidis/bluewake/issues/137) | Performance | Ryzen 2700/RTX 4070; 70/83 intervals miss the display target, but only 35 log slow game speed. No new pipelines; native accelerators active. | Same Outset camera at 30 vs 60/120; isolate interpolation workload before profiling the remaining game/GX bottleneck. Linux's optimization set already matches Windows. |
-| P1 | [#138 Windows: left stick has a large dead zone, then jumps to ~20–30%](https://github.com/chrissotraidis/bluewake/issues/138) | Controls | Wired Xbox One; host cutoff and local GZLE01 guest clamp explain an axial jump to 16/72 (22%). No hardware fix tested. | Correct the combined input curve; test fine aiming, full travel, diagonals and drift on controller hardware. |
-| P1 | [#13 pictobox freezes game picture but sound keeps running](https://github.com/chrissotraidis/bluewake/issues/13) | Rendering / controls | 0.5.0 freeze resolved for knapman. Stale second preview reproduced on Mac and repaired by opt-in forwarding of skipped cache-flush instructions. Gamepad save selection is separate. | Regular/Deluxe second previews, scripted photo selection and regular-photo normal save/relaunch/reload checked in the iPad simulator with the flag on. Physical iPad/Windows and real-controller checks remain; keep default off. [Latest evidence](status/SIMULATOR_PASS_2026-10-06.md#pictobox-13). |
-| P1 | [#80 HD Texture packs seem to cause shadows issues and tone oddities](https://github.com/chrissotraidis/bluewake/issues/80) | HD textures | Both DDS and PNG affected on Radeon 860M. A matched local Mac PNG pair does not reproduce the reported shading; forced/normal shader final frames match. Local and reporter pack variants differ. | Match exact pack/save and isolate BetterWW, widescreen and interpolation; then compare D3D12 fallback mode after compilation. [Evidence and limits](status/TRIAGE_2026-10-06.md#hd-shading-comparison-80). |
-| P1 | [#86 Constant FPS drops](https://github.com/chrissotraidis/bluewake/issues/86) | Performance | Existing recurring frame drops; waiting for current-version comparison. | Group evidence with #137/#59 without assuming identical cause. |
-| P1 | [#59 Bird scene at the beginning of the game is still very slow](https://github.com/chrissotraidis/bluewake/issues/59) | Performance | Bird opening slows down; #72 is already a duplicate. | One matching scene profile with warmed caches and known settings. |
-| P1 | [#74 Dungeon maps are not shown correctly](https://github.com/chrissotraidis/bluewake/issues/74) | Rendering / delivery | Fixed in main via #134; Mac and iPad simulator visual checks and Windows CI passed. Not in 0.5.0. | Windows dungeon-map check and audited next release; reporter confirmation after delivery. |
-| P2 | [#55 Switch pro controller A-B input switch](https://github.com/chrissotraidis/bluewake/issues/55) | Confirmation | nextux confirms swaps work; original migrated reporter was manassm. | Record participating tester confirmation; decide closure in a later support pass. |
-| P2 | [#56 Linux Support](https://github.com/chrissotraidis/bluewake/issues/56) | Platform port | Full PR #107 log confirms 434 watched intervals/one below target but ends in a double-free abort. Proposed shutdown patch is not yet in the pinned runtime. | Review/integrate the runtime patch, obtain a clean post-fix exit, add libxtst-dev and current shared tests; manual hardware/package checks remain. [Review](status/LINUX_REVIEW_2026-10-06.md). |
-| P2 | [#58 Game won't launch](https://github.com/chrissotraidis/bluewake/issues/58) | Launch / acceptance | Exact launch and crash recovery checked on Windows 0.5.0. | Await affected reporter confirmation; preserve issue until confirmed. |
-| P2 | [#61 8BitDo GameCube Modkit Controller unsupported](https://github.com/chrissotraidis/bluewake/issues/61) | Controllers | Mappings load in 0.5.0; affected 8BitDo controller not tested. | Reporter test and controller identification; loading a mapping count is not input proof. |
-| P2 | [#64 Portable Mode - Allow user to set files folder and stop copying original game data](https://github.com/chrissotraidis/bluewake/issues/64) | Portable mode | Caches stay portable; imgui.ini still uses APPDATA. | Route UI ini with portable data path; check normal mode unaffected. |
-| P2 | [#66 Controller Remap](https://github.com/chrissotraidis/bluewake/issues/66) | Controls / compatibility | Remapping shipped; overnight Wine black-screen/Proton 30 FPS reports are separate. | Check remap persistence on hardware; interpret Linux compatibility report separately from native port. |
-| P2 | [#69 No texture on pirate ship flag](https://github.com/chrissotraidis/bluewake/issues/69) | Missing textures | Pirate flag missing; no new overnight evidence. | Capture d_a_sail draw context; add location-specific diagnostics only if needed. |
-| P2 | [#71 Add Option to Disable Sprint and manual Jump](https://github.com/chrissotraidis/bluewake/issues/71) | Options / acceptance | Jump and Run option is in 0.5.0, off by default. | Await reporter confirmation; default check does not prove live input behavior. |
-| P2 | [#73 Camera X-axis (horizontal) sudden invertion](https://github.com/chrissotraidis/bluewake/issues/73) | Controls / verification | Camera-invert fix shipped; controller hardware check remains. | Land/swim/boat right-stick check with inversion both ways. |
-| P2 | [#76 Forsekin Fortress Soft lock](https://github.com/chrissotraidis/bluewake/issues/76) | Progression | Forsaken Fortress soft lock report remains unverified. | Exact encounter and input sequence; distinguish original behavior from port failure. |
-| P2 | [#77 BlueWake.exe does not run](https://github.com/chrissotraidis/bluewake/issues/77) | CPU compatibility | AVX2 requirement message verified with SDE emulation. | Await reporter; do not claim unsupported CPUs can play. |
-| P2 | [#79 120hz frame interpolation broken in 0.40](https://github.com/chrissotraidis/bluewake/issues/79) | Confirmation | Original reporter rc2189 says interpolation appears fixed. | Ready for acknowledgment/closure consideration; separate new flicker #136. |
-| P2 | [#104 Built BlueWake with PadMint? Tell me how it went](https://github.com/chrissotraidis/bluewake/issues/104) | Builder feedback | M4 Air user reports 3-hour build and installed/running IPA; version/device details ambiguous. | Record positive result; identify BlueWake/tool version and device if needed. HaloPad aside stays separate. |
-| P3 | [#48 Intel Mac support?](https://github.com/chrissotraidis/bluewake/issues/48) | Platform request | Intel Mac support request, no overnight update. | Establish build/dependency feasibility before promising support. |
-| P3 | [#57 Request: UI redone based on the Wii U HD port](https://github.com/chrissotraidis/bluewake/issues/57) | Interface request | Wii U-style UI request. | Keep outside stability work until scope and assets are defined. |
-| P3 | [#60 Wind waker Europe support](https://github.com/chrissotraidis/bluewake/issues/60) | Disc region | European disc support request. | Separate translation/asset compatibility project; not a bugfix prerequisite. |
-| P3 | [#62 Nintendo Switch Support?](https://github.com/chrissotraidis/bluewake/issues/62) | Platform request | Nintendo Switch support request. | Defer pending platform feasibility and scope decision. |
-| P3 | [#70 Support for ultrawide](https://github.com/chrissotraidis/bluewake/issues/70) | Display request | Ultrawide support request. | Rendering correctness at existing ratios first. |
-| P3 | [#75 Any plans for Android?](https://github.com/chrissotraidis/bluewake/issues/75) | Platform request | Android PR #93 open; no new overnight response. | Require current main, performance and touch/settings parity with KartPad-informed design. |
-| P3 | [#108 Feature Request, Graphics Toggle through Hotkey](https://github.com/chrissotraidis/bluewake/issues/108) | Convenience request | Graphics hotkey request. | Clarify setting to toggle; defer behind rendering/input fixes. |
+Owner: Chris. Put detailed findings in dated `docs/status/` records and link them from PRIORITIES.md.
+A hypothesis, passing CI and a reporter-confirmed fix are different states. Do not count a request for
+logs as a completed investigation or repeatedly ask for evidence already supplied.
 
 ## Investigation notes: October 6
 

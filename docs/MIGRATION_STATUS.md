@@ -1,11 +1,12 @@
 # Wind Waker Recomp is moving to BlueWake
 
-Latest checkpoint: [October 6 simulator pass](status/SIMULATOR_PASS_2026-10-06.md), including
-Pictobox, dungeon-map and intro-audio evidence. Physical-device checks remain separate.
+Latest checkpoint: [October 6 input pass](status/SIMULATOR_INPUT_2026-10-06.md), including a stale-touch
+repair and settings persistence checks. Earlier [Pictobox, map and audio evidence](status/SIMULATOR_PASS_2026-10-06.md)
+remains applicable. Physical-device checks remain separate.
 
 Updated October 6, 2026.
 
-Current bug and support queue: [Technical debt and known issues](TECH_DEBT.md).
+Current bug and support queue: [Priorities](PRIORITIES.md).
 
 Elliott's [Wind-Waker-Recomp](https://github.com/elliotttate/Wind-Waker-Recomp) and BlueWake are
 combining into one project. BlueWake is where development continues. This page tracks what is done
