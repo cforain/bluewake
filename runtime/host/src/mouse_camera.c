@@ -67,6 +67,7 @@ enum {
     kEventMode = 0x803C9EA2u, // g_dComIfG_gameInfo.play.mEvtCtrl's mode
     kPlayerPointer = 0x803CA74Cu,
     kPlayerStatus0 = 0x803CA8D0u, // g_dComIfG_gameInfo.play.mPlayerStatus[0][0]
+    kPlayerStatus1 = 0x803CA8D4u, // mPlayerStatus[0][1]
     kPlayerExecute = BLUEWAKE_MOUSE_PLAYER_EXECUTE, // r3: the player
     kPlayerAngleY = 0x206u, // fopAc_ac_c::current.angle.y
     kPlayerShapeY = 0x20Eu, // fopAc_ac_c::shape_angle.y
@@ -96,6 +97,7 @@ enum {
     kSubjectTagValue = 0x5355424Au,   // 'SUBJ'
     kStatusHookshotOut = 0x00040000u, // daPyStts0_UNK40000_e: the aim is frozen
     kStatusCrawl = 0x08000000u,       // daPyStts0_CRAWL_e: no pitch
+    kStatus1Conduct = 0x00000001u,    // daPyStts1_WIND_WAKER_CONDUCT_e: the baton is out
 };
 
 // Degrees a point of pointer travel turns the camera, at sensitivity 1, and
@@ -202,6 +204,7 @@ static bool g_stick_zooms;      // ... one that zooms (telescope, Picto Box): th
 // much of their 1x-9x zoom a second.
 static const double kPadZoomPerSecond = 1.2;
 static bool g_first_person;     // ... or first person (C-stick up's view, SS01)
+static bool g_conducting; // the Wind Waker is out: its C-stick picks the notes (#156)
 static bool g_stick_click_down; // the stick's click, as last read
 static unsigned long long g_exit_from; // retrace a click in first person started its push down
 static int g_subject_step;             // first person's push-down step (subjectCamera's m3C4), or -1
@@ -404,7 +407,7 @@ static void read_stick_settings(void) {
     g_stick_invert_x = env_is("BLUEWAKE_STICK_CAMERA_INVERT_X", '1') ? -1.0 : 1.0;
     g_stick_invert_y = env_is("BLUEWAKE_STICK_CAMERA_INVERT_Y", '1') ? -1.0 : 1.0;
     if (!g_stick_on) {
-        g_stick_owns = g_stick_aims = g_stick_zooms = g_first_person = false;
+        g_stick_owns = g_stick_aims = g_stick_zooms = g_first_person = g_conducting = false;
         g_exit_from = 0;
     }
 }
@@ -591,11 +594,14 @@ void bluewake_mouse_camera_pad(DolPadState* pad) {
         // C-stick still goes through while the stick rests.
         if (sqrt(x * x + y * y) > kStickInUse)
             pad->substick_x = pad->substick_y = 0;
-    } else if (sqrt(x * x + y * y) > kStickInUse && !bluewake_game_options_invert_camera_x()) {
+    } else if (sqrt(x * x + y * y) > kStickInUse && !bluewake_game_options_invert_camera_x() &&
+               !g_conducting) {
         // The game's own camera has the view (swimming, the boat, a target):
         // its C-stick turns the camera the other way from this stick's, so left
         // and right flipped as Link went into the water (Wind-Waker-Recomp
         // #24). Turn it this stick's way. The keyboard's C-stick is unchanged.
+        // Not while conducting: there the C-stick picks the baton's notes, not
+        // the view, and flipping it mirrored every song (#156).
         pad->substick_x = pad->substick_x == -128 ? 127 : (s8)-pad->substick_x;
     }
     if (g_stick_owns && click) {
@@ -972,6 +978,9 @@ static void camera_frame(CPUState* cpu, u32 process) {
     const bool aiming = aiming_view(cpu, camera);
     const u32 style = camera_style(cpu, camera);
     g_first_person = aiming && style != 0u && mem_read32(cpu, style) == 0x53533031u; // 'SS01'
+    // procTactWait_init and procTactPlay_init set it (USA 8014DF4C..5C stores
+    // into 0x803C4C08 + 0x5CCC); the next proc's commonProcInit clears it.
+    g_conducting = (mem_read32(cpu, kPlayerStatus1) & kStatus1Conduct) != 0u;
     g_subject_step = g_first_person ? (int)mem_read32(cpu, camera + kSubjectStep) : -1;
     g_stick_owns = false;
     g_stick_aims = aiming && g_stick_on && player_in_control(cpu);
@@ -1013,7 +1022,7 @@ static void camera_frame(CPUState* cpu, u32 process) {
 static void grant_test_item(CPUState* cpu) {
     static const struct {
         u8 item, slot;
-    } kSlots[] = {{0x20, 0}, {0x25, 3},  {0x2D, 5},  {0x34, 6},  {0x23, 8},
+    } kSlots[] = {{0x20, 0}, {0x22, 1}, {0x25, 3},  {0x2D, 5},  {0x34, 6},  {0x23, 8},
                   {0x26, 8}, {0x27, 12}, {0x35, 12}, {0x36, 12}, {0x2F, 19}};
     for (unsigned i = 0; i < sizeof kSlots / sizeof kSlots[0]; ++i) {
         if (kSlots[i].item != g_test_item)
@@ -1038,7 +1047,7 @@ static void trace_camera(CPUState* cpu, u32 process) {
     const u32 name = style != 0u ? mem_read32(cpu, style) : 0x3F3F3F3Fu;
     fprintf(stderr,
             "[mouse-trace] retrace=%llu mode=%u style=%c%c%c%c event=%u demo=%u view V=%d U=%d final V=%d U=%d "
-            "reach=%.1f held=%d stick=%d radius=%.1f limits=%.1f..%.1f zoom=%.2f/%.2f link=%d eye_y=%.1f "
+            "reach=%.1f held=%d stick=%d conduct=%d radius=%.1f limits=%.1f..%.1f zoom=%.2f/%.2f link=%d eye_y=%.1f "
             "center_y=%.1f floor=%.1f/%.1f\n",
             g_retrace, mem_read32(cpu, camera + kMode), (char)(name >> 24), (char)(name >> 16), (char)(name >> 8),
             (char)name, mem_read8(cpu, kEventMode),
@@ -1047,6 +1056,7 @@ static void trace_camera(CPUState* cpu, u32 process) {
             (s16)mem_read16(cpu, camera + kFinalPitch), (s16)mem_read16(cpu, camera + kFinalYaw),
             distance(cpu, process + kLookatEye, process + kLookatCenter), g_held ? 1 : 0,
             g_stick_owns ? 1 : g_first_person ? 2 : 0,
+            g_conducting ? 1 : 0,
             read_f32(cpu, camera + kViewRadius), read_f32(cpu, camera + kFollowMinRadius),
             read_f32(cpu, camera + kFollowMaxRadius), g_zoom_live, g_zoom,
             guest_pointer(player) ? (s16)mem_read16(cpu, player + kPlayerShapeY) : 0,
