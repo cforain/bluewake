@@ -86,3 +86,10 @@ texture coordinates; a vertex with TEX5..7 and no normal, as the map's quads are
 normal, binormal and tangent slots (`ShaderKey::raw_tex_hi_in_nbt`). The key grew, so the pipeline config
 is version 13, and BlueWake's bundled pipeline seeds were converted to it row by row (same pipelines, new
 layout) in the same pull request.
+
+Patch 0159 scales a controller's sticks to a GameCube stick's travel when Aurora's dead-zone cutoff is
+off (`gamecube_axis`: full travel is 100, where a GameCube stick's gate stops it), so the game's own
+`PADClamp` is the only dead zone. BlueWake turns the cutoff off for player 1's controller
+(`runtime/host/src/controller_ports.h`, issue #138). With it on, the first value the game saw was 22% of
+its range and full tilt came at two thirds of the travel. Number 0158 is taken by the Linux port's
+shutdown fix in pull request #107.
