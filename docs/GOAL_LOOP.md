@@ -1,6 +1,7 @@
 # BlueWake goal loop
 
-Latest checkpoint: [October 6 input pass](status/SIMULATOR_INPUT_2026-10-06.md).
+Latest checkpoint: [October 7 fix pass](status/FIXES_2026-10-07.md) (controllers, the baton, the left stick,
+intro music on Apple platforms, the Windows builder, performance findings). Before it: [October 6 input pass](status/SIMULATOR_INPUT_2026-10-06.md).
 Earlier [rendering/audio simulator pass](status/SIMULATOR_PASS_2026-10-06.md) retains the matched candidate results.
 Use the [earlier handoff](status/HANDOFF_2026-10-06.md) for preceding investigation evidence.
 

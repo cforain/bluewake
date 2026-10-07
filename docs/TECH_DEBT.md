@@ -3,7 +3,8 @@
 **The ranked work list is now [PRIORITIES.md](PRIORITIES.md).** This page keeps the investigation notes
 behind it, the support and delivery debt, and the logging priorities. The priority table that used to be
 here moved there on October 7, 2026, with the issues opened since. Today's evidence is in
-[the October 7 triage](status/TRIAGE_2026-10-07.md); the October 6 notes below still apply.
+[the October 7 triage](status/TRIAGE_2026-10-07.md) and
+[the October 7 fix pass](status/FIXES_2026-10-07.md); the October 6 notes below still apply.
 
 Owner: Chris. Put detailed findings in dated `docs/status/` records and link them from PRIORITIES.md.
 A hypothesis, passing CI and a reporter-confirmed fix are different states. Do not count a request for
