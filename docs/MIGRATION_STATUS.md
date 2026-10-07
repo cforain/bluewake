@@ -6,7 +6,7 @@ remains applicable. Physical-device checks remain separate.
 
 Updated October 6, 2026.
 
-Current bug and support queue: [Technical debt and known issues](TECH_DEBT.md).
+Current bug and support queue: [Priorities](PRIORITIES.md).
 
 Elliott's [Wind-Waker-Recomp](https://github.com/elliotttate/Wind-Waker-Recomp) and BlueWake are
 combining into one project. BlueWake is where development continues. This page tracks what is done
