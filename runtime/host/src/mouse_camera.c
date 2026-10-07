@@ -245,8 +245,10 @@ static void observe(const void* sdl_event, void* user) {
     // Before anything can consume it: a controller arriving, leaving or newly
     // recognized may leave player 1 free (controller_ports.h).
     if (event->type == SDL_EVENT_GAMEPAD_ADDED || event->type == SDL_EVENT_GAMEPAD_REMOVED ||
-        event->type == SDL_EVENT_GAMEPAD_REMAPPED)
+        event->type == SDL_EVENT_GAMEPAD_REMAPPED) {
         bw_claim_player_one();
+        bw_game_dead_zone(0);
+    }
     // The options menu first: it opens and closes on its keys, and while it
     // is open it has the keyboard, mouse and controller to itself.
     if (bluewake_settings_menu_event(sdl_event))

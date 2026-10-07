@@ -38,3 +38,21 @@ static inline bool bw_claim_player_one(void) {
     }
     return false;
 }
+
+// The game's own stick clamp as the only dead zone (#138). Aurora cut each axis
+// below 8000 of 32767 (24%) and did not rescale what was left, and the game's
+// GameCube clamp subtracted its dead zone after that: the first value the game
+// saw was 22% of its range, and it reached full tilt by two thirds of the
+// stick's travel. With the cutoff off, the runtime scales the stick's full
+// travel to a GameCube stick's (RecompCore pad.cpp, gamecube_axis), so the
+// game's clamp works as on the console. Loads the controller's saved mapping
+// first: loading it later would put the cutoff back.
+static inline void bw_game_dead_zone(unsigned port) {
+    u32 count = 0;
+    (void)PADGetButtonMappings(port, &count);
+    PADDeadZones* zones = PADGetDeadZones(port);
+    if (zones != NULL && zones->useDeadzones) {
+        zones->useDeadzones = false;
+        fprintf(stderr, "[pad] player %u: the game's own stick dead zone\n", port + 1u);
+    }
+}
