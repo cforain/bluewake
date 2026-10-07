@@ -1,4 +1,5 @@
 #include "mouse_camera.h"
+#include "controller_ports.h"
 #include "game_options.h"
 #include "input_remap.h"
 #include "jump_button.h"
@@ -238,6 +239,11 @@ static void set_captured(bool captured) {
 static void observe(const void* sdl_event, void* user) {
     (void)user;
     const SDL_Event* event = (const SDL_Event*)sdl_event;
+    // Before anything can consume it: a controller arriving, leaving or newly
+    // recognized may leave player 1 free (controller_ports.h).
+    if (event->type == SDL_EVENT_GAMEPAD_ADDED || event->type == SDL_EVENT_GAMEPAD_REMOVED ||
+        event->type == SDL_EVENT_GAMEPAD_REMAPPED)
+        bw_claim_player_one();
     // The options menu first: it opens and closes on its keys, and while it
     // is open it has the keyboard, mouse and controller to itself.
     if (bluewake_settings_menu_event(sdl_event))
@@ -295,7 +301,8 @@ static void observe(const void* sdl_event, void* user) {
 
 // gamecontrollerdb.txt beside the saves (the community SDL_GameControllerDB
 // file, or a line from a mapping tool): controllers SDL doesn't recognise, such
-// as a generic Bluetooth pad, become usable (#61). SDL is already running here.
+// as a generic Bluetooth pad, become usable (#61). SDL is already running here, so
+// such a controller arrives without a player slot; bw_claim_player_one gives it one.
 static void load_gamepad_mappings(void) {
     char path[4096];
     const char* card = getenv("BLUEWAKE_CARD_PATH");
