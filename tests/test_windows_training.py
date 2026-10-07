@@ -70,16 +70,17 @@ class TrainingTest(unittest.TestCase):
         # #153: the committed profile needs clang 22. An llvm-profdata that rejects it means
         # the app is configured without -fprofile-instr-use instead of failing CMake's check.
         tools = self.root / "Llvm/x64/bin"; tools.mkdir(parents=True)
-        for case, script, expect in [
-                ("rejects", "echo 'error: app.profdata: unsupported instrumentation profile format version' >&2; exit 1", False),
-                ("reads", "echo 'Total functions: 6390'", True)]:
-            with self.subTest(case=case):
-                tool = tools / "llvm-profdata.exe"
-                tool.write_text(f"#!/bin/sh\n{script}\n"); tool.chmod(0o755)
+        (tools / "llvm-profdata.exe").write_bytes(b"")
+        rejected = "error: app.profdata: unsupported instrumentation profile format version"
+        for case, result, expect in [
+                ("rejects", SimpleNamespace(returncode=1, stdout="", stderr=rejected), False),
+                ("reads", SimpleNamespace(returncode=0, stdout="Total functions: 6390", stderr=""), True)]:
+            with self.subTest(case=case), patch.object(bw.subprocess, "run", return_value=result) as shown:
                 self.b.clang = str(tools / "clang.exe"); self.b._app_profile_readable = None
                 seen = []
                 self.b.run = lambda name, argv, **kw: seen.append(" ".join(map(str, argv)))
                 self.b.configure_app()
+                self.assertEqual(shown.call_args[0][0][1:], ["show", str(bw.Builder.APP_PROFILE)])
                 self.assertEqual("-fprofile-instr-use=" in seen[0], expect)
                 self.assertEqual("-flto=thin" in seen[0], expect)
         self.b.clang = str(self.root / "nowhere/clang.exe"); self.b._app_profile_readable = None
