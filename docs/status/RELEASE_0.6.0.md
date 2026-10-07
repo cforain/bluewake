@@ -8,7 +8,7 @@ the commit and what was seen. A row stays "not yet" until someone runs it.
 | | |
 | --- | --- |
 | Version | 0.6.0, build 5 (`version.json`) |
-| Candidate commit | set when the version bump merges |
+| Candidate commit | `2c8a659416233864ab9d7a069e759bf5af558e2b` (merge of #170) |
 | RecompCore | `35e037f285ded1b766b7110783b47c976fe2ed10` (patches 0157 to 0159) |
 | DolRecomp | `b8b534591cba8ca7cd43943a655ee6e2591cf5de` |
 | Previous release | 0.5.0, `0d1f821`, October 5 |
@@ -36,11 +36,11 @@ Windows: the intro-music fix is [on / off, after step 4]. To try it when it's of
 
 | Check | Platform and device | Commit | Result |
 | --- | --- | --- | --- |
-| App-only IPA, PadMint audit, release check | Mac (M3 Max) | | not yet |
-| Full PadMint build from an owned disc | Mac (M3 Max) | | not yet |
-| Intro after title music, captured audio | Mac | | not yet |
+| App-only IPA, PadMint audit, release check | Mac (M3 Max) | `2c8a659` | Pass: `BlueWake-v0.6.0-ios-unsigned.ipa` reports 0.6.0 build 5 and has no Frameworks folder (no game module); PadMint 0.4.10 `audit` and `check_public_assets.sh` pass (0 address-named functions). The source zip (960 files) and the recipe (unchanged since 0.5.0, `check-manifest` ok) pass too. |
+| Full PadMint build from an owned disc | Mac (M3 Max), PadMint 0.4.10 (`v0.4.10`), scratch `PADMINT_HOME` | `2c8a659` | Running: fresh clone at the candidate, RecompCore `35e037f`, the new app-only IPA |
+| Intro after title music, captured audio | Mac (M3 Max), headless, builder-configured host | `c82f375` (the candidate differs only in docs and `version.json`) | Pass: the default is on; `1tale.afc` plays through 3600; last 10 s 639,010 nonzero samples. A Windfall save loads (play scene at 609). All 72 host tests pass. |
 | Intro, load a save, dungeon map, quit | iOS Simulator | | not yet |
-| Windows build from the candidate | Chris's PC | | not yet |
+| Windows build from the candidate | Chris's PC | | not yet: steps in [WINDOWS_BUILD_0.6.0.md](WINDOWS_BUILD_0.6.0.md) |
 | Intro with the variable on, then off | Windows | | not yet |
 | Dungeon map with a copied save | Windows | | not yet |
 | Quit from the menu | Windows | | not yet |
