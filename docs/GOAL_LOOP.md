@@ -1,51 +1,54 @@
-# BlueWake goal loop
+# BlueWake goal loop: release 0.6.0
 
-## Current loop: Mac and iPad stability, October 4, 2026
+Updated October 7, 2026. The previous loop (finding and fixing the post-0.5.0 bugs) is done and kept in
+[archive/GOAL_LOOP_2026-10-07.md](archive/GOAL_LOOP_2026-10-07.md). What to build after this release is in
+[PRIORITIES.md](PRIORITIES.md).
 
-Make BlueWake steadier on Mac and iPad and keep the docs true, without growing the project. Windows
-belongs to Elliott (his hardware); a native Linux port is not planned (players can try Proton, README FAQ).
+## Goal
 
-### Limits
+Publish **BlueWake 0.6.0** from one frozen commit of `main`: the ready-made Windows build, the iPhone and iPad
+app without game code, the source zip and the PadMint recipe. Each fix below is checked on the platforms it ships to,
+as far as the hardware at hand allows, and the reporters are asked to confirm. PadMint picks up the new release by
+itself: it reads the latest release's `padmint.json` and app.
 
-- Use one Apple Silicon Mac: the Mac app and the iOS Simulator. No physical iPad in this loop; anything
-  that needs one is labeled `needs-device` and left for a device session.
-- No new platforms or features. Fix what players report, in small changes. Anything risky is off by default.
-- One concern per pull request, following [AGENTS.md](../AGENTS.md).
+The code is done and merged. What is left is building, checking on real hardware and publishing.
 
-### Steps
+## What 0.6.0 contains
 
-| Step | Done when |
-| --- | --- |
-| 0. Docs | README, AGENTS.md, this file, [migration status](MIGRATION_STATUS.md), the build guides and the Windows pages agree with `main`. |
-| 1. Triage | Every open bug report has a platform label and one status: `needs-info`, `needs-windows`, `needs-device` or `confirmed`. Duplicates point to one issue. Nothing is closed without the reporter, except clear duplicates. |
-| 2. Reproduce and fix on the Mac | With a Mac build from current `main`, each Mac-reproducible report (music in the intro and scripted scenes, the slow bird and Aryll scenes, dungeon maps, the pirate flag, the Forsaken Fortress soft lock, Smooth Motion at 120 Hz, HD texture shading) is fixed with before and after evidence, explained, or labeled. |
-| 3. iPad in the Simulator | The iPad app builds and runs in the Simulator with no regressions in menus, touch controls or saves. |
-| 4. Release candidate | A Mac/iPad app-only release (no game code) and its PadMint recipe are built from `main` and pass the release check. Chris decides whether to publish. |
+| Change | Issue | Ships to | Checked so far | Still to check |
+| --- | --- | --- | --- | --- |
+| Dungeon maps draw their grid and rooms | #74 | All | Mac, iPad simulator | Windows |
+| Intro music after the title music | #97 | On by default: Mac, iPhone, iPad. Windows: step 4 decides | Mac (captured audio), physical iPad | Windows with the variable on |
+| A controller recognized late, or left as player 2, plays as player 1 | #61 | Mac, Windows | Unit test with real SDL and Aurora | A physical controller |
+| The Wind Waker baton is not mirrored | #156 | Mac, Windows | Live Mac run (the conducting flag) | Conducting with a controller |
+| No big dead zone or jump on the left stick | #138 | All controllers | Unit test, Windows compile | A physical controller |
+| Option: invert the left stick when aiming | #154 | Mac, Windows | Live Mac run (aiming detected) | Windows menu |
+| Touch controls released when Apple menus open | none | iPhone, iPad | Simulator | A physical device |
+| Clean quit (shutdown fix from the Linux port) | #56 | All | Mac quit with Smooth Motion on | Windows quit |
+| The session log names the controller mapping in use | #61 | Mac, Windows | Unit test | None |
+| Visual Studio 2022 builds from source | #153 | Windows builder | LLVM 18, 20 and 22 against the real profile | The reporter's build |
 
-### Progress, October 4
+Not in 0.6.0: the Linux build (#107), the performance work (PRIORITIES Tier 2), later cutscene sound (#65), the
+flicker (#136), HD pack shading (#80), the controller picker (#155). The Pictobox fallback stays opt-in.
 
-- **0. Docs:** done ([#87](https://github.com/chrissotraidis/bluewake/pull/87)).
-- **1. Triage:** done. Every open issue has platform and status labels; four duplicates closed into
-  #65, #64, #56 and #60; reporters asked for logs or a retest on the current download where needed.
-- **2. Mac:** a complete build from current `main` plays a new game to control with Smooth Motion at
-  120 FPS and no slow seconds. The intro music plays on the Mac (October 1 trace), so #65 looks
-  Windows-only. The remaining reports need a save at that point in the game, a texture pack or Windows,
-  and are labeled.
-- **3. iPad Simulator:** the same source reaches control on Outset with the HUD and touch controls drawn.
-- **4. Release:** BlueWake 0.2.0 is published ([v0.2.0](https://github.com/chrissotraidis/bluewake/releases/tag/v0.2.0)):
-  the iPad app without game code and its PadMint recipe, built from `72a241f`, plus the Windows 0.4.0 files.
-  It passes the release check and PadMint's audit, and PadMint resolves and verifies it. Not yet checked
-  through PadMint on a physical iPad.
-- **Windows:** the remaining work is in [WINDOWS_TASKS.md](WINDOWS_TASKS.md).
+## Steps
 
-### Each iteration
+| # | Step | Who | Done when |
+| --- | --- | --- | --- |
+| 1 | **Freeze.** `version.json` to 0.6.0 build 5, README download names, release notes in `docs/status/RELEASE_0.6.0.md`. Merge, and record the commit as the candidate. | Codex | CI green; candidate commit written in the notes |
+| 2 | **Apple.** From the candidate: `scripts/builder/build.sh --app-only --ipa BlueWake-v0.6.0-ios-unsigned.ipa`, PadMint's audit and `scripts/release/check_public_assets.sh`. Then a full PadMint build from the owned disc (the player's route), kept private. On the Mac and in the iOS Simulator: launch, wait for the title music and check the intro's captured audio, load a copied save, open a dungeon map, quit. | Codex, on Chris's Mac | Every check passes; logs and builds stay local. A physical iPhone or iPad only if Chris asks, with a backup and readback first |
+| 3 | **Windows build.** On Chris's PC, from the candidate: `python scripts\windows\build.py DISC.iso` (about two hours the first time). Then, in this order: the intro with `$env:BLUEWAKE_DEFER_DVD_COMPLETION="1"` (wait for the title music, new file, listen through the intro, one room load); the same without it; a dungeon map with a copied save; quit from the menu. With a controller at hand, the controller rows in [WINDOWS_TASKS.md](WINDOWS_TASKS.md#in-main-waiting-for-a-windows-build). Keep the session logs. | Chris | Results written into the release notes |
+| 4 | **Windows intro default.** If step 3's intro passes, a one-line pull request turns deferred completion on for Windows; rebuild the app (the game module is reused, a few minutes) and run the intro once more. If it fails, ship with it off and the variable documented. | Codex writes, Chris builds | The default and its evidence recorded |
+| 5 | **Package.** `python scripts\windows\package_release.py 0.6.0` on the PC; copy the zip to the Mac; `check_public_assets.sh` on every asset (for the Windows zip, `containsTranslatedGameCode: true` is the only accepted finding); source zip, `padmint.json`, `SHA256SUMS`; a draft release with the notes. | Codex, Chris for the PC | Draft release with five audited assets |
+| 6 | **Publish.** Chris publishes and tags. Then: PadMint's `doctor` and `plan` see 0.6.0; each issue above gets a note asking its reporter to confirm; PRIORITIES moves these rows to "shipped". | Chris publishes; Codex follows up | Release live; issues updated |
 
-1. Pick the highest step that isn't done and name what will close it.
-2. Reproduce before changing anything. A fix needs the same scene before and after, with the same settings.
-3. Make the smallest change that addresses the cause, then run the host tests and the affected scene.
-4. Update the issue in Chris's voice and the [migration status](MIGRATION_STATUS.md) when something changes.
+## Rules for each turn
 
-Stop when every item is fixed, explained, or labeled as needing hardware.
-
-Earlier loops, including the October 3 stability and migration loops, are in
-[the archive](archive/GOAL_LOOP_HISTORY.md).
+1. Read [AGENTS.md](../AGENTS.md), check `main`, open pull requests and new issue replies before acting.
+2. A problem found during the candidate gets its own small pull request. Then freeze again and rerun only the checks
+   it affects. Never move a passing result to a different build without saying so.
+3. Write what was run, on which device and from which commit in `docs/status/RELEASE_0.6.0.md`. A build that compiles
+   is not a game that plays; a simulator is not a device.
+4. Personal builds, game modules, discs, saves and logs stay private. Only the five public assets are uploaded.
+5. Ask Chris before publishing, deleting anything, or installing on his devices. Don't wait on him for anything else.
+6. If a step is blocked on hardware Chris has, say exactly what to run and keep going with the other steps.
