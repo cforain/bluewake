@@ -216,9 +216,15 @@ class Builder:
         if major < 17:
             die(f"clang 17 or newer is required ({clang_version})")
         self.clang_version = clang_version
-        self.llvm_profdata = str(Path(clang).with_name("llvm-profdata"))
-        if not Path(self.llvm_profdata).is_file():
-            die("llvm-profdata is missing beside clang; install it (sudo apt install llvm) "
+        # Prefer llvm-profdata beside clang (they travel together in a normal
+        # LLVM install), but fall back to PATH so distros that package it
+        # separately (NixOS, Homebrew, split distro packages) work unchanged.
+        self.llvm_profdata = shutil.which("llvm-profdata")
+        beside = str(Path(clang).with_name("llvm-profdata"))
+        if self.llvm_profdata is None and Path(beside).is_file():
+            self.llvm_profdata = beside
+        if self.llvm_profdata is None:
+            die("llvm-profdata is missing; install it (sudo apt install llvm) "
                 "or explicitly use --no-train for an untrained build")
         self.check_march()
         print(f"{clang_version}; cmake {version}; ninja "
