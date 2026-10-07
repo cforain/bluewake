@@ -42,6 +42,7 @@ Windows: the intro-music fix is [on / off, after step 4]. To try it when it's of
 | Intro after title music, with the PadMint-built module | iOS Simulator (iPad Pro 12.9), container backed up first | `2c8a659` | Pass: log shows `deferred completion=on (default)`; `1tale.afc` starts at 1953; last 10 s of a 59.8 s capture have 639,118 nonzero samples. The card and settings were unchanged afterwards. |
 | Load a save, dungeon map, quit | iOS Simulator or a device | | not yet: covered on the Mac host above; the Windows rows below repeat it |
 | Windows build from the candidate | Chris's PC | | not yet: steps in [WINDOWS_BUILD_0.6.0.md](WINDOWS_BUILD_0.6.0.md) |
+| Intro bug on players' Windows PCs (cause, not the fix) | Windows 10 (KTroopA9, #97) and Windows 11 i7-6500U (#159), both on 0.5.0 | 0.5.0 | Same cause as on the Mac: after the title music plays, `1tale.afc` reaches state 4 and stops 2 retraces later (1941 to 1943; 4620 to 4622). Starting a new file before the title music plays avoids it. 0.5.0 has no `BLUEWAKE_DEFER_DVD_COMPLETION`, so these logs do not test the fix; check a does. |
 | Intro with the variable on, then off | Windows | | not yet |
 | Dungeon map with a copied save | Windows | | not yet |
 | Quit from the menu | Windows | | not yet |
