@@ -4,8 +4,8 @@ Latest checkpoint: [October 6 input pass](status/SIMULATOR_INPUT_2026-10-06.md).
 Earlier [rendering/audio simulator pass](status/SIMULATOR_PASS_2026-10-06.md) retains the matched candidate results.
 Use the [earlier handoff](status/HANDOFF_2026-10-06.md) for preceding investigation evidence.
 
-Updated October 6, 2026. Work from [TECH_DEBT.md](TECH_DEBT.md), the maintained queue of all known
-reports and technical debt. The earlier loop is preserved in [history](archive/GOAL_LOOP_HISTORY.md).
+Updated October 7, 2026. Work from [PRIORITIES.md](PRIORITIES.md), the ranked list of all known
+reports; [TECH_DEBT.md](TECH_DEBT.md) keeps the investigation notes. The earlier loop is preserved in [history](archive/GOAL_LOOP_HISTORY.md).
 
 ## Current checkpoint
 
@@ -40,7 +40,7 @@ from contributor evidence and the existing PR. Publication is a separate decisio
    Gameplay/timing/rendering behavior stays off by default until tested on the affected platform.
 5. Run relevant tests, repository/attribution checks and Windows CI before merging. Report actual device,
    source revision, settings and limits. Compilation is not gameplay and logging is not an audible/visual test.
-6. Update TECH_DEBT.md and any detailed evidence record in the same PR, and WINDOWS_TASKS.md when a Windows
+6. Update PRIORITIES.md and any detailed evidence record in the same PR, and WINDOWS_TASKS.md when a Windows
    hardware check is pending. Distinguish diagnosed, fixed in source, shipped and reporter-confirmed.
 7. Continue to the next actionable item. If hardware or reporter evidence is missing, record the precise
    handoff and continue independent work. End a bounded pass with changes, evidence and remaining gates.

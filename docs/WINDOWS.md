@@ -71,8 +71,12 @@ remains unverified. Mac training receipts do not validate that Windows path. Ful
 - Windows 10 or 11 on an x86-64 PC. The game module is compiled for `x86-64-v3` by default (AVX2, FMA, BMI2,
   MOVBE: Intel Haswell, AMD Zen or newer); the builder drops to an older level on older CPUs.
 - A GPU with Direct3D 12
-- [Visual Studio 2022 or newer](https://visualstudio.microsoft.com/) (Community is fine) with the
-  **Desktop development with C++** workload and the **C++ Clang Compiler for Windows** component
+- [Visual Studio 2026](https://visualstudio.microsoft.com/) (Community or Build Tools is fine), version 18.10 or
+  newer, with the **Desktop development with C++** workload and the **C++ Clang Compiler for Windows**
+  component. The app's optimization profile (`windows/pgo/app.profdata`) needs the clang 22 that comes
+  with it. With an older Visual Studio (2022's clang 19, or 2026 before 18.10 with clang 20), add
+  `--no-app-pgo` to the build command, or the build stops at `app-configure` with "unsupported
+  instrumentation profile format version" ([#153](https://github.com/chrissotraidis/bluewake/issues/153)).
 - [Python 3.10+](https://www.python.org/), [Git](https://git-scm.com/), and CMake 3.25+ and Ninja
   (`pip install cmake ninja` works)
 - Your disc image of *The Legend of Zelda: The Wind Waker*, GameCube USA (`GZLE01`, revision 0). An `.iso` or
