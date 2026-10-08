@@ -7366,14 +7366,10 @@ int main(int argc, char** argv) {
     // Asynchronous disc reads complete after the caller returns, as on the
     // hardware. Completing them inside the call left the music stream's load
     // flag set, so the history intro after the title music played silently
-    // (#97). On by default where it has been checked (Mac, iPhone and iPad);
-    // Windows and Linux keep the old path until a Windows check
-    // (docs/WINDOWS_TASKS.md). BLUEWAKE_DEFER_DVD_COMPLETION=1 or 0 chooses.
-#if defined(__APPLE__)
+    // (#97). On by default everywhere since the Windows check for 0.6.0
+    // (docs/status/WINDOWS_BUILD_0.6.0.md). BLUEWAKE_DEFER_DVD_COMPLETION=0
+    // brings back the old path for a comparison.
     const bool deferred_dvd_default = true;
-#else
-    const bool deferred_dvd_default = false;
-#endif
     const char* deferred_dvd = getenv("BLUEWAKE_DEFER_DVD_COMPLETION");
     const bool deferred_dvd_set = deferred_dvd != NULL && deferred_dvd[0] != '\0';
     g_deferred_dvd_enabled = deferred_dvd_set ? strcmp(deferred_dvd, "1") == 0 : deferred_dvd_default;
