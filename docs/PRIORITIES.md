@@ -15,7 +15,7 @@ and the dated files in [status/](status/).
 rates and slowdowns in busy scenes. So the next builds focus on making `main` run better, while the way BlueWake
 ships catches up with [DIRECTION.md](DIRECTION.md).
 
-1. **Speed on `main`**, by the plan in [PERFORMANCE.md](PERFORMANCE.md): measured from save states, biggest lever first.
+1. **Speed on `main`**, by the plan in [PERFORMANCE.md](PERFORMANCE.md): measured with one scripted tour, biggest lever first.
 2. **Controllers that miss the 0.6.0 fixes at launch** (#138): a small fix with a big reach.
 3. **Releases without game code** on every platform, built on first launch ([DIRECTION.md](DIRECTION.md#1-no-game-code-in-any-release)).
 4. **Linux** (#107) merged and released, then **Android** (#93) at the iPhone app's standard.
@@ -39,8 +39,8 @@ changes.
 
 2. **Speed: follow [PERFORMANCE.md](PERFORMANCE.md).** It holds the evidence (17 player logs), what is ruled out,
    and the levers in order of payoff for effort, with a fast way to test them. In short:
-   - **A benchmark from save states** (`scripts/bench_state.py`, to write): a minute a run, with checkpoint hashes
-     that show two builds behave the same. Every speed change is measured with it.
+   - **A benchmark tour** (`scripts/bench_tour.py`, to write): the tester's own card, Outset and the training
+     tour's stops unpaced, with checkpoint hashes that show two builds behave the same. Every speed change is measured with it.
    - **The 30% instruction gap.** BlueWake's game thread runs about 158 M instructions a retrace where a build from
      Wind Waker Recomp's translation runs 110 M on the same phone. Elliott's lean block copies, kept out by BlueWake's
      cycle-exact comparison, are the likely cause. It needs Chris's decision on the acceptance standard

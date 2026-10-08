@@ -108,15 +108,15 @@ Recomp does for the Wii U's graphics library. It comes after 1, 2 and 5.
 The slow part is compiling the game module (17 to 45 minutes on a desktop, longer on a laptop). Everything else is
 minutes.
 
-- **Measure with a script, not by playing.** \`scripts/bench_tour.py\` (to write) uses pieces the builders already
-  have. It copies the tester's own memory card and places a save on Outset (\`scripts/card_set_restart.py\`), then
+- **Measure with a script, not by playing.** `scripts/bench_tour.py` (to write) uses pieces the builders already
+  have. It copies the tester's own memory card and places a save on Outset (`scripts/card_set_restart.py`), then
   continues it with the pad script the save acceptance uses, which reaches control in about 833 retraces. Then it
-  warps through Windfall, Dragon Roost Cavern, the sea and back (\`BLUEWAKE_TEST_WARP\`, the training tour's stops)
-  with \`BLUEWAKE_WALL_PACE=0\`, so the game runs as fast as the machine allows. It prints game frames a second at
-  each stop, headless and rendered, plus \`BLUEWAKE_GUEST_CHECKPOINT_INTERVAL\` hashes that show two builds behave
+  warps through Windfall, Dragon Roost Cavern, the sea and back (`BLUEWAKE_TEST_WARP`, the training tour's stops)
+  with `BLUEWAKE_WALL_PACE=0`, so the game runs as fast as the machine allows. It prints game frames a second at
+  each stop, headless and rendered, plus `BLUEWAKE_GUEST_CHECKPOINT_INTERVAL` hashes that show two builds behave
   the same (jkoehler11's check on #178). One unattended run takes a few minutes, needs nothing private shared,
-  and gives the same numbers on any machine.
-- **Save states** (\`BLUEWAKE_LOAD_STATE\`) cover a scene the tour can't reach, like the bird scene. They're made
+  and two builds on the same machine compare directly.
+- **Save states** (`BLUEWAKE_LOAD_STATE`) cover a scene the tour can't reach, like the bird scene. They're made
   from a maintainer's own card and never committed or attached.
 - **Runtime and host changes** (items 3, 4 and 6) rebuild the app without recompiling the game module.
 - **Build-flag changes** (items 1 and 2) are one unattended build each, on the fastest machine available: pdale-boop's
@@ -127,7 +127,7 @@ minutes.
 
 | Order | Step | Who | Done when |
 | --- | --- | --- | --- |
-| 1 | `scripts/bench_state.py` and the three save states | Codex; Chris makes the states | One command prints speed and checkpoints for two builds |
+| 1 | `scripts/bench_tour.py` | Codex | One command prints speed at each stop and checkpoints, for two builds |
 | 2 | LiquidAzir's two Android builds, same spot: game frames a second and their build options | LiquidAzir (asked on #93) | The 30% instruction gap has a frame-rate number |
 | 3 | `--no-cold` against the default, same machine | jkoehler11 on Linux or pdale-boop on Windows | Bird scene, dungeon and Outset numbers |
 | 4 | Smooth Motion pacing (3), fallback message (4), two-core default (6) | Codex, in the shared runtime | Checked on Chris's Ryzen 7 5700U; in the next build |
