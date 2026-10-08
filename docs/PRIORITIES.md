@@ -13,7 +13,7 @@ notes are in [TECH_DEBT.md](TECH_DEBT.md) and the dated files in [status/](statu
 
 The short version, as shared with the community on October 7:
 
-1. Ship a new build with what is fixed in `main` (the "Do first" table below), after one Windows check of the intro-music fix so Windows gets it on by default too.
+1. Done: 0.6.0 was published on October 8 with the fixes in the "Shipped in 0.6.0" table below. Each reporter has been asked to confirm.
 2. Performance on everyday CPUs (Steam Deck, laptops, older desktops): measure, then cut the game thread's per-frame work (Tier 2, rank 1).
 3. The remaining game-breaking bugs: missing sound in later cutscenes (#65), controllers with scrambled layouts (#61, #155), the cloud and wave flicker (#136).
 4. The native Linux build into BlueWake (#107).
@@ -24,9 +24,7 @@ The short version, as shared with the community on October 7:
 The plan as of October 7, 2026, agreed with Chris. Answer "what are we doing next for BlueWake?" from this section,
 checked against current issues and pull requests.
 
-**Finish 0.6.0.** The Windows build is running on Chris's PC from [WINDOWS_BUILD_0.6.0.md](status/WINDOWS_BUILD_0.6.0.md).
-The Mac then assembles the draft release, and Chris publishes ([GOAL_LOOP.md](GOAL_LOOP.md)). After that, ask each
-reporter to confirm. How well each fix is proven so far:
+**0.6.0 is out** (October 8, [release record](status/RELEASE_0.6.0.md)). Each fix's issue asks its reporter to confirm; close an issue only when they do. How well each fix was proven at release:
 
 | Fix | Proven by | Still needs |
 | --- | --- | --- |
@@ -79,24 +77,24 @@ Keep the states apart: *suspected* (a hypothesis), *cause found* (shown in code,
 close an issue when its reporter confirms, or it is a clear duplicate. When you change a row, update the
 issue, this page and, for Windows checks, [WINDOWS_TASKS.md](WINDOWS_TASKS.md) in the same pull request.
 
-## Do first: ship what is already fixed
+## Shipped in 0.6.0
 
-Several fixes are merged but no player has them. The latest release, 0.5.0 (October 5), was built from
-`0d1f821`. A new release from `main` is the cheapest way to close tickets:
+Published October 8, 2026 from `806d65c` (Windows zip built from `4eb41f0`, the same game and app code). What each
+still needs is a confirmation, not a release:
 
-| In `main` since 0.5.0 | Issue | Still needed before release |
+| Shipped in 0.6.0 | Issue | Still to confirm |
 | --- | --- | --- |
 | Dungeon maps draw their grid and rooms (RecompCore patch 0157) | [#74](https://github.com/chrissotraidis/bluewake/issues/74) | Windows check from the [task list](WINDOWS_TASKS.md#in-main-waiting-for-a-windows-build) |
 | A controller recognized late, or left as player 2, plays as player 1 (October 7) | [#61](https://github.com/chrissotraidis/bluewake/issues/61) | A physical controller that needs `gamecontrollerdb.txt` |
 | The Wind Waker baton is no longer mirrored (October 7) | [#156](https://github.com/chrissotraidis/bluewake/issues/156) | Conducting with a controller |
 | No big dead zone or jump on the left stick (RecompCore patch 0159, October 7) | [#138](https://github.com/chrissotraidis/bluewake/issues/138) | Slow aiming, diagonals and drift on a physical controller |
-| Intro music after the title music: on by default on Mac, iPhone and iPad (October 7, [#163](https://github.com/chrissotraidis/bluewake/pull/163)) | [#97](https://github.com/chrissotraidis/bluewake/issues/97) | Windows check, then on by default there too |
+| Intro music after the title music: on by default everywhere ([#163](https://github.com/chrissotraidis/bluewake/pull/163), [#172](https://github.com/chrissotraidis/bluewake/pull/172)) | [#97](https://github.com/chrissotraidis/bluewake/issues/97) | Players on Windows waiting for the title music, then a new file |
 | Windows builder: Visual Studio 2022 builds again (October 7) | [#153](https://github.com/chrissotraidis/bluewake/issues/153) | The reporter's Visual Studio 2022 build |
 | Option: invert the left stick's up and down when aiming (October 7, [#166](https://github.com/chrissotraidis/bluewake/pull/166)) | [#154](https://github.com/chrissotraidis/bluewake/issues/154) | Menu check on Windows |
 | Linux port's shutdown fix for every platform (RecompCore patch 0158, [#167](https://github.com/chrissotraidis/bluewake/pull/167)) | [#56](https://github.com/chrissotraidis/bluewake/issues/56) | Windows quit check |
 | The session log names the controller mapping in use ([#165](https://github.com/chrissotraidis/bluewake/pull/165)) | [#61](https://github.com/chrissotraidis/bluewake/issues/61) | None (a log line) |
 | Touch controls no longer stay held after Apple menus open | none (found in testing) | Physical iPhone/iPad touch check |
-| Opt-in Pictobox fix, `BLUEWAKE_CACHE_FLUSH_FALLBACK=1` | [#13](https://github.com/chrissotraidis/bluewake/issues/13) | Windows and physical iPad check; then decide the default |
+| Opt-in Pictobox fix, `BLUEWAKE_CACHE_FLUSH_FALLBACK=1` (still off by default) | [#13](https://github.com/chrissotraidis/bluewake/issues/13) | Windows and physical iPad check; then decide the default |
 
 Only Chris publishes releases. Follow [RELEASE.md](status/RELEASE.md) and run the release audit.
 
@@ -104,14 +102,14 @@ Only Chris publishes releases. Follow [RELEASE.md](status/RELEASE.md) and run th
 
 | Rank | Problem | Who it hits | What we know | Fix and next step |
 | --- | --- | --- | --- | --- |
-| 1 | **Intro and cutscene music missing** ([#97](https://github.com/chrissotraidis/bluewake/issues/97), [#65](https://github.com/chrissotraidis/bluewake/issues/65)) | All platforms. Seen on Windows, a Mac M4 and a physical iPad | *Fixed in main on Mac, iPhone and iPad* (October 7): disc reads now complete after the game marks them pending, so the intro track plays after the title music ([cause](status/TRIAGE_2026-10-06.md#title-to-intro-reproduction-and-callback-ordering), [checks](status/FIXES_2026-10-07.md#intro-music-97)). Windows keeps the old path until checked; `BLUEWAKE_DEFER_DVD_COMPLETION=1` turns the fix on there. #65's bird scene may be a separate cause: DonatelloEsq got its sound back only after turning off the HD pack, Better Wind Waker and mouse camera together. | Windows check from the task list, then default on for Windows. Then reach the Tetra scene with a save and check its cues with one setting changed at a time. |
-| 2 | **Some controllers don't work at all** ([#61](https://github.com/chrissotraidis/bluewake/issues/61) 8BitDo GameCube mod kit, [#155](https://github.com/chrissotraidis/bluewake/issues/155) GameCube controller on a Mayflash adapter) | Windows and Mac, any controller SDL doesn't know without `gamecontrollerdb.txt`, and anyone with several controllers | *Detection fixed in main* (October 7): a connected controller takes player 1 whenever nobody has it ([details](status/FIXES_2026-10-07.md#controllers-and-player-1-61)); the reporter confirmed that connecting late gets it detected. *Layout suspected*: its buttons and sticks are scrambled with both his line and the stock file. SDL uses a mapping with a `crc:` field only on an exact CRC match, and the stock 8BitDo line puts the right stick on a2/a3 and L/R on a5/a4 where his tool found a3/a4 and b6/b7. The log now names the mapping in use (#165). #155 has no log yet. | His one-line `gamecontrollerdb.txt` test (posted on #61). If it works, consider keeping a corrected mapping for this controller. For #155, the log's `Added controller` and `mapping in use` lines. |
-| 3 | **Wind Waker baton left and right reversed** ([#156](https://github.com/chrissotraidis/bluewake/issues/156)) | Windows and Mac with the fast right-stick camera on (the default); new in 0.5.0 | *Fixed in main* (October 7): #44's C-stick flip for the game's own camera is skipped while the game's conducting flag is set, confirmed live on the Mac ([details](status/FIXES_2026-10-07.md#the-wind-waker-baton-156)). | Reporter confirmation; play each song with a controller. |
+| 1 | **Intro and cutscene music missing** ([#97](https://github.com/chrissotraidis/bluewake/issues/97), [#65](https://github.com/chrissotraidis/bluewake/issues/65)) | All platforms. Seen on Windows, a Mac M4 and a physical iPad | *Shipped in 0.6.0 on every platform*: disc reads now complete after the game marks them pending, so the intro track plays after the title music ([cause](status/TRIAGE_2026-10-06.md#title-to-intro-reproduction-and-callback-ordering), [checks](status/FIXES_2026-10-07.md#intro-music-97)). Windows has it on by default too since #172; `BLUEWAKE_DEFER_DVD_COMPLETION=0` turns it off for a comparison. #65's bird scene may be a separate cause: DonatelloEsq got its sound back only after turning off the HD pack, Better Wind Waker and mouse camera together. | Reporter confirmation on Windows. Then reach the Tetra scene with a save and check its cues with one setting changed at a time. |
+| 2 | **Some controllers don't work at all** ([#61](https://github.com/chrissotraidis/bluewake/issues/61) 8BitDo GameCube mod kit, [#155](https://github.com/chrissotraidis/bluewake/issues/155) GameCube controller on a Mayflash adapter) | Windows and Mac, any controller SDL doesn't know without `gamecontrollerdb.txt`, and anyone with several controllers | *Detection shipped in 0.6.0*: a connected controller takes player 1 whenever nobody has it ([details](status/FIXES_2026-10-07.md#controllers-and-player-1-61)); the reporter confirmed that connecting late gets it detected. *Layout suspected*: its buttons and sticks are scrambled with both his line and the stock file. SDL uses a mapping with a `crc:` field only on an exact CRC match, and the stock 8BitDo line puts the right stick on a2/a3 and L/R on a5/a4 where his tool found a3/a4 and b6/b7. The log now names the mapping in use (#165). #155 has no log yet. | His one-line `gamecontrollerdb.txt` test (posted on #61). If it works, consider keeping a corrected mapping for this controller. For #155, the log's `Added controller` and `mapping in use` lines. |
+| 3 | **Wind Waker baton left and right reversed** ([#156](https://github.com/chrissotraidis/bluewake/issues/156)) | Windows and Mac with the fast right-stick camera on (the default); new in 0.5.0 | *Shipped in 0.6.0* (fixed October 7): #44's C-stick flip for the game's own camera is skipped while the game's conducting flag is set, confirmed live on the Mac ([details](status/FIXES_2026-10-07.md#the-wind-waker-baton-156)). | Reporter confirmation; play each song with a controller. |
 | 4 | **Clouds and distant waves flicker** ([#136](https://github.com/chrissotraidis/bluewake/issues/136)) | Windows on NVIDIA at 60 and 120 FPS; a regression from 0.4.0 | *Suspected*: 0.5.0 brought in water/HUD interpolation, transform reuse, texture mip and blending changes (RecompCore patches 0152 to 0155). Not reproduced on the Mac (Metal). | Ask whether plain 30 FPS (Smooth Motion off) also flickers. If 30 is clean, look at how in-between frames are made; if not, look at transform reuse and texture sampling. [Capture steps](WINDOWS_TASKS.md#flickering-capture-136). |
-| 5 | **Left stick dead zone, then a jump to about 22%** ([#138](https://github.com/chrissotraidis/bluewake/issues/138)) | Every controller player; worst for fine aiming (Mirror Shield) | *Fixed in main* (October 7, RecompCore patch 0159): Aurora's cutoff is off for player 1's controller and the stick's full travel is scaled to a GameCube stick's, so the game's own clamp is the only dead zone ([details](status/FIXES_2026-10-07.md#the-left-stick-138)). | Reporter confirmation: slow aiming, diagonals, full travel and drift at rest on a physical controller. |
+| 5 | **Left stick dead zone, then a jump to about 22%** ([#138](https://github.com/chrissotraidis/bluewake/issues/138)) | Every controller player; worst for fine aiming (Mirror Shield) | *Shipped in 0.6.0* (fixed October 7, RecompCore patch 0159): Aurora's cutoff is off for player 1's controller and the stick's full travel is scaled to a GameCube stick's, so the game's own clamp is the only dead zone ([details](status/FIXES_2026-10-07.md#the-left-stick-138)). | Reporter confirmation: slow aiming, diagonals, full travel and drift at rest on a physical controller. |
 | 6 | **Soft lock in the Forsaken Fortress** ([#76](https://github.com/chrissotraidis/bluewake/issues/76)) | One Windows report | *Unverified*: a Moblin knocked off a ledge mid-capture. May be the original game. | Reproduce with a copied save placed in the fortress (`scripts/save_set_restart.py`); compare with Dolphin before changing anything. |
 | 7 | **HD texture packs: dark shading and orange hair** ([#80](https://github.com/chrissotraidis/bluewake/issues/80)) | Windows, Radeon 860M, with any HD pack (PNG or DDS) | *Unreproduced* on the Mac with a PNG pack. The reporter's 0.5.0 log covers only 30 seconds at the title screen (three textures replaced), so it shows the setup but not the problem. | Get the exact pack version, a log from a scene where it shows, and one run with Smooth Motion off. Then compare in that scene. |
-| 8 | **Pictobox shows the previous photo** ([#13](https://github.com/chrissotraidis/bluewake/issues/13)) | All platforms | The 0.5.0 freeze is fixed. The stale second preview is repaired by the opt-in flag above in Mac and iPad simulator runs. | Physical iPad and Windows checks, then decide the default (see "Do first"). |
+| 8 | **Pictobox shows the previous photo** ([#13](https://github.com/chrissotraidis/bluewake/issues/13)) | All platforms | The 0.5.0 freeze is fixed. The stale second preview is repaired by the opt-in flag above in Mac and iPad simulator runs. | Physical iPad and Windows checks, then decide the default (see "Shipped in 0.6.0"). |
 | 9 | **Pirate ship flag has no texture** ([#69](https://github.com/chrissotraidis/bluewake/issues/69)) | Windows 0.3.0 report | *Needs info*: not rechecked on 0.5.0. The sail module keeps its texture in its own data, like Molgera's floor (#126, fixed). | Load a save near the ship and check on the Mac; if it is blank, trace the sail's texture address as #126 was traced. |
 
 ## Tier 2: performance
@@ -133,7 +131,7 @@ tell players to lower settings as the fix; the logs show the limit is CPU time p
 
 | Problem | Issue | Fix |
 | --- | --- | --- |
-| Windows build fails with Visual Studio's clang older than 22 (`app.profdata` format) | [#153](https://github.com/chrissotraidis/bluewake/issues/153) | *Fixed in main* (October 7): the builder tests the profile with the same toolchain's `llvm-profdata` and builds the app without it, with a note. Checked with LLVM 18, 20 and 22 against the real profile; waiting for the reporter's confirmation. |
+| Windows build fails with Visual Studio's clang older than 22 (`app.profdata` format) | [#153](https://github.com/chrissotraidis/bluewake/issues/153) | *Shipped in 0.6.0* (fixed October 7): the builder tests the profile with the same toolchain's `llvm-profdata` and builds the app without it, with a note. Checked with LLVM 18, 20 and 22 against the real profile; waiting for the reporter's confirmation. |
 | Portable mode still writes `imgui.ini` to `%APPDATA%` | [#64](https://github.com/chrissotraidis/bluewake/issues/64) | Route ImGui's ini to the portable folder (RecompCore). |
 | CPUs without AVX2 can't run the Windows build | [#77](https://github.com/chrissotraidis/bluewake/issues/77) | 0.5.0 now says so instead of closing silently. No build for those CPUs is planned. |
 | Waiting on the reporter to confirm a shipped fix | [#55](https://github.com/chrissotraidis/bluewake/issues/55), [#58](https://github.com/chrissotraidis/bluewake/issues/58), [#66](https://github.com/chrissotraidis/bluewake/issues/66), [#73](https://github.com/chrissotraidis/bluewake/issues/73) | Close each when its reporter confirms. |
