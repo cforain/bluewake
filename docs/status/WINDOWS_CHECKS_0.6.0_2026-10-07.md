@@ -61,6 +61,39 @@ once the observer is installed.
   "Left stick up and down inverted when aiming" option does not change it. I don't know whether the
   original game does the same; recorded for a decision, not as a bug.
 
+## Pictobox preview (#13), on the same build
+
+From the list in [WINDOWS_TASKS.md](../WINDOWS_TASKS.md#in-main-waiting-for-a-windows-build). A test card from
+my playthrough (Windfall dock, `sea 11 0`): quest log 1 with the regular Pictobox, quest log 2 the same save
+with the Deluxe one.
+
+| Run | Result |
+| --- | --- |
+| Without the variable (`[texture-cache] fallback writeback=off`) | **Bug reproduced:** after a cancelled photo, the second photo's preview shows the old view. |
+| `BLUEWAKE_CACHE_FLUSH_FALLBACK=1` (`fallback writeback=on (experimental)`), regular and Deluxe | **Pass:** the second preview shows the new view on both. A kept photo is still there after saving, quitting and loading again. No fatal lines. |
+| Choosing Yes at "keep this picture?" | **Fails with the left stick and the D-pad,** with the controller connected at launch and after power-cycling it. The keyboard's A and D keys work (left is Yes). The gallery behaves the same. |
+
+With `BLUEWAKE_PAD_TRACE=1`, the game gets `stick=0,0` the whole time the left stick is held at the prompt,
+and `stick=127,0` and `-127,0` from D and A. The cause looks like `runtime/host/src/mouse_camera.c:599-600`:
+in a zooming view (Pictobox, telescope) the right-stick camera gives the zoom to the left stick's up and down
+and zeroes the left stick for the game, so it doesn't also aim. That is still in effect while the prompt and
+the gallery are open. This is knapman's report on #13 ("pressing left on the gamepad doesn't work so you
+can't save"). I didn't change any code.
+
+## The builder with Visual Studio 2022 (#153), on `main`
+
+At `e019f1f`, with Visual Studio 2022 Build Tools (clang 19.1.5) beside 2026 (clang 22.1.3). The builder
+always picks the newest Visual Studio, so for this check only I added one uncommitted line to a separate
+worktree's `build.py` that kept just the 2022 install. Run with `--source-only --no-train` into a separate
+`--out`:
+
+- `Visual Studio: ...\2022\BuildTools`, clang 19.1.5.
+- `note: building the app without its optimization profile (... unsupported instrumentation profile format version)`.
+- The app configured without the profile (the step that failed before), and translation and source generation
+  finished with `composite source digest 54f54434...: the verified tree`. Exit 0, 6 min 45 s.
+
+Not checked: compiling the module and the app with clang 19, and running the result.
+
 ## Cutscenes on 0.6.0 (beyond the release checks)
 
 In my own 0.5.0 playthrough no cutscene from the start to the credits had music or sound effects, only
