@@ -359,16 +359,7 @@ void bluewake_mouse_camera_install(void) {
     g_latency_log = latency != NULL && latency[0] == '1';
     load_gamepad_mappings();
     dol_aurora_set_event_observer(observe, NULL);
-    // Controllers connected at launch: Aurora added them while it started,
-    // before the observer was here, so observe() never saw them arrive and
-    // player 1 kept Aurora's dead zone (#138). The same handoff, now.
-    int connected = 0;
-    SDL_JoystickID* pads = SDL_GetGamepads(&connected);
-    for (int i = 0; i < connected; i++)
-        bw_log_gamepad_mapping(pads[i]);
-    SDL_free(pads);
-    bw_claim_player_one();
-    bw_game_dead_zone(0);
+    bw_handoff_connected_controllers();
     if (g_enabled)
         fprintf(stderr, "[mouse] click the game to turn the camera with the mouse\n");
 #endif
