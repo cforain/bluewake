@@ -98,6 +98,8 @@ requests, merged within days and credited in the notes. People notice that.
 
 ## 5. Performance is measured and shown
 
+The plan and the measuring method are in [PERFORMANCE.md](PERFORMANCE.md).
+
 "It's slow" is the loudest complaint about BlueWake online. Every performance change comes with numbers from the
 same benchmark spot, before and after, and the release notes say what changed.
 

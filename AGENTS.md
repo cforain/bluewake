@@ -9,6 +9,7 @@ one, this one wins.
 - `README.md`: for players.
 - `AGENTS.md` (this file): the rules.
 - `docs/PRIORITIES.md`: the ranked list of bugs, performance work and requests. Start here.
+- `docs/PERFORMANCE.md`: the plan for frame rate and slowdowns, and how to measure a change.
 - `docs/DIRECTION.md`: where BlueWake is going: releases without game code, the same app on every platform
   (Android matches the iPhone app), fast contributor reviews, measured performance.
 - `docs/MIGRATION_STATUS.md`: what is done and what is open. `docs/GOAL_LOOP.md`: the current work loop.
