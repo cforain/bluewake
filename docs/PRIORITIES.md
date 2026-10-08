@@ -1,67 +1,138 @@
 # BlueWake priorities
 
 The ranked list of what to fix and build next. Read this first if you are picking up work in this
-repository, then [AGENTS.md](../AGENTS.md) for the rules and [GOAL_LOOP.md](GOAL_LOOP.md) for the current work loop
-(release 0.6.0).
+repository, then [AGENTS.md](../AGENTS.md) for the rules. The 0.6.0 loop in [GOAL_LOOP.md](GOAL_LOOP.md) is finished;
+the next release starts from the list below.
 
-Updated October 8, 2026 (JST) after the first pass over replies to 0.6.0 ([October 8 triage](status/TRIAGE_2026-10-08.md)).
-Before that: the [October 7 fix pass](status/FIXES_2026-10-07.md) and a pass over GitHub and the Discord
-conversations the same day. Owner: Chris.
-Today's evidence is in [the October 7 triage record](status/TRIAGE_2026-10-07.md); older investigation
+Updated October 8, 2026 (JST) after the first pass over replies to 0.6.0. Owner: Chris.
+Today's evidence is in [the October 8 triage record](status/TRIAGE_2026-10-08.md); before that,
+[the October 7 fix pass](status/FIXES_2026-10-07.md) and [triage](status/TRIAGE_2026-10-07.md). Older investigation
 notes are in [TECH_DEBT.md](TECH_DEBT.md) and the dated files in [status/](status/).
 
 ## Right now
 
-The short version, as shared with the community on October 7:
+0.6.0 was published on October 8, and each fixed issue asks its reporter to confirm. The work for the next build,
+in order:
 
-1. Done: 0.6.0 was published on October 8 with the fixes in the "Shipped in 0.6.0" table below. Each reporter has been asked to confirm.
-2. Performance on everyday CPUs (Steam Deck, laptops, older desktops): measure, then cut the game thread's per-frame work (Tier 2, rank 1).
-3. The remaining game-breaking bugs: missing sound in later cutscenes (#65), controllers with scrambled layouts (#61, #155), the cloud and wave flicker (#136).
-4. The native Linux build into BlueWake (#107).
-5. Community tools and test saves (the "Community ideas" table).
+1. **The bird scene**: the slowest scene we know of (#59) and the last widely reported missing music (#65).
+2. **Cloud, wave and fog flicker** at 60 and 120 FPS (#136), now narrowed to Smooth Motion.
+3. **Everyday CPU performance**: a shared benchmark, Smooth Motion's own cost, then the game and graphics threads.
+4. **Controllers and HD packs** once their reporters answer (#61, #155, #80).
+5. **Platforms**: the Linux release (#107), then Android (#93).
+
+Answer "what are we doing next for BlueWake?" from the next section, checked against current issues and pull
+requests.
 
 ## What's next after 0.6.0
 
-The plan as of October 7, 2026, agreed with Chris. Answer "what are we doing next for BlueWake?" from this section,
-checked against current issues and pull requests.
+### The plan, in order
 
-**0.6.0 is out** (October 8, [release record](status/RELEASE_0.6.0.md)). Each fix's issue asks its reporter to confirm; close an issue only when they do. How well each fix was proven at release:
+Each item says why it is here (the evidence), its first step, and what it is waiting on. Re-rank when the evidence
+changes.
+
+1. **The bird scene's speed** ([#59](https://github.com/chrissotraidis/bluewake/issues/59), Tier 2).
+   *Evidence:* the cutscene where the Helmaroc King carries Tetra (`[demo] stage=sea event=251`) runs at 4 to 20%
+   game speed on a Linux x86 laptop (Ryzen 7 7840HS, 160 seconds below target, all on the game thread at 99%), and
+   at 99% or more on a Mac M4. Windows players report the same scene as very slow. One scene being five to twenty
+   times slower on x86 only is a specific slow path, not general CPU cost, so it is the clearest performance lead.
+   *Suspected cause:* denormal floats. RecompCore turns x86 flush-to-zero on only while the game sets FPSCR NI.
+   *First step:* a `perf record -g` across the scene on Linux (asked of jkoehler11 on #59). If the time is in
+   floating-point code, an opt-in switch that forces flush-to-zero on the game thread, measured in this scene and
+   checked with the boot-route comparison before it can be on by default.
+   *Waiting on:* the profile, or a save just before the scene to profile it on Windows.
+
+2. **The bird scene's music** ([#65](https://github.com/chrissotraidis/bluewake/issues/65), Tier 1).
+   *Evidence:* in both logs the scene's stream plays for two retraces and stops with `dvd_pending=1`, the same
+   failure as the history intro before 0.6.0, and neither build had the 0.6.0 fix. *Suspected:* 0.6.0 already fixes
+   it. *First step:* reach the scene on 0.6.0 and check the `[demo] end ... cues=` line and the captured audio. Item
+   1's test save serves both. If the music still stops, trace it the way #97 was traced.
+   *Waiting on:* a player report on 0.6.0 (asked on #65) or that save.
+
+3. **Cloud, wave and fog flicker** ([#136](https://github.com/chrissotraidis/bluewake/issues/136), Tier 1).
+   *Evidence:* two NVIDIA players; clean at 30 FPS, flickering at 60 and 120, the Outset forest's fog too; new in
+   0.5.0. So it is in how Smooth Motion makes the in-between frames. *First step:* the players' runs with
+   `DOL_AURORA_INTERP_ALL_VERTICES=1` (patch 0155's vertex choice) and `DOL_GX_TRANSFORM_VERIFY=1` (patch 0152's
+   transform reuse), one at a time (asked on #136). Whichever one stops it names the patch to fix. Then try the same
+   view at 120 on the Mac. *Waiting on:* those two runs.
+
+4. **A shared performance benchmark.** One save at the same spot on Outset (`scripts/card_set_restart.py`, sea room
+   44), plus the bird scene once item 1 has a save there, with the same settings and warm caches, read from
+   `[perf-summary]` and `[fps-dip]`. The Mac, a Windows laptop and the Steam Deck run the same test, so every
+   performance change is measured. KongMing's RecompCore work starts from it too.
+
+5. **Smooth Motion's cost on small CPUs** (Tier 2, rank 3). *Evidence:* its helper thread used 62 to 70% of a core at
+   the title, and #159's two-core laptop runs at 38 to 65% speed. *First step:* measure it with the benchmark at 30,
+   60 and 120, then decide whether it should start off, or turn itself off, on CPUs with few cores. A cheap win if
+   the numbers support it.
+
+6. **The game thread** (Tier 2, rank 1), the biggest lever after item 1. *Evidence:* 27 of 35 slow seconds in #137,
+   all of #159's slow seconds, and the Steam Deck's 22 FPS name the game thread. BlueWake's conservative prepaid
+   copies skip nearly every block that touches memory; Elliott's lean copies failed the boot-route comparison on
+   October 2. *First step:* find which block forms cause that difference, chunk by chunk, and keep the safe ones.
+   The native entries (#179) can't be re-certified until their comparison tests run against a BlueWake module, and
+   those tests load only a Windows DLL today; a Linux loader would let the Steam Deck work run them. Expect 5 to 10%,
+   not a doubling. KongMing's RecompCore pull requests belong here, each with benchmark numbers before and after.
+
+7. **The graphics thread** (Tier 2, rank 2). *Evidence:* #86's GX worker is 92 to 98% busy in Outset. *First step:*
+   profile command conversion and vertex decoding at the benchmark spot.
+
+8. **Controllers** ([#61](https://github.com/chrissotraidis/bluewake/issues/61),
+   [#155](https://github.com/chrissotraidis/bluewake/issues/155), Tier 1). *Evidence:* #61's one-line mapping works
+   (B and X swapped); #155's 0.5.0 log shows the Mayflash adapter as four GameCube controllers, all dropped 12 seconds
+   in. *First step:* none until they answer. Then the controller picker (Enhancements, 1) if #155 needs it.
+   *Waiting on:* #61's confirmation, #155's 0.6.0 log with the controller in port 1.
+
+9. **HD pack shading** ([#80](https://github.com/chrissotraidis/bluewake/issues/80), Tier 1, rank 7). *Evidence:*
+   the reporter's long log has no renderer errors, and Smooth Motion, resolution and filtering don't change it.
+   *First step:* Hypatia's PNG pack on the Mac in the same Outset spot. *Waiting on:* whether Dolphin shows the same
+   (asked on #80); if it does, the pack is the cause.
+
+10. **Linux release** ([#107](https://github.com/chrissotraidis/bluewake/pull/107)). Current `main` is merged in and CI
+    passes; a NixOS laptop and a Steam Deck have run it. It needs a package audit and Chris's approval. Steam Deck
+    speed is items 1 and 4 to 7, not a Linux gate.
+
+11. **Android** ([#93](https://github.com/chrissotraidis/bluewake/pull/93)). Quiet since October 5; it is 149 commits
+    behind `main` but merges cleanly. LiquidAzir was asked on October 8 whether he is still on it, with an offer to
+    carry it on a branch that keeps his commits. Before it ships: the iPhone app's menu and touch layout, saves tested
+    on a phone, and a steady 30 FPS (the list on the PR). The Mac has the Android SDK and NDK; an Android device is
+    needed. *Waiting on:* LiquidAzir's answer.
+
+12. **iPhone and iPad builds from Windows through PadMint** (#100, draft). It needs a full run on a real PC and an
+    install on a device. Mac apps can't be built on Windows.
+
+13. **Long term: native rendering** (wowjinxy's idea), replacing the CPU-side drawing conversion piece by piece with
+    the decompilation. The largest gain and the most work, after items 6 and 7.
+
+No promise of 30 FPS on a Steam Deck yet: no single change gets there, so it takes several measured gains stacked
+together. Item 1 may be the exception for that one scene.
+
+### Waiting on someone else
+
+| Who | What | Where |
+| --- | --- | --- |
+| Reporters | Confirm the 0.6.0 fixes: dungeon map on Windows, intro music, baton, left stick, aim invert, VS 2022 build | #74, #97, #156, #138, #154, #153 |
+| ncarson9 | B and X fixed under Controller buttons with his one-line mapping | #61 |
+| TheGameTuber | A 0.6.0 log with the controller in port 1; whether the adapter was unplugged | #155 |
+| Bighead-SMZ, MaLDox77 | The two flicker switches, one at a time | #136 |
+| RafaelTrepaUnCarballo | Whether Dolphin shows the same shading with the same pack | #80 |
+| Anyone on 0.6.0 | The bird scene's music | #65 |
+| jkoehler11 | A profile of the bird scene; a Linux loader for the native comparison tests | #59, #179 |
+| LiquidAzir | Whether he is still working on Android | #93 |
+| A Windows PC | Portable mode keeps remaps and `imgui.ini` in `user` (#184), and the other rows in [WINDOWS_TASKS.md](WINDOWS_TASKS.md) | #64 |
+
+### How well each 0.6.0 fix is proven
+
+Close an issue only when its reporter confirms.
 
 | Fix | Proven by | Still needs |
 | --- | --- | --- |
-| Dungeon maps (#74) | Reproduced and fixed on the Mac with a save in Dragon Roost; three other scenes unchanged | Windows (Direct3D 12): the 0.6.0 Windows run, check c |
-| Intro music (#97) | Captured audio on the Mac, a physical iPad and the iPad simulator; two players' Windows logs show the same cause | Windows with the fix on: check a, which decides #172 |
-| Controller as player 1 (#61) | A test with the real SDL and Aurora libraries reproduces the report and passes with the fix | A physical controller; the scrambled layout is a separate open problem |
+| Dungeon maps (#74) | Reproduced and fixed on the Mac with a save in Dragon Roost; three other scenes unchanged | Windows (Direct3D 12) |
+| Intro music (#97) | Captured audio on the Mac, a physical iPad and the iPad simulator; a long Windows session played the intro to its end | A reporter on Windows |
+| Controller as player 1 (#61) | A test with the real SDL and Aurora libraries reproduces the report and passes with the fix | A physical controller; the scrambled layout is separate |
 | Baton (#156) | Cause in code; a live Mac trace of the conducting flag | Conducting with a physical controller |
 | Left stick (#138) | A test reproduces the reporter's numbers and fails on the old code | A physical stick |
 | Aim invert (#154) | New option; compiled and tested in CI | Trying it in game |
 | VS2022 builder (#153) | The reporter's error reproduced with LLVM 18 and 20 | The reporter's rebuild |
-
-**Then, in order:**
-
-1. **A shared performance benchmark.** One save placed at the same spot on Outset with `scripts/card_set_restart.py`
-   (sea, room 44), the same settings and warm caches, read from the session log's `[perf-summary]` and `[fps-dip]`
-   lines. The Mac, a Windows laptop and the Steam Deck use the same test, so every performance change is measured,
-   not guessed. KongMing's RecompCore work starts from it too.
-2. **Smooth Motion's cost on small CPUs** (Tier 2, rank 3). Its helper thread used 62 to 70% of a core at the title.
-   On 2-core laptops (#159) that competes with the game. Measure it with the benchmark, then decide whether it should
-   start off, or switch off by itself, on CPUs with few cores. A cheap first win if the numbers support it.
-3. **The game thread** (Tier 2, rank 1), the biggest lever. Find which of Elliott's lean memory block copies cause the
-   boot-route difference, keep the safe ones, measure. Expect roughly 5 to 10%, not a doubling. KongMing's
-   RecompCore pull requests (aiming at the about 30% the Steam Deck needs for 30 FPS) belong here, each with
-   before and after numbers from the benchmark and identical game behavior.
-4. **The graphics thread** (Tier 2, rank 2). Profile command conversion and vertex decoding at the benchmark spot.
-5. **The remaining game-breaking bugs:** missing sound in later cutscenes (#65), scrambled controller layouts
-   (#61's second half, #155), the cloud and wave flicker (#136).
-6. **Linux release** (#107), once it is on current `main` and audited. Steam Deck speed is items 1 to 4, not a
-   Linux gate.
-7. **iPhone and iPad builds from Windows through PadMint** (#100, draft). It needs a full end-to-end run on a real
-   PC and an install on a device before it ships. Mac apps can't be built on Windows.
-8. **Long term: native rendering** (wowjinxy's idea), replacing the CPU-side drawing conversion piece by piece with
-   the decompilation. The largest gain and the most work, after items 3 and 4.
-
-No promise of 30 FPS on a Steam Deck yet: no single change gets there, so it takes several measured gains stacked
-together.
 
 ## How this list is ordered
 
