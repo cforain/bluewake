@@ -82,8 +82,9 @@ changes.
    launch with a progress screen. The ready-made Windows and Linux builds stay until that works.
 
 10. **Linux** ([#107](https://github.com/chrissotraidis/bluewake/pull/107)). Two laptops and a Steam Deck have run it.
-    Its shared change (a cheaper direct-call check) was shown byte-identical from a save state on Linux. Merge it
-    once its CI passes, then the package audit and Chris's approval for a release.
+    Merged into `main` on October 8 (its shared change, a cheaper direct-call check, was shown byte-identical
+    from a save state). Next: say when Vulkan is missing (item 5), then the package audit and Chris's approval for
+    a release.
 
 11. **Android at the iPhone app's standard** ([#93](https://github.com/chrissotraidis/bluewake/pull/93)). *Status:*
     up to date with 0.6.0 and playing on a Galaxy Z Fold 7; controller handoff works. Not started: the ⋯ menu and the
