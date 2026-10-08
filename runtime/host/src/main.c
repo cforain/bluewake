@@ -6705,6 +6705,7 @@ static bool host_state_load(const char* path, CPUState* cpu,
     dol_guest_memory_dirty_mark(0x80000000u, cpu->ram_size);
     if (g_state_aurora)
         dol_aurora_set_fast_forward(false);
+    bluewake_fast_load_set_retrace(g_host_retrace_count);
     snprintf(g_state_last_path, sizeof g_state_last_path, "%s", path);
     ok = true;
     fprintf(stderr,
