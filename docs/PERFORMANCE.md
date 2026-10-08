@@ -108,13 +108,16 @@ Recomp does for the Wii U's graphics library. It comes after 1, 2 and 5.
 The slow part is compiling the game module (17 to 45 minutes on a desktop, longer on a laptop). Everything else is
 minutes.
 
-- **Measure from a save state, not by playing.** `BLUEWAKE_LOAD_STATE=STATE BLUEWAKE_MAX_RETRACES=N
-  BLUEWAKE_WALL_PACE=0` runs the game as fast as it can for N retraces and exits. The wall time is the game's speed.
-  `BLUEWAKE_GUEST_CHECKPOINT_INTERVAL=500` adds hashes of the CPU and memory, so two builds can be shown to behave
-  the same (jkoehler11's check on #178). A short script (`scripts/bench_state.py`, to write) runs this for
-  Windows, Linux and Mac and prints game frames a second plus the checkpoints. Each run is about a minute.
-- **Three private save states:** Outset by the pier, just before the bird scene, inside Dragon Roost Cavern. Made
-  once from a maintainer's own card, never committed or attached.
+- **Measure with a script, not by playing.** \`scripts/bench_tour.py\` (to write) uses pieces the builders already
+  have. It copies the tester's own memory card and places a save on Outset (\`scripts/card_set_restart.py\`), then
+  continues it with the pad script the save acceptance uses, which reaches control in about 833 retraces. Then it
+  warps through Windfall, Dragon Roost Cavern, the sea and back (\`BLUEWAKE_TEST_WARP\`, the training tour's stops)
+  with \`BLUEWAKE_WALL_PACE=0\`, so the game runs as fast as the machine allows. It prints game frames a second at
+  each stop, headless and rendered, plus \`BLUEWAKE_GUEST_CHECKPOINT_INTERVAL\` hashes that show two builds behave
+  the same (jkoehler11's check on #178). One unattended run takes a few minutes, needs nothing private shared,
+  and gives the same numbers on any machine.
+- **Save states** (\`BLUEWAKE_LOAD_STATE\`) cover a scene the tour can't reach, like the bird scene. They're made
+  from a maintainer's own card and never committed or attached.
 - **Runtime and host changes** (items 3, 4 and 6) rebuild the app without recompiling the game module.
 - **Build-flag changes** (items 1 and 2) are one unattended build each, on the fastest machine available: pdale-boop's
   i5-12600KF builds in about 17 minutes, jkoehler11's Ryzen 9 5900X on Linux.
