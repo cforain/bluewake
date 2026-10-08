@@ -159,6 +159,15 @@ class TrainingTest(unittest.TestCase):
         self.assertGreater(len(observed), count)
         self.assertEqual(len(list((self.root / 'pgo-local').glob('attempt-*'))), 2)
 
+    def test_tour_playbacks_follow_cpus_or_the_option(self):
+        tour = sorted(bw.Builder.TRAINING_TOUR)
+        for cpus, option, expect in [(4, None, 1), (16, None, 5), (64, None, 10), (4, 3, 3), (16, 20, 10)]:
+            with self.subTest(cpus=cpus, option=option), patch.object(bw.os, "cpu_count", return_value=cpus):
+                self.b.args.tour_playbacks = option
+                groups = self.b.tour_groups()
+                self.assertEqual(len(groups), expect)
+                self.assertEqual(sorted(p for g in groups for p in g), tour)
+
     def test_package_includes_atomic_wait_runtime_and_training_identity(self):
         self.b.app_build = self.root / "app";self.b.app_build.mkdir()
         (self.b.app_build / "BlueWake.exe").write_bytes(b"synthetic host")

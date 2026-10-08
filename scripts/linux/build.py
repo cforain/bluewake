@@ -701,7 +701,8 @@ int main(void) {
 
     def tour_groups(self):
         """The tour's stops split over the playbacks this PC can run at once."""
-        playbacks = max(1, min(len(self.TRAINING_TOUR), (os.cpu_count() or 4) // 3))
+        playbacks = getattr(self.args, "tour_playbacks", None) or (os.cpu_count() or 4) // 3
+        playbacks = max(1, min(len(self.TRAINING_TOUR), playbacks))
         return [self.TRAINING_TOUR[i::playbacks] for i in range(playbacks)]
 
     def training_fingerprint(self):
@@ -1059,6 +1060,8 @@ def main():
                         help="skip local optimization training; compile without a profile")
     parser.add_argument("--no-pgo", action="store_true", help="alias for --no-train")
     parser.add_argument("--retrain", action="store_true", help="record a new local profile instead of reusing one")
+    parser.add_argument("--tour-playbacks", type=int, default=None,
+                        help="training: how many playbacks play the tour at once (default: logical CPUs / 3)")
     parser.add_argument("--prepared-blocks", action="store_true",
                         help="opt into experimental prepaid-block optimization (off by default; timing pending)")
     parser.add_argument("--fixed-cpu", action="store_true",
