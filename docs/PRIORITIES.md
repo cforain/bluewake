@@ -37,8 +37,9 @@ changes.
    controllers already connected when the handler is installed. pdale-boop offered the pull request; review it the
    same day. Ship it in the next build.
 
-2. **Speed: follow [PERFORMANCE.md](PERFORMANCE.md).** It holds the evidence (17 player logs), what is ruled out,
-   and the levers in order of payoff for effort, with a fast way to test them. In short:
+2. **Speed: carry out [the runbook in PERFORMANCE.md](PERFORMANCE.md#the-runbook).** Phases 1 to 4 are written to
+   be done in order by any agent: the benchmark tour, three small runtime fixes, the `--no-cold` test, then lean
+   block copies. The file also holds the evidence (17 player logs) and what is ruled out. In short:
    - **A benchmark tour** (`scripts/bench_tour.py`, to write): the tester's own card, Outset and the training
      tour's stops unpaced, with checkpoint hashes that show two builds behave the same. Every speed change is measured with it.
    - **The 30% instruction gap.** BlueWake's game thread runs about 158 M instructions a retrace where a build from
