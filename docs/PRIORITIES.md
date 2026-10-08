@@ -15,7 +15,7 @@ and the dated files in [status/](status/).
 rates and slowdowns in busy scenes. So the next builds focus on making `main` run better, while the way BlueWake
 ships catches up with [DIRECTION.md](DIRECTION.md).
 
-1. **Speed on `main`**: the game thread first, measured with one benchmark (items 2 to 8 below).
+1. **Speed on `main`**, by the plan in [PERFORMANCE.md](PERFORMANCE.md): measured from save states, biggest lever first.
 2. **Controllers that miss the 0.6.0 fixes at launch** (#138): a small fix with a big reach.
 3. **Releases without game code** on every platform, built on first launch ([DIRECTION.md](DIRECTION.md#1-no-game-code-in-any-release)).
 4. **Linux** (#107) merged and released, then **Android** (#93) at the iPhone app's standard.
@@ -37,77 +37,60 @@ changes.
    controllers already connected when the handler is installed. pdale-boop offered the pull request; review it the
    same day. Ship it in the next build.
 
-2. **A shared benchmark and a performance report.** *Why:* every speed change has to be measured the same way, and
-   player reports need numbers. *First step:* one save on Outset (`scripts/card_set_restart.py`, sea room 44) and
-   one just before the bird scene, the same settings and warm caches, read from `[perf-summary]` and `[fps-dip]`,
-   on the Mac, a Windows laptop and the Steam Deck. Then a "Copy performance report" action in every menu
-   ([DIRECTION.md](DIRECTION.md#5-performance-is-measured-and-shown)).
+2. **Speed: follow [PERFORMANCE.md](PERFORMANCE.md).** It holds the evidence (17 player logs), what is ruled out,
+   and the levers in order of payoff for effort, with a fast way to test them. In short:
+   - **A benchmark from save states** (`scripts/bench_state.py`, to write): a minute a run, with checkpoint hashes
+     that show two builds behave the same. Every speed change is measured with it.
+   - **The 30% instruction gap.** BlueWake's game thread runs about 158 M instructions a retrace where a build from
+     Wind Waker Recomp's translation runs 110 M on the same phone. Elliott's lean block copies, kept out by BlueWake's
+     cycle-exact comparison, are the likely cause. It needs Chris's decision on the acceptance standard
+     ("plays the same"), then one build each on Linux and Windows.
+   - **Code the training skipped is compiled for size** on Windows and Linux: cutscenes, combat, bosses. One
+     `--no-cold` build (added October 8) tests it.
+   - **Smooth Motion's pacing** steps down to 30 and stays there for up to minutes on CPUs where its frames don't
+     compete with the game; fix it in the shared runtime.
+   - **Say when the renderer falls back** (OpenGL ES ran the bird scene at 4%, Vulkan at 74% or more).
+   - **The graphics thread** on four-core CPUs, after those.
 
-3. **Re-certify the native entries** ([#179](https://github.com/chrissotraidis/bluewake/issues/179), Tier 2, rank 1).
-   *Evidence:* jkoehler11's `perf record` on the Steam Deck at Outset puts the game thread's time in collision
-   filtering (`cBgS_Chk::ChkSameActorPid`, `cTgIt_JudgeFilter`, `dBgW::ChkGrpThrough`), J3D model walking and the
-   display-list and matrix emission path. Those are the functions the 15 native entries replace (`native_bg.c`,
-   `native_search.c`, `native_fifo.c`, `native_mtxcalc.c`), and today none of them is hooked: their hashes match
-   Elliott's lean translation, not BlueWake's. *First step:* make the comparison tests (`tests/native_*_test.c`)
-   load a Linux `.so` or a Mac `.dylib` as well as a Windows DLL, run them against a BlueWake module, and record
-   the hashes that pass. Then measure at the benchmark spot. This is the most direct lever on the hot spots players
-   hit.
+   The native entries (#179) are worth re-certifying sometime, but they were measured at about 1% of the game
+   thread together, so they are not a speed fix.
 
-4. **Lean prepaid block copies** (Tier 2, rank 1). *Evidence:* BlueWake's conservative copies skip nearly every
-   block that touches memory. Elliott's lean copies differed in BlueWake's boot-route comparison on October 2 by 22
-   of 600 samples. *First step:* find the chunks that cause the difference (`scripts/ablate_chunk.py`, chunk by
-   chunk), keep the lean form everywhere else, and check that the boot route and guest checkpoints are identical.
-   Expect 5 to 10% on the game thread. KongMing's RecompCore pull requests belong here.
-
-5. **Say when the renderer falls back.** *Evidence:* fehnomenal's Linux laptop silently fell back to OpenGL ES
-   because the Vulkan loader was missing. The bird scene ran at 4% speed there; with Vulkan, the lowest was 74%.
-   *First step:* a line on screen and in the log when the preferred renderer isn't available, with what to install.
-   Small, and it removes the worst reports.
-
-6. **Smooth Motion's cost on small CPUs** (Tier 2, rank 3). *Evidence:* its helper thread used 62 to 70% of a core
-   at the title; #159's two-core laptop runs at 38 to 65% speed. *First step:* measure at 30, 60 and 120 with the
-   benchmark, then decide whether it starts off, or turns itself off, on CPUs with few cores.
-
-7. **The graphics thread** (Tier 2, rank 2). *Evidence:* #86's GX worker is 92 to 98% busy in Outset; the title
-   flyover is about 20,000 draws a frame. *First step:* profile command conversion and vertex decoding at the
-   benchmark spot. Long term this is native rendering (item 15).
-
-8. **Cloud, wave and fog flicker** ([#136](https://github.com/chrissotraidis/bluewake/issues/136), Tier 1).
+3. **Cloud, wave and fog flicker** ([#136](https://github.com/chrissotraidis/bluewake/issues/136), Tier 1).
    *Evidence:* two NVIDIA players; clean at 30 FPS, flickering at 60 and 120, the forest's fog too; new in 0.5.0.
    *First step:* their runs with `DOL_AURORA_INTERP_ALL_VERTICES=1` and `DOL_GX_TRANSFORM_VERIFY=1`, one at a
    time (asked on #136); whichever stops it names the patch (0155 or 0152).
 
-9. **Releases without game code** ([DIRECTION.md](DIRECTION.md#1-no-game-code-in-any-release)). *First step:* a
+4. **Releases without game code** ([DIRECTION.md](DIRECTION.md#1-no-game-code-in-any-release)). *First step:* a
    reviewed optimization profile so players skip the training run, then a Windows app that runs the builder on first
    launch with a progress screen. The ready-made Windows and Linux builds stay until that works.
 
-10. **Linux** ([#107](https://github.com/chrissotraidis/bluewake/pull/107)). Two laptops and a Steam Deck have run it.
+5. **Linux** ([#107](https://github.com/chrissotraidis/bluewake/pull/107)). Two laptops and a Steam Deck have run it.
     Merged into `main` on October 8 (its shared change, a cheaper direct-call check, was shown byte-identical
-    from a save state). Next: say when Vulkan is missing (item 5), then the package audit and Chris's approval for
+    from a save state). Next: say when Vulkan is missing ([PERFORMANCE.md](PERFORMANCE.md), lever 4), then the package audit and Chris's approval for
     a release.
 
-11. **Android at the iPhone app's standard** ([#93](https://github.com/chrissotraidis/bluewake/pull/93)). *Status:*
+6. **Android at the iPhone app's standard** ([#93](https://github.com/chrissotraidis/bluewake/pull/93)). *Status:*
     up to date with 0.6.0 and playing on a Galaxy Z Fold 7; controller handoff works. Not started: the ⋯ menu and the
     touch controls, which must match the iPhone app ([the bar](DIRECTION.md#2-every-platform-gets-the-same-app)).
     It holds full speed when cool and drops to 20 to 23 FPS when the phone throttles. Its game thread runs about
     158 M instructions a retrace against 110 M in the port based on Wind Waker Recomp's translation, the same gap as
-    items 3 and 4.
+    the lean block copies in item 2.
 
-12. **Smaller bugs from the 0.6.0 checks:** the Pictobox left stick can't move the cursor at "keep this picture?" and
+7. **Smaller bugs from the 0.6.0 checks:** the Pictobox left stick can't move the cursor at "keep this picture?" and
     in the gallery (the zoom takeover in `mouse_camera.c` stays on); rumble goes to every connected controller; the
     right stick also aims, and is always inverted (pdale-boop, #186). The Pictobox fallback
     (`BLUEWAKE_CACHE_FLUSH_FALLBACK`) now passes on the Mac and Windows; turn it on by default once a physical iPad
     agrees.
 
-13. **Features from [DIRECTION.md](DIRECTION.md#6-features-worth-taking):** gyro aiming (#188), HD textures from
+8. **Features from [DIRECTION.md](DIRECTION.md#6-features-worth-taking):** gyro aiming (#188), HD textures from
     the menu, then a mod manager (#152).
 
-14. **iPhone and iPad builds from Windows through PadMint** (#100, draft).
+9. **iPhone and iPad builds from Windows through PadMint** (#100, draft).
 
-15. **Long term: native rendering**, replacing the CPU-side drawing conversion piece by piece with the decompilation.
+10. **Long term: native rendering**, replacing the CPU-side drawing conversion piece by piece with the decompilation.
     The largest gain and the most work.
 
-No promise of 30 FPS on a Steam Deck yet: it takes several measured gains stacked together (items 3, 4, 6 and 7).
+No promise of 30 FPS on a Steam Deck yet: it takes the lean block copies and the cold-code fix together ([PERFORMANCE.md](PERFORMANCE.md)).
 
 ### Waiting on someone else
 
@@ -195,7 +178,7 @@ This is the most visible problem after the bugs above, and it is on BlueWake's s
 
 | Rank | Bottleneck | Reports | What we know | Next step |
 | --- | --- | --- | --- | --- |
-| 1 | **Game thread (the translated game code)** | [#137](https://github.com/chrissotraidis/bluewake/issues/137) (Ryzen 7 2700), [#59](https://github.com/chrissotraidis/bluewake/issues/59) (bird scene), [#159](https://github.com/chrissotraidis/bluewake/issues/159) (i7-6500U laptop: 10 to 20 FPS where Dolphin gets 30 to 40), Steam Deck on the Linux port (22 FPS on average, CPU-bound, about 30% short of 30) | In #137's log, 35 of 83 seconds ran below full speed (lowest 65%); 27 name the game thread. On the Mac, the host's per-block bookkeeping costs about a sixth as much as the game code itself, so fewer block boundaries is the lever. The Windows release has BlueWake's conservative prepaid block copies, which skip nearly every block that touches memory: Elliott's `lean_memory.py` then changes 0 accesses and his native entries certify 0 of 15. His full transform failed BlueWake's strict boot-route comparison on October 2 ([findings](status/FIXES_2026-10-07.md#performance-findings)). | Find which block forms cause that divergence, chunk by chunk; copy the safe ones with lean accesses; measure on Windows in the same Outset spot. James Koehler-Killeen (KongMing) offered to measure on the Steam Deck first (`perf record`, `[fps-dip]` lines), then send small RecompCore PRs with before/after numbers ([plan](https://github.com/chrissotraidis/bluewake/pull/107)). October 8: denormals ruled out (the game sets FPSCR NI at boot, so flush-to-zero is on all session); jkoehler11's `perf record` on the Deck puts the time in collision filtering, J3D model walking and display-list emission, the native entries' targets (plan item 3). The Linux bird scene's 4% was an OpenGL ES fallback; with Vulkan its lowest is 74% ([details](status/TRIAGE_2026-10-08.md#the-bird-scene-one-cutscene-two-problems-65-59)). #179's 0 of 15 native entries is the conservative copies, not drift; the comparison tests need a Linux loader to be rerun ([details](status/TRIAGE_2026-10-08.md#native-entries-certify-0-of-15-179)). |
+| 1 | **Game thread (the translated game code)** | [#137](https://github.com/chrissotraidis/bluewake/issues/137) (Ryzen 7 2700), [#59](https://github.com/chrissotraidis/bluewake/issues/59) (bird scene), [#159](https://github.com/chrissotraidis/bluewake/issues/159) (i7-6500U laptop: 10 to 20 FPS where Dolphin gets 30 to 40), Steam Deck on the Linux port (22 FPS on average, CPU-bound, about 30% short of 30) | In #137's log, 35 of 83 seconds ran below full speed (lowest 65%); 27 name the game thread. On the Mac, the host's per-block bookkeeping costs about a sixth as much as the game code itself, so fewer block boundaries is the lever. The Windows release has BlueWake's conservative prepaid block copies, which skip nearly every block that touches memory: Elliott's `lean_memory.py` then changes 0 accesses and his native entries certify 0 of 15. His full transform failed BlueWake's strict boot-route comparison on October 2 ([findings](status/FIXES_2026-10-07.md#performance-findings)). | Follow [PERFORMANCE.md](PERFORMANCE.md): benchmark from save states, the acceptance standard, then Elliott's lean block copies behind a builder flag. James Koehler-Killeen (KongMing) offered to measure on the Steam Deck first (`perf record`, `[fps-dip]` lines), then send small RecompCore PRs with before/after numbers ([plan](https://github.com/chrissotraidis/bluewake/pull/107)). October 8: denormals ruled out (the game sets FPSCR NI at boot, so flush-to-zero is on all session); jkoehler11's `perf record` on the Deck puts the time in collision filtering, J3D model walking and display-list emission, the native entries' functions, which save only about 1% together. The Linux bird scene's 4% was an OpenGL ES fallback; with Vulkan its lowest is 74% ([details](status/TRIAGE_2026-10-08.md#the-bird-scene-one-cutscene-two-problems-65-59)). #179's 0 of 15 native entries is the conservative copies, not drift; the comparison tests need a Linux loader to be rerun ([details](status/TRIAGE_2026-10-08.md#native-entries-certify-0-of-15-179)). |
 | 2 | **Graphics thread (GX worker) converting the game's drawing to GPU work on the CPU** | [#86](https://github.com/chrissotraidis/bluewake/issues/86) (i7-6950X, RTX 3080), Steam Deck reports on Discord | In Outset the GX worker is 92 to 98% busy and the game drops to 55 to 90% speed; resolution barely matters. The title flyover is about 20,000 draws a frame. The app's own optimization profile cut the GX worker's time per frame from about 16.9 to 14 ms on an i9 (October 2), and older Visual Studio builds now skip that profile with a note (#153). | Profile the GX worker in the same Outset spot with warm caches; find the hot paths in command conversion and vertex decoding. |
 | 3 | **Smooth Motion's own cost** | #137, [#79](https://github.com/chrissotraidis/bluewake/issues/79) | At 120 FPS the in-between frames cost CPU time and pause after every slowdown (six step-downs in #137's two minutes); its helper thread used 62 to 70% of a core at the title. | Compare the same spot at 30, 60 and 120 to measure the cost; make sure the pause is not triggered by the interpolation's own work. |
 | 4 | **Build time** | [#104](https://github.com/chrissotraidis/bluewake/issues/104) (3 hours on an M4 MacBook Air), [#153](https://github.com/chrissotraidis/bluewake/issues/153) (45-minute compile on an i5-12600KF) | The Windows builder assumes 2.5 GB per compile job, but #153 measured about 0.3 GB per clang process with 19 GB free. Training takes about 30 minutes of the Windows build. | Recheck the memory-per-job estimate to allow more jobs; see whether a reviewed profile could let players skip training. |

@@ -560,7 +560,14 @@ int main(void) {
             flags = [f"-fprofile-instr-use={self.profile.as_posix()}", "-Wno-profile-instr-unprofiled",
                      "-Wno-profile-instr-out-of-date", "-Wno-backend-plugin"]
             print(f"with the optimization profile {self.profile.name}")
-        tiered = self.profile is not None and not getattr(self.args, "no_tiered", False)
+            if getattr(self.args, "no_cold", False):
+                # Code the training never ran (cutscenes, combat, bosses) is
+                # optimized for speed like the rest, not for size: profile-guided
+                # size optimization off, and every chunk at -O2 (docs/PERFORMANCE.md).
+                flags += ["-mllvm", "-pgso=false"]
+                print("--no-cold: code the training never ran is compiled for speed too")
+        tiered = (self.profile is not None and not getattr(self.args, "no_tiered", False)
+                  and not getattr(self.args, "no_cold", False))
         cold = self.cold_sources() if tiered else None
         return self.compile_composite(self.out / "composite", self.args.opt_level, flags, [], "composite", cold)
 
@@ -852,6 +859,7 @@ int main(void) {
             "composite_digest": (self.out / "composite-src.digest").read_text().strip(),
             "mods": bool(self.mods),
             "march": self.args.march,
+            "no_cold": getattr(self.args, "no_cold", False),
             "prepared_blocks": self.args.prepared_blocks,
             "fixed_cpu": self.args.fixed_cpu,
             "fixed_mem1": self.args.fixed_mem1,
@@ -1002,6 +1010,10 @@ def main():
     parser.add_argument("--no-tiered", action="store_true",
                         help="compile every chunk at -O2, not only those the optimization training ran "
                              "(a build about 25 minutes longer)")
+    parser.add_argument("--no-cold", action="store_true",
+                        help="compile code the optimization training never ran for speed, like the code it ran: "
+                             "implies --no-tiered and turns off profile-guided size optimization (a longer build; "
+                             "an experiment for scenes the training skips, docs/PERFORMANCE.md)")
     parser.add_argument("--no-mods", action="store_true", help="skip the widescreen and Better Wind Waker variants")
     parser.add_argument("--no-train", action="store_true",
                         help="skip local optimization training; compile without a profile")
