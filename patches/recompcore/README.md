@@ -102,3 +102,9 @@ off (`gamecube_axis`: full travel is 100, where a GameCube stick's gate stops it
 `PADClamp` is the only dead zone. BlueWake turns the cutoff off for player 1's controller
 (`runtime/host/src/controller_ports.h`, issue #138). With it on, the first value the game saw was 22% of
 its range and full tilt came at two thirds of the travel. Number 0158 is the Linux port's shutdown fix above.
+
+Patch 0160 lets a host choose Aurora's user folder with `DOL_AURORA_USER_DIR`, as `DOL_AURORA_CACHE_DIR`
+already chooses its cache folder. That folder holds `imgui.ini`, controller button remaps (`*.controller`),
+keyboard bindings and `controller_ports.dat`. BlueWake's Windows host points it at the player's data folder,
+so portable mode no longer writes them to `%APPDATA%\BlueWake` (issue #64), and copies any the portable
+folder doesn't have yet. In normal mode the data folder is the one SDL picks, so nothing moves.
