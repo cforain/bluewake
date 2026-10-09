@@ -10,7 +10,8 @@ import tempfile
 
 
 # SteamOS currently provides glibc, but not necessarily the same libstdc++ as
-# the build host. BlueWake therefore targets an old glibc and bundles libc++.
+# the build host. BlueWake therefore caps glibc at the Ubuntu 24.04 build
+# baseline and bundles libc++.
 GLIBC_VERSION = re.compile(r"\bGLIBC_(\d+(?:\.\d+)*)\b")
 GLIBCXX_VERSION = re.compile(r"\bGLIBCXX_(\d+(?:\.\d+)*)\b")
 
@@ -141,7 +142,7 @@ def main(args):
         return 2
 
     image = Path(args[0]).resolve()
-    maximum_glibc = args[1] if len(args) == 2 else "2.35"
+    maximum_glibc = args[1] if len(args) == 2 else "2.39"
     if not image.is_file():
         print(f"appimage audit: not a file: {image}", file=sys.stderr)
         return 2

@@ -10,27 +10,21 @@ permissions:
   contents: read
 
 jobs:
-  # Ubuntu 22.04 is an LTS release with standard security maintenance through
-  # May 2027. It is also the glibc 2.35 baseline tested successfully on SteamOS
-  # in #214; revisit this pin before standard support ends.
+  # Keep the project's existing Ubuntu 24.04 LTS runner. Its glibc 2.39 ABI is
+  # compatible with current SteamOS releases; the audit below prevents a future
+  # runner update or bundled library from silently raising that baseline.
   host:
-    name: Host tests and AppImage (Ubuntu 22.04 / glibc 2.35)
-    runs-on: ubuntu-22.04
+    name: Host tests and AppImage (Ubuntu 24.04 / glibc 2.39)
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
-      - name: Install the compatibility toolchain
+      - name: Install build and packaging tools
         run: |
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            ca-certificates wget gnupg python3-pip
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key \
-            | sudo gpg --dearmor -o /usr/share/keyrings/apt.llvm.org.gpg
-          echo "deb [signed-by=/usr/share/keyrings/apt.llvm.org.gpg] https://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main" \
-            | sudo tee /etc/apt/sources.list.d/llvm-18.list >/dev/null
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
+            ca-certificates wget python3-pip python3-venv \
             build-essential git clang-18 libc++-18-dev libc++abi-18-dev \
             ninja-build pkg-config binutils patchelf zsync imagemagick \
             desktop-file-utils libwayland-dev libxkbcommon-dev \
@@ -39,18 +33,24 @@ jobs:
             libpulse-dev libxss-dev libxtst-dev zlib1g-dev libpng-dev \
             libfreetype6-dev libsqlite3-dev libzstd-dev libabsl-dev \
             libfmt-dev libbz2-dev libbrotli-dev libicu-dev
-          python3 -m pip install --user cmake==3.31.10
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          python3 -m venv "$RUNNER_TEMP/cmake-venv"
+          "$RUNNER_TEMP/cmake-venv/bin/pip" install cmake==3.31.10
+          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
       - name: Install pinned AppImage tools
         run: |
           set -euo pipefail
           tools="$RUNNER_TEMP/appimage-tools"
           mkdir -p "$tools"
+          # Use an immutable release instead of AppImage's mutable `continuous`
+          # asset. The SHA-256 published in the upstream GitHub release metadata
+          # makes CI reject a changed, corrupt, or substituted executable.
           wget -q \
             https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage \
             -O "$tools/appimagetool-x86_64.AppImage"
           echo "ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0  $tools/appimagetool-x86_64.AppImage" \
             | sha256sum -c -
+          # appimagetool otherwise downloads the mutable current runtime while
+          # packaging. Pin and verify that executable stub for reproducibility.
           wget -q \
             https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64 \
             -O "$tools/runtime-x86_64"
@@ -113,7 +113,7 @@ jobs:
           scripts/linux/make_appimage.sh build/appimage-ci \
             build/appimage-ci/BlueWake-CI-Fixture-x86_64.AppImage
           python3 scripts/linux/check_appimage_abi.py \
-            build/appimage-ci/BlueWake-CI-Fixture-x86_64.AppImage 2.35
+            build/appimage-ci/BlueWake-CI-Fixture-x86_64.AppImage 2.39
           build/appimage-ci/BlueWake-CI-Fixture-x86_64.AppImage --help
           test -s build/appimage-ci/BlueWake-CI-Fixture-x86_64.AppImage.zsync
           # The synthetic module only proves that packaging and ABI checks work.
