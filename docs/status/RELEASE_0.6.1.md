@@ -23,6 +23,8 @@ from source. Every version needs your own USA (GZLE01) disc image. Nothing from 
   Thanks to saulob (#89).
 - Windows portable mode keeps controller remaps, keyboard bindings and window layout in the `user` folder, so
   nothing is written to `%APPDATA%\BlueWake` anymore (#64).
+- Building your own copy is faster: the optimization training now plays the tour of the game in parallel, about 12
+  minutes instead of 30 on a 16-thread PC, with the same speed afterwards. Thanks to pdale-boop (#202).
 - Linux: BlueWake builds and runs natively from your own disc, with saves, controllers, settings and HD packs
   (#107). Thanks to jkoehler11 (KongMing), and to fehnomenal and the Steam Deck testers. The steps are in
   `docs/LINUX.md`. Make sure Vulkan is installed: without it, BlueWake falls back to a much slower renderer.
