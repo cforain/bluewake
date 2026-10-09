@@ -45,6 +45,12 @@ and stores, while BlueWake's makes conservative copies that skip nearly every bl
 measured his set at 26.3 to 23.6 ms of game thread a frame on four cores, and it is in Wind Waker Recomp's
 Windows builds.
 
+*Measured on October 8* (LiquidAzir, Galaxy Z Fold 7, Outset's pier, started cool, `simpleperf`): the Wind Waker
+Recomp port runs at 100% speed with 110 M instructions a retrace; BlueWake 0.6.0 at 69% with 173 M. Turning on
+every other BlueWake option (direct calls, gather pipe, the natives) moved BlueWake from 172.7 M to 173.2 M,
+nothing. His WWR build uses Elliott's lean block copies and neither lean memory nor native entries, so the copies
+are the gap.
+
 *Why it isn't on:* on October 2 Elliott's version passed 30,000 function comparisons but differed in BlueWake's
 strict boot-route comparison, which demands the exact same guest state at the same cycle: the final PC and 22 of
 600 samples differed. Dropping the bookkeeping stores moves when interrupts land by a few cycles, so this is
@@ -59,7 +65,7 @@ the strict comparison for correctness fixes.
 Linux and Windows. Measure with the benchmark below, play the routes, and make it the default if both hold.
 *Expected:* 10 to 30% less game-thread work. *Effort:* a few days and two builds.
 
-### 2. Code the training skipped is compiled for size (cheapest test)
+### 2. Code the training skipped is compiled for size (tested: no gain)
 
 *Evidence:* the Windows and Linux builders train on the opening and a tour of warps, then compile code the training
 never ran as cold: optimized for size, and at `-O1` with tiering. The tour has no cutscenes, combat or bosses, so
@@ -71,7 +77,12 @@ for the hottest chunks. When the Apple build tried `-O1` everywhere, the iPad dr
 off) and compare the bird scene, a dungeon and Outset with the default build. *Expected:* nothing at Outset, which
 is trained; up to about 15% in scenes the training skips. *Effort:* one longer build.
 
-*If it helps:* make it the default, or train on a longer tour that plays cutscenes and fights, or ship a profile
+*Result, October 8:* it doesn't help. `--no-cold` was 1 to 3.5% *slower* everywhere, the bird scene and
+untrained dungeons and bosses included, on an i5-12600KF (pdale-boop) and a Ryzen 9 5900X (jkoehler11), with
+identical checkpoints. The bigger module crowds the instruction cache, worst on small cores. It stays off and
+the training tour stays as it is; see "Results".
+
+*Had it helped:* make it the default, or train on a longer tour that plays cutscenes and fights, or ship a profile
 trained by maintainers over a long playthrough. The last also lets players skip the 30-minute training run, which
 first-launch builds need anyway ([DIRECTION.md](DIRECTION.md#1-no-game-code-in-any-release)).
 
@@ -116,8 +127,16 @@ minutes.
   each stop, headless and rendered, plus `BLUEWAKE_GUEST_CHECKPOINT_INTERVAL` hashes that show two builds behave
   the same (jkoehler11's check on #178). One unattended run takes a few minutes, needs nothing private shared,
   and two builds on the same machine compare directly.
-- **Save states** (`BLUEWAKE_LOAD_STATE`) cover a scene the tour can't reach, like the bird scene. They're made
-  from a maintainer's own card and never committed or attached.
+- **Measure from save states made once.** Continuing a card is not repeatable: two runs of one build already
+  differ in `[guest-checkpoint]` by retrace 600, before the save loads (pdale-boop, #59). So the tour first makes
+  a state from the card (`BLUEWAKE_SAVE_STATE=PATH@2390`, once control is reached), and every measurement starts
+  from states (`BLUEWAKE_LOAD_STATE`). From states, both runs of a build and both builds gave identical checkpoints
+  at all nine of pdale-boop's spots. States also cover what warps can't reach: the bird scene, a boss. They're
+  made from a maintainer's or tester's own card and never committed or attached.
+- **Slow-CPU stand-in:** pin the game to the efficiency cores of a hybrid Intel CPU (an i5-12600KF's E-cores run
+  it at 55% of a P-core). They show code-layout effects more clearly than a fast core.
+- **Benchmarking a Windows PC remotely:** start rendered runs in the desktop session (a scheduled task with `/IT`);
+  from SSH they run in session 0, without a real display, at 40 to 52 retraces a second whatever the scene.
 - **Runtime and host changes** (items 3, 4 and 6) rebuild the app without recompiling the game module.
 - **Build-flag changes** (items 1 and 2) are one unattended build each, on the fastest machine available: pdale-boop's
   i5-12600KF builds in about 17 minutes, jkoehler11's Ryzen 9 5900X on Linux.
@@ -213,8 +232,9 @@ set it, in both menus, with a `[smooth-motion] off by default: N threads` log li
 
 ### Phase 3: code the training skipped (`--no-cold`, lever 2)
 
-*Goal:* find whether compiling untrained code for size costs real speed. If jkoehler11 or pdale-boop answered on
-#59, start from their numbers.
+**Done October 8: no gain, the option stays off** (lever 2 above, and "Results"). Kept for reference.
+
+*Goal:* find whether compiling untrained code for size costs real speed.
 
 1. On one x86 machine and one commit: build normally, keep a copy of the app folder, then build with `--no-cold`
    (`scripts/windows/build.py DISC --no-cold` or `scripts/linux/build.py`). The second build reuses translation
@@ -240,18 +260,25 @@ difference is in the refund blocks, which shift when interrupts land
 `scripts/windows/lean_memory.py` and `native_entries.py` (Elliott, `552ce1f`) only work on the original's
 copies; that is why they change 0 accesses and certify 0 of 15 today (#179).
 
-1. **Data first.** Read LiquidAzir's answer on #93 (his two Android builds, same spot: game speed, `[chassis]`
-   lines, options). If his Wind Waker Recomp build differs in ways besides the block copies, note them here.
-2. **The flag.** Add `--lean-blocks` to `scripts/windows/build.py` and `scripts/linux/build.py`. It runs the
-   original transform as a mode of `fast_blocks.py` (restore its logic from `git show 0db6d35:scripts/windows/fast_blocks.py`,
-   keeping Elliott's credit with a `Co-authored-by:` line), then `lean_memory.py` and `native_entries.py`.
-   Off by default. It joins the source fingerprint and the training fingerprint, like the other options.
-   Synthetic tests in the style of `tests/test_windows_prepared_cache.py`. *Check:* on prepared source,
-   `native_entries.py` should report 15 of 15 certified and `lean_memory.py` a nonzero count. If not, stop and
-   find out why before building.
-3. **Build and measure.** On one x86 machine and commit: the default build and a `--lean-blocks` build. Run the
-   benchmark on both, headless and rendered. On Linux, also `perf stat -e instructions` over the Outset stop.
-   *Read it:* game frames a second at Outset, and instructions a retrace if measured.
+1. **Data first. Done October 8:** LiquidAzir's phone numbers (lever 1 above) point at the copies alone.
+2. **The flag. Done October 9.** `--lean-blocks` in both builders runs `fast_blocks.py --lean`: Elliott's original
+   copy logic from `0db6d35`, with today's exclusions for the certified native leaves, under its own marker so a
+   chunk prepared in one mode is refused by the other. Off by default; it joins the source, receipt, training and
+   provenance records. `lean_memory.py` accepts lean copies, and `--lean-memory` now requires `--gather-pipe`
+   (its accesses call that header's helpers). Checked on the October 4 translated source on the Mac: 443,166
+   copies in 813 chunks (the October 2 donor count exactly; the conservative mode still gives 197,459 in 812),
+   then the builders' order (inline helpers, lean copies, direct calls with 235,556 calls, lean memory with
+   501,016 accesses), and every one of the 813 chunks passes a syntax-only compile. Not checked: a full compile,
+   a run, and `native_entries.py` on a source with the Windows native preparations.
+3. **Build and measure, in this order**, on one x86 machine and commit, each against the default build:
+   - `--lean-blocks` alone. This is what Wind Waker Recomp ships, and it should close most of the gap.
+   - `--lean-blocks --lean-memory`, a second step only if the first holds.
+   - `--native-entries` with both: its log says how many of the 15 certify. With jkoehler11's Linux loader
+     (#194), the comparison tests can be rerun against that module.
+
+   Run the benchmark on each, headless and rendered, from the same states. On Linux, also
+   `perf stat -e instructions` over the Outset state. LiquidAzir offered to run any lean build on his phone at
+   Outset and at sea (#93). *Read it:* game frames a second at Outset, and instructions a retrace.
 4. **Does it play the same?** The checkpoints will differ (that is the known divergence). Check instead, with the
    `--lean-blocks` build:
    - the benchmark reaches every stop, in the same order, both modes;
@@ -286,9 +313,14 @@ whose reports it answers (#137, #159, #86, #59, the Steam Deck users on #107), w
 | Decision | Status | Who |
 | --- | --- | --- |
 | Performance changes are accepted when the game "plays the same" (phase 4, step 4), not only when cycle-exact. Correctness fixes keep the strict comparison. | **Proposed October 8, waiting for Chris.** Phases 1 to 4 can build and measure behind flags without it; only turning `--lean-blocks` on by default needs it. | Chris, with Elliott |
-| `--no-cold` or a longer training tour | After phase 3 | Chris |
+| `--no-cold` or a longer training tour | **Decided by the numbers, October 8: neither.** `--no-cold` is slower; the tour stays. | |
 
 ## Results
 
 | Date | Change | Machine | State | Before | After | Same behavior? |
 | --- | --- | --- | --- | --- | --- | --- |
+| Oct 8 | `--no-cold` | i5-12600KF, Windows (pdale-boop) | Bird scene, headless, unpaced | 82.1 / 82.7 retraces a second | 80.9 / 80.9 (−1.8%) | Yes, identical checkpoints |
+| Oct 8 | `--no-cold` | i5-12600KF | Outset; Tower room 0; Wind and Earth Temples; Dragon Roost; Savage Labyrinth; Molgera; Gohma | | −1.0 to −3.5% (Molgera +0.3%) | Yes |
+| Oct 8 | `--no-cold` | i5-12600KF, 4 E-cores | Tower room 0 | 46.7 | 45.3 (−2.9%) | Yes |
+| Oct 8 | `--no-cold` | Ryzen 9 5900X, Linux (jkoehler11) | Bird scene, 2,000 retraces unpaced | 26.27 s | 26.86 s (−2.2%) | Yes, identical blocks and checkpoints |
+| Oct 8 | Wind Waker Recomp's lean copies vs BlueWake 0.6.0 (reference) | Galaxy Z Fold 7 (LiquidAzir) | Outset pier, cool | BlueWake 69%, 173 M instr./retrace | WWR port 100%, 110 M | Different builds |

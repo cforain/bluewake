@@ -46,8 +46,10 @@ changes.
      Wind Waker Recomp's translation runs 110 M on the same phone. Elliott's lean block copies, kept out by BlueWake's
      cycle-exact comparison, are the likely cause. It needs Chris's decision on the acceptance standard
      ("plays the same"), then one build each on Linux and Windows.
-   - **Code the training skipped is compiled for size** on Windows and Linux: cutscenes, combat, bosses. One
-     `--no-cold` build (added October 8) tests it.
+   - **Code the training skipped:** tested October 8 by pdale-boop and jkoehler11. `--no-cold` is 1 to 3.5%
+     slower everywhere, so it stays off.
+   - **Ready for the next build (October 9):** `--lean-blocks` in both builders. One build with it, against a
+     default build, measures the lever.
    - **Smooth Motion's pacing** steps down to 30 and stays there for up to minutes on CPUs where its frames don't
      compete with the game; fix it in the shared runtime.
    - **Say when the renderer falls back** (OpenGL ES ran the bird scene at 4%, Vulkan at 74% or more).

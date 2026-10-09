@@ -535,7 +535,8 @@ int main(void) {
         inputs = hashlib.sha256()
         inputs.update((f"{digest}\n{int(self.mods)}\n{int(self.args.prepared_blocks)}\n"
                        f"{int(self.args.fixed_cpu)}\n{int(self.args.fixed_mem1)}\n{int(self.args.inline_fp)}\n{int(self.args.gather_pipe)}\n{int(self.args.direct_calls)}\n{int(self.args.inline_gpr)}\n{int(self.args.native_j3d)}\n{int(self.args.native_vec)}\n{int(self.args.native_math)}\n{int(self.args.native_skin)}\n{int(self.args.native_game_math)}\n"
-                       f"{int(self.args.lean_memory)}\n{int(self.args.native_entries)}\n").encode())
+                       f"{int(self.args.lean_memory)}\n{int(self.args.native_entries)}\n"
+                       + ("lean_blocks\n" if getattr(self.args, "lean_blocks", False) else "")).encode())
         for f in (sorted((ROOT / "scripts/mods").glob("*")) + sorted((ROOT / "mods/widescreen").glob("*.gecko"))
                   + [ROOT / "mods/betterww/options.txt", ROOT / "scripts/windows/fast_blocks.py",
                      ROOT / "scripts/windows/global_guest_cpu.py", ROOT / "scripts/windows/chunk_headers.py",
@@ -696,7 +697,8 @@ int main(void) {
             self.run("inline-gpr", [sys.executable, ROOT / "scripts/windows/inline_save_restore_gpr.py",
                                      o / "composite-src"])
         if self.args.prepared_blocks:
-            self.run("prepared-blocks", [sys.executable, script, o / "composite-src"])
+            self.run("prepared-blocks", [sys.executable, script, o / "composite-src"]
+                     + (["--lean"] if getattr(self.args, "lean_blocks", False) else []))
         if self.args.direct_calls:
             self.run("direct-calls", [sys.executable, ROOT / "scripts/windows/direct_calls.py",
                                        o / "composite-src"])
@@ -724,6 +726,7 @@ int main(void) {
                    "native_skin": self.args.native_skin,
                    "native_game_math": self.args.native_game_math,
                    "lean_memory": self.args.lean_memory,
+                   "lean_blocks": getattr(self.args, "lean_blocks", False),
                    "native_entries": self.args.native_entries,
                    "gather_sha256": {name: sha256_file(ROOT / "cmake/composite" / name)
                                      for name in ("gather_pipe.h", "gather_pipe.c", "gather_pipe_batch.h")},
@@ -887,11 +890,11 @@ int main(void) {
         key.update(json.dumps({"recipe": self.TRAINING_VERSION,
                                "compiler": self.clang_version, "march": self.args.march,
                                "mods": self.mods,
-                               "options": {name: getattr(self.args, name) for name in
+                               "options": {name: getattr(self.args, name, False) for name in
                                            ("prepared_blocks", "fixed_cpu", "fixed_mem1", "inline_fp",
                                             "gather_pipe", "direct_calls", "inline_gpr", "native_j3d",
                                             "native_vec", "native_math", "native_skin", "native_game_math",
-                                            "lean_memory", "native_entries")},
+                                            "lean_memory", "native_entries", "lean_blocks")},
                                "runtime": self.git("-C", str(self.recompcore), "rev-parse", "HEAD"),
                                "source": tree_digest(self.out / "composite-src")},
                               sort_keys=True).encode())
@@ -1065,6 +1068,7 @@ int main(void) {
             "mods": bool(self.mods),
             "march": self.args.march,
             "no_cold": getattr(self.args, "no_cold", False),
+            "lean_blocks": getattr(self.args, "lean_blocks", False),
             "prepared_blocks": self.args.prepared_blocks,
             "fixed_cpu": self.args.fixed_cpu,
             "fixed_mem1": self.args.fixed_mem1,
@@ -1249,6 +1253,10 @@ def main():
                         help="certify and enable optional native skinning preparation (off by default)")
     parser.add_argument("--native-math", action="store_true",
                         help="prepare certified native matrix functions; off by default, compatible host opt-in required")
+    parser.add_argument("--lean-blocks", action="store_true",
+                        help="Elliott Tate's original prepaid block copies, as Wind Waker Recomp's builds make them: "
+                             "every block, fewer pc stores (implies --prepared-blocks; off by default; a measured "
+                             "experiment, docs/PERFORMANCE.md phase 4)")
     parser.add_argument("--lean-memory", action="store_true",
                         help="Wind Waker Recomp's lean loads and stores in prepaid copies (off by default; "
                              "needs --prepared-blocks)")
@@ -1276,8 +1284,12 @@ def main():
         parser.error("--inline-gpr requires --direct-calls")
     if args.fixed_mem1 and not args.fixed_cpu:
         parser.error("--fixed-mem1 requires --fixed-cpu")
+    if args.lean_blocks:
+        args.prepared_blocks = True
     if args.lean_memory and not args.prepared_blocks:
         parser.error("--lean-memory requires --prepared-blocks")
+    if args.lean_memory and not args.gather_pipe:
+        parser.error("--lean-memory requires --gather-pipe (its accesses call gather_pipe.h's helpers)")
     if args.native_entries and not (args.direct_calls and args.gather_pipe and args.native_vec):
         parser.error("--native-entries requires --direct-calls, --gather-pipe and --native-vec")
     if args.jobs is None:
