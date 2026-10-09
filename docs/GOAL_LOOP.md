@@ -1,54 +1,48 @@
-# BlueWake goal loop: release 0.6.0
+# BlueWake goal loop: 0.6.1 and the speed measurement
 
-Updated October 7, 2026. The previous loop (finding and fixing the post-0.5.0 bugs) is done and kept in
-[archive/GOAL_LOOP_2026-10-07.md](archive/GOAL_LOOP_2026-10-07.md). What to build after this release is in
-[PRIORITIES.md](PRIORITIES.md).
+Updated October 9, 2026. The 0.6.0 loop is finished and kept in
+[archive/GOAL_LOOP_2026-10-08.md](archive/GOAL_LOOP_2026-10-08.md). What to work on after this is in
+[PRIORITIES.md](PRIORITIES.md); the speed plan is [PERFORMANCE.md](PERFORMANCE.md).
 
 ## Goal
 
-Publish **BlueWake 0.6.0** from one frozen commit of `main`: the ready-made Windows build, the iPhone and iPad
-app without game code, the source zip and the PadMint recipe. Each fix below is checked on the platforms it ships to,
-as far as the hardware at hand allows, and the reporters are asked to confirm. PadMint picks up the new release by
-itself: it reads the latest release's `padmint.json` and app.
+One build day (planned for October 10, when Chris has the compute) makes two things from **one commit of `main`**:
 
-The code is done and merged. What is left is building, checking on real hardware and publishing.
+1. **0.6.1**, a small release of what's in `main` since 0.6.0. These are fixes only; nothing changes gameplay or
+   timing. It ships as usual: the ready-made Windows build, the iPhone and iPad app without game code, the source
+   and the PadMint recipe.
+2. **A `--lean-blocks` build of the same commit**, not released. It is measured against the 0.6.1 build to see
+   whether Elliott's lean block copies close the 30% speed gap ([PERFORMANCE.md](PERFORMANCE.md), phase 4).
 
-## What 0.6.0 contains
+## What 0.6.1 contains
 
 | Change | Issue | Ships to | Checked so far | Still to check |
 | --- | --- | --- | --- | --- |
-| Dungeon maps draw their grid and rooms | #74 | All | Mac, iPad simulator | Windows |
-| Intro music after the title music | #97 | On by default: Mac, iPhone, iPad. Windows: step 4 decides | Mac (captured audio), physical iPad | Windows with the variable on |
-| A controller recognized late, or left as player 2, plays as player 1 | #61 | Mac, Windows | Unit test with real SDL and Aurora | A physical controller |
-| The Wind Waker baton is not mirrored | #156 | Mac, Windows | Live Mac run (the conducting flag) | Conducting with a controller |
-| No big dead zone or jump on the left stick | #138 | All controllers | Unit test, Windows compile | A physical controller |
-| Option: invert the left stick when aiming | #154 | Mac, Windows | Live Mac run (aiming detected) | Windows menu |
-| Touch controls released when Apple menus open | none | iPhone, iPad | Simulator | A physical device |
-| Clean quit (shutdown fix from the Linux port) | #56 | All | Mac quit with Smooth Motion on | Windows quit |
-| The session log names the controller mapping in use | #61 | Mac, Windows | Unit test | None |
-| Visual Studio 2022 builds from source | #153 | Windows builder | LLVM 18, 20 and 22 against the real profile | The reporter's build |
+| Controllers plugged in at launch get the smooth stick and play as player 1 (pdale-boop, #195) | #138, #155 | Windows, Mac, Linux | pdale-boop on Windows with two controllers; a test in CI | Mac with a controller at launch |
+| Portable mode keeps controller remaps, keyboard bindings and `imgui.ini` in the `user` folder (#184) | #64 | Windows | CI | A Windows PC ([WINDOWS_TASKS.md](WINDOWS_TASKS.md)) |
+| The window opens in place: centred, then where you left it (saulob, #197; RecompCore patch 0161) | #89 | Windows | CI, once merged | A Windows PC |
+| Linux builds from source (jkoehler11, #107) | #56 | Linux | Two laptops and a Steam Deck | A package audit before any Linux download |
 
-Not in 0.6.0: the Linux build (#107), the performance work (PRIORITIES Tier 2), later cutscene sound (#65), the
-flicker (#136), HD pack shading (#80), the controller picker (#155). The Pictobox fallback stays opt-in.
+Not in 0.6.1: `--lean-blocks` on by default (it needs the measurement and Chris's decision), the Smooth Motion
+pacing and renderer-fallback fixes (PERFORMANCE.md phase 2, not written yet), Android (#93).
 
 ## Steps
 
 | # | Step | Who | Done when |
 | --- | --- | --- | --- |
-| 1 | **Freeze.** `version.json` to 0.6.0 build 5, README download names, release notes in `docs/status/RELEASE_0.6.0.md`. Merge, and record the commit as the candidate. | Codex | CI green; candidate commit written in the notes |
-| 2 | **Apple.** From the candidate: `scripts/builder/build.sh --app-only --ipa BlueWake-v0.6.0-ios-unsigned.ipa`, PadMint's audit and `scripts/release/check_public_assets.sh`. Then a full PadMint build from the owned disc (the player's route), kept private. On the Mac and in the iOS Simulator: launch, wait for the title music and check the intro's captured audio, load a copied save, open a dungeon map, quit. | Codex, on Chris's Mac | Every check passes; logs and builds stay local. A physical iPhone or iPad only if Chris asks, with a backup and readback first |
-| 3 | **Windows build and checks.** Codex on Chris's PC follows [WINDOWS_BUILD_0.6.0.md](status/WINDOWS_BUILD_0.6.0.md) as its own loop: it builds #172's branch (the candidate with the intro fix on), walks Chris through the intro with and without the fix, a dungeon map from a test save made from his own card, save, load and quit, and the controller rows if a controller is at hand. | Codex on the PC, Chris plays | Results pull request opened |
-| 4 | **Windows intro default.** Decided by check a in that file. If it passes, the build already has the fix on and #172 merges. If it fails, the PC agent rebuilds the candidate with the fix off, and the notes document the variable. | Decided by the PC run; Codex on the Mac merges | The default and its evidence recorded |
-| 5 | **Package.** The PC agent packages and uploads the Windows zip to the **draft** release `v0.6.0`. On the Mac: download it, compare its SHA-256, `check_public_assets.sh` on every asset (for the Windows zip, `containsTranslatedGameCode: true` is the only accepted finding); source zip and IPA from the release commit, `padmint.json`, `SHA256SUMS`, the notes. | Codex on both machines | Draft release with five audited assets |
-| 6 | **Publish.** Chris publishes and tags. Then: PadMint's `doctor` and `plan` see 0.6.0; each issue above gets a note asking its reporter to confirm; PRIORITIES moves these rows to "shipped". | Chris publishes; Codex follows up | Release live; issues updated |
+| 1 | **Freeze.** Merge #196 (`--lean-blocks`) and #197 (fast-forward RecompCore `bluewake-next` to #19's commit first). Set `version.json` to 0.6.1 build 6, fill in [RELEASE_0.6.1.md](status/RELEASE_0.6.1.md) and record the commit. | Codex | CI green; the commit written in the record |
+| 2 | **Windows 0.6.1.** `python scripts\windows\build.py DISC` from the commit, as for 0.6.0. Check the three Windows rows in WINDOWS_TASKS.md: a controller connected at launch, portable remaps, the window in place. Keep a copy of the build folder for step 3. | Chris's PC or a contributor | Build made, rows checked |
+| 3 | **The speed build.** Same commit, same machine: `build.py DISC --lean-blocks --out build\windows-lean`. It reuses the translation; only preparation, training and the compile repeat. | Same machine | Build made |
+| 4 | **Measure.** From save states made once from your own card (PERFORMANCE.md, "How to test"): Outset, the bird scene and Tower room 0, headless and rendered, unpaced, both builds. Then play the lean build for 30 minutes: Outset, a cutscene with music, Dragon Roost Cavern, sailing, a fight. | Chris, or pdale-boop / jkoehler11, who offered | A row in PERFORMANCE.md's "Results" |
+| 5 | **Apple.** `scripts/builder/build.sh --app-only --ipa BlueWake-v0.6.1-ios-unsigned.ipa`, PadMint's `audit` and `scripts/release/check_public_assets.sh`. No game build is needed for this. | Codex, on the Mac | Every check passes |
+| 6 | **Package and publish.** The Windows zip into a **draft** release, the release check on every asset, `SHA256SUMS`, the notes. Chris publishes. | Codex prepares; Chris publishes | Release live; each issue above told |
+| 7 | **Decide on lean blocks.** If step 4 shows Outset at least 10% faster and the play went cleanly, Chris decides the acceptance standard ([PERFORMANCE.md](PERFORMANCE.md#decisions)) and whether `--lean-blocks` becomes the default for 0.7.0. | Chris, with Elliott | Recorded in PERFORMANCE.md |
 
 ## Rules for each turn
 
 1. Read [AGENTS.md](../AGENTS.md), check `main`, open pull requests and new issue replies before acting.
-2. A problem found during the candidate gets its own small pull request. Then freeze again and rerun only the checks
-   it affects. Never move a passing result to a different build without saying so.
-3. Write what was run, on which device and from which commit in `docs/status/RELEASE_0.6.0.md`. A build that compiles
-   is not a game that plays; a simulator is not a device.
-4. Personal builds, game modules, discs, saves and logs stay private. Only the five public assets are uploaded.
-5. Ask Chris before publishing, deleting anything, or installing on his devices. Don't wait on him for anything else.
-6. If a step is blocked on hardware Chris has, say exactly what to run and keep going with the other steps.
+2. Never move a result from one build to another. The 0.6.1 build and the lean build come from the same commit,
+   and each result names its build.
+3. Builds, game modules, discs, cards, save states and logs stay private. Only the release assets are uploaded.
+4. A second `build.py` run into the same folder can fail at `native-game-math` (pdale-boop, #59; a fix is
+   offered). Until it's merged, use a fresh `--out` folder for each build.
