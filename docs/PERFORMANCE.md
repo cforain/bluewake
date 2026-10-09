@@ -114,6 +114,81 @@ off on CPUs with four threads or fewer, so it never makes things worse.
 The long-term lever is native rendering, replacing the CPU-side conversion of drawing commands, as Wind Waker HD
 Recomp does for the Wii U's graphics library. It comes after 1, 2 and 5.
 
+## The long road: what the HD project and the decompilation make possible
+
+The levers above make the current design faster. This section is about changing the design, step by step, as the
+Wind Waker decompilation ([zeldaret/tww](https://github.com/zeldaret/tww)) fills in. Written October 9, 2026.
+
+### Why Wind Waker HD Recomp is fast
+
+From its own [how-it-works](https://github.com/ZeldaWWHDRecomp/ZeldaWWHDRecomp/blob/main/docs/how-it-works.md) and
+[performance](https://github.com/ZeldaWWHDRecomp/ZeldaWWHDRecomp/blob/main/docs/performance.md) notes:
+
+- **It emulates behavior, not cycles.** Translated functions are plain C functions. Timing lives at the API level:
+  vsync, flips, GPU completion and thread priorities. There is no per-instruction cycle accounting. Each guest
+  thread is a host thread, and preemption happens at function entry.
+- **Graphics at the API level.** It implements the Wii U's GX2 calls directly on Metal and Vulkan, so no command
+  stream is encoded and then parsed again. Batching its draws was worth 47 to 53% in its own test.
+- **Release builds at -O3,** high-resolution timers on Windows, and a fixed-scene benchmark from save states.
+- **It uses the decompilation for knowledge:** about 14,000 HD functions are named by matching them to the
+  GameCube decompilation, which is how it finds, for example, the camera code it interpolates.
+
+BlueWake emulates the GameCube's cycle timing (each block charges cycles, stores its pc, and checks deadlines) and
+converts the game's raw GX command stream on the CPU. On the one function measured on September 22
+(`J3DSys::reinitTevStages`), the translation is 5.8 emitted statements per guest instruction: 21% are pc stores
+and 9% cycle bookkeeping. Compiled from the decompilation's source, the same function is 0.91 host instructions
+per guest instruction, six to thirty times cheaper ([CURRENT.md](status/CURRENT.md), September 22).
+
+### Where the decompilation is
+
+| Date | Code matched | Main executable (engine, SDK) | Actor modules (RELs) | Functions matched |
+| --- | --- | --- | --- | --- |
+| August 13 | about 80% | | | |
+| October 9 | 79.1% | 87.1% of code, 95.8% of functions | 73.1% | 32,848 of 39,324 (83.5%) |
+
+From [decomp.dev](https://decomp.dev/zeldaret/tww). Add a row each month. The August figure is from
+[DECISIONS.md](status/DECISIONS.md); it was measured differently.
+
+### Route B, the source port BlueWake already tried
+
+In August and September BlueWake built a native port from the decompilation's source alongside the recompilation
+("route B"; its records are [DECISIONS.md](status/DECISIONS.md) and `docs/status/ROUTE_B_*.md`; the code itself
+is not in this repository). It drew the original Nintendo logo
+through Aurora and compiled most of the process layer. It stopped on porting effort, not speed: the source assumes
+32-bit big-endian types and pointers, and Dusklight (the Twilight Princess port) needed about 1,500 `TARGET_PC`
+conditionals across 293 files. The recompilation shipped instead.
+
+### Three horizons
+
+**1. Days (0.6.1 and 0.7.0): make the current design lean.** The levers and runbook above: lean block copies
+(about a third fewer instructions on the phone), Smooth Motion's pacing and defaults on small CPUs, the renderer
+fallback notice. The decision they need: performance changes count when the game plays the same, not only when
+it is cycle-exact (see "Decisions"). That is the HD project's accuracy model, and every later step depends on it.
+
+**2. Weeks (0.8): emulate behavior, not cycles, and use the decompilation to aim.**
+- *Lighter timing.* After lean blocks, measure what bookkeeping is left per block (pc stores, cycle statements,
+  deadline tests, chassis returns). Then test a translation mode that charges cycles per block and delivers
+  interrupts only at block or function boundaries, where nothing observes the pc in between. Measure it with the
+  benchmark, then check it with the "plays the same" checks.
+- *Natives where they remove round trips.* The actor search native saved 21.9% in a heavy view because it removed
+  three chassis round trips per loop step; leaf functions saved almost nothing. Use the decompilation's names on a
+  profile to find loops that cross chunks often (collision, J3D draw loops, particles), and replace those, each
+  with its comparison test.
+- *Static display lists.* J3D models draw from display lists that don't change. Check whether the GX worker
+  converts them again every frame, and if so cache the converted form.
+
+**3. Months: move subsystems to the API level, as the decompilation allows.**
+- *Graphics at the J3D/GX API level* (wowjinxy's idea), the GameCube version of what the HD project does with GX2.
+  The SDK's GX functions are in the main executable, 96% matched, and Aurora already implements the GX API (route B
+  drew through it). Hook the hot draw paths there instead of parsing the command stream. Largest gain for the
+  graphics thread and four-core CPUs.
+- *Scene by scene from source,* when the decompilation is complete enough. Port matched areas with route B's
+  tooling, keeping the recompilation as the reference and the fallback. Revisit when the actor modules pass about
+  90% of code matched, or when a `TARGET_PC` effort appears upstream.
+
+Each step keeps the rules: off by default until measured and tested on its platform, a result row here, and the
+recompilation as the reference that every change is compared with.
+
 ## How to test without the long loop
 
 The slow part is compiling the game module (17 to 45 minutes on a desktop, longer on a laptop). Everything else is

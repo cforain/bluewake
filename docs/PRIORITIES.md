@@ -55,6 +55,10 @@ changes.
    - **Say when the renderer falls back** (OpenGL ES ran the bird scene at 4%, Vulkan at 74% or more).
    - **The graphics thread** on four-core CPUs, after those.
 
+   - **The long road** ([PERFORMANCE.md](PERFORMANCE.md#the-long-road-what-the-hd-project-and-the-decompilation-make-possible)):
+     emulate behavior rather than cycles, then move graphics to the GX API level and port scenes from source as the
+     Wind Waker decompilation fills in (79% of code matched on October 9).
+
    The native entries (#179) are worth re-certifying sometime, but they were measured at about 1% of the game
    thread together, so they are not a speed fix.
 
