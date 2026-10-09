@@ -35,16 +35,14 @@ appdir="$work/BlueWake.AppDir"
 mkdir -p "$appdir/usr/bin" "$appdir/usr/lib" "$appdir/usr/share/icons/hicolor/256x256/apps" \
          "$appdir/usr/share/applications"
 
-# The host and its data files.
+# The host and its redistributable data files. main.dol, the RELs and the disc
+# itself are deliberately absent: the launcher validates and prepares them from
+# the player's own disc on first run.
 cp "$app/bluewake" "$appdir/usr/bin/bluewake"
 if [ -f "$app/initial_pipeline_cache.db" ]; then
     cp "$app/initial_pipeline_cache.db" "$appdir/usr/bin/"
 fi
-mkdir -p "$appdir/usr/bin/game" "$appdir/usr/bin/dsp"
-cp "$app/game/main.dol" "$appdir/usr/bin/game/main.dol" 2>/dev/null || true
-if [ -d "$app/game/rels" ]; then
-    cp -r "$app/game/rels" "$appdir/usr/bin/game/rels"
-fi
+mkdir -p "$appdir/usr/bin/dsp"
 cp "$app/dsp/dsp_rom.bin" "$app/dsp/dsp_coef.bin" "$appdir/usr/bin/dsp/" 2>/dev/null || true
 cp "$app/gGZLE01_recomp.so" "$appdir/usr/bin/gGZLE01_recomp.so"
 
@@ -83,6 +81,11 @@ Exec=bluewake
 Icon=BlueWake
 Categories=Game;
 Terminal=false
+Actions=Setup;
+
+[Desktop Action Setup]
+Name=Configure BlueWake
+Exec=bluewake --setup
 EOF
 ln -sf ../BlueWake.desktop "$appdir/usr/share/applications/BlueWake.desktop"
 
@@ -104,10 +107,12 @@ fi
 ln -sf usr/bin/bluewake "$appdir/bluewake"
 ln -sf usr/share/icons/hicolor/256x256/apps/BlueWake.png "$appdir/.DirIcon"
 
+desktop-file-validate "$appdir/BlueWake.desktop"
+
 echo "make_appimage: squashing $out"
 ARCH=x86_64 appimagetool "$appdir" "$out"
 
-# zsync metadata for delta auto-update.
+# zsync metadata for delta-capable update tools.
 zsyncmake -u "$(basename "$out")" -o "$out.zsync" "$out"
 
 echo "make_appimage: $out"

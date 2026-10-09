@@ -128,18 +128,26 @@ static int needs_unpacking(const char* path) {
 
 typedef struct {
     char result[4096];
+    char error[1024];
+    bool failed;
     volatile bool done;
 } ChooseState;
 
 static void SDLCALL choose_callback(void* userdata, const char* const* filelist, int filter) {
+    (void)filter;
     ChooseState* state = (ChooseState*)userdata;
-    if (filelist != NULL && filelist[0] != NULL)
+    if (filelist == NULL) {
+        state->failed = true;
+        snprintf(state->error, sizeof state->error, "%s", SDL_GetError());
+    } else if (filelist[0] != NULL) {
         snprintf(state->result, sizeof state->result, "%s", filelist[0]);
+    }
     state->done = true;
 }
 
 // The explanation goes to stderr (the session log); the picker is SDL's.
-// 1 and the chosen path, or 0 when the player cancels.
+// 1 and the chosen path, 0 when the player cancels, or -1 when no dialog
+// backend is available.
 static int choose(const char* why, char* out, size_t size) {
     const char* testing = getenv("BLUEWAKE_DISC_CHOICE");
     if (testing != NULL) {
@@ -148,6 +156,11 @@ static int choose(const char* why, char* out, size_t size) {
     }
     if (getenv("BLUEWAKE_NO_DIALOG") != NULL)
         return 0;
+    if ((SDL_WasInit(SDL_INIT_EVENTS) & SDL_INIT_EVENTS) == 0 &&
+        !SDL_InitSubSystem(SDL_INIT_EVENTS)) {
+        fprintf(stderr, "[disc] could not initialize the file chooser: %s\n", SDL_GetError());
+        return -1;
+    }
     fprintf(stderr,
             "%sBlueWake plays The Legend of Zelda: The Wind Waker from your own "
             "copy of the game: the GameCube disc for the USA (GZLE01).\n\n"
@@ -157,12 +170,23 @@ static int choose(const char* why, char* out, size_t size) {
         {"GameCube disc images", "iso;gcm"},
         {"All files", "*"},
     };
-    ChooseState state = {{0}, false};
+    ChooseState state = {{0}, {0}, false, false};
+    SDL_ClearError();
     SDL_ShowOpenFileDialog(choose_callback, &state, NULL, filters,
                            (int)(sizeof filters / sizeof filters[0]), NULL, false);
     // Pump until the callback fires (the dialog is modal and asynchronous).
-    while (!state.done)
+    while (!state.done) {
         SDL_PumpEvents();
+        SDL_Delay(10);
+    }
+    if (state.failed) {
+        fprintf(stderr,
+                "[disc] the file chooser could not open: %s\n"
+                "[disc] Install an XDG desktop portal backend or Zenity, or start "
+                "BlueWake with --disc FILE.\n",
+                state.error[0] != '\0' ? state.error : "no supported Linux dialog backend");
+        return -1;
+    }
     if (state.result[0] == '\0')
         return 0;
     snprintf(out, size, "%s", state.result);
@@ -209,7 +233,10 @@ int bw_disc_setup(const char* exe_dir, const char* data_dir) {
     const int scripted = getenv("BLUEWAKE_DISC_CHOICE") != NULL;
     for (;;) {
         if (disc[0] == '\0' || !is_file(disc)) {
-            if (!choose(why, path, sizeof path)) {
+            const int chosen = choose(why, path, sizeof path);
+            if (chosen < 0)
+                return -1;
+            if (chosen == 0) {
                 fprintf(stderr, "[disc] no disc image chosen\n");
                 return 1;
             }
