@@ -153,9 +153,10 @@ and opens the window in place.
 The natives hook only where the translated code matches what Wind Waker Recomp's builder produces (0 of 15
 match today), and lean memory needs the deadline test in Wind Waker Recomp's newer `fast_blocks.py`.
 
-1. Bring Wind Waker Recomp's `fast_blocks.py` and its step order into `scripts/windows/build.py`.
-2. Build with both options and check the `native-entries` log for how many certify.
-3. Compare speed in the same scenes with and without them.
+1. Done October 9: `--lean-blocks` brings Elliott's original copies back as an option.
+2. Build with `--lean-blocks` and compare speed with the default build in the same states
+   ([PERFORMANCE.md](PERFORMANCE.md), phase 4, step 3). Then add `--lean-memory`, then `--native-entries` and
+   check its log for how many certify.
 
 **Done when:** the natives certify, the speedup is measured, and the defaults are decided from the numbers.
 
