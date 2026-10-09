@@ -10,6 +10,9 @@ permissions:
   contents: read
 
 jobs:
+  # Ubuntu 22.04 is an LTS release with standard security maintenance through
+  # May 2027. It is also the glibc 2.35 baseline tested successfully on SteamOS
+  # in #214; revisit this pin before standard support ends.
   host:
     name: Host tests and AppImage (Ubuntu 22.04 / glibc 2.35)
     runs-on: ubuntu-22.04
