@@ -102,6 +102,11 @@ bool install_application_shortcut(const std::string& appimage, std::string& erro
     const fs::path desktop = applications / "dev.bluewake.BlueWake.desktop";
     const fs::path pending = desktop.string() + ".setup.tmp";
     const std::string executable = desktop_exec_quote(appimage);
+    // An absolute icon path is valid in a desktop entry and appears
+    // immediately even when the desktop has not refreshed its icon-theme
+    // cache yet. Keep installing it in hicolor as well for standard tooling.
+    const std::string icon_value = fs::is_regular_file(icon, ec)
+        ? icon.string() : "dev.bluewake.BlueWake";
     std::ofstream output(pending, std::ios::trunc);
     if (!output) { error = "could not create " + pending.string(); return false; }
     output << "[Desktop Entry]\n"
@@ -109,7 +114,7 @@ bool install_application_shortcut(const std::string& appimage, std::string& erro
               "Name=BlueWake\n"
               "Comment=The Legend of Zelda: The Wind Waker, statically recompiled\n"
               "Exec=" << executable << " %f\n"
-              "Icon=dev.bluewake.BlueWake\n"
+              "Icon=" << icon_value << "\n"
               "Categories=Game;\n"
               "Terminal=false\n"
               "Actions=Setup;\n\n"
