@@ -37,28 +37,39 @@ jobs:
           "$RUNNER_TEMP/cmake-venv/bin/pip" install cmake==3.31.10
           echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
       - name: Install pinned AppImage tools
+        env:
+          # Update each release and its SHA-256 together. The digests are listed
+          # on the corresponding immutable GitHub release asset:
+          # https://github.com/AppImage/appimagetool/releases/tag/1.9.1
+          # https://github.com/AppImage/type2-runtime/releases/tag/20251108
+          APPIMAGETOOL_VERSION: "1.9.1"
+          APPIMAGETOOL_X86_64_SHA256: ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0
+          TYPE2_RUNTIME_RELEASE: "20251108"
+          TYPE2_RUNTIME_X86_64_SHA256: 2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d
         run: |
           set -euo pipefail
           tools="$RUNNER_TEMP/appimage-tools"
+          appimagetool="$tools/appimagetool-x86_64.AppImage"
+          runtime="$tools/runtime-x86_64"
           mkdir -p "$tools"
           # Use an immutable release instead of AppImage's mutable `continuous`
-          # asset. The SHA-256 published in the upstream GitHub release metadata
-          # makes CI reject a changed, corrupt, or substituted executable.
+          # asset. Verify the downloaded executable against the release digest;
+          # even a one-byte difference makes sha256sum fail the CI job.
           wget -q \
-            https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage \
-            -O "$tools/appimagetool-x86_64.AppImage"
-          echo "ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0  $tools/appimagetool-x86_64.AppImage" \
-            | sha256sum -c -
+            "https://github.com/AppImage/appimagetool/releases/download/$APPIMAGETOOL_VERSION/appimagetool-x86_64.AppImage" \
+            -O "$appimagetool"
+          printf '%s  %s\n' "$APPIMAGETOOL_X86_64_SHA256" "$appimagetool" \
+            | sha256sum --check --strict -
           # appimagetool otherwise downloads the mutable current runtime while
           # packaging. Pin and verify that executable stub for reproducibility.
           wget -q \
-            https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64 \
-            -O "$tools/runtime-x86_64"
-          echo "2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d  $tools/runtime-x86_64" \
-            | sha256sum -c -
-          chmod 0755 "$tools/appimagetool-x86_64.AppImage" "$tools/runtime-x86_64"
-          echo "APPIMAGETOOL=$tools/appimagetool-x86_64.AppImage" >> "$GITHUB_ENV"
-          echo "APPIMAGE_RUNTIME_FILE=$tools/runtime-x86_64" >> "$GITHUB_ENV"
+            "https://github.com/AppImage/type2-runtime/releases/download/$TYPE2_RUNTIME_RELEASE/runtime-x86_64" \
+            -O "$runtime"
+          printf '%s  %s\n' "$TYPE2_RUNTIME_X86_64_SHA256" "$runtime" \
+            | sha256sum --check --strict -
+          chmod 0755 "$appimagetool" "$runtime"
+          echo "APPIMAGETOOL=$appimagetool" >> "$GITHUB_ENV"
+          echo "APPIMAGE_RUNTIME_FILE=$runtime" >> "$GITHUB_ENV"
       - name: Fetch the pinned public runtime
         run: |
           set -euo pipefail
