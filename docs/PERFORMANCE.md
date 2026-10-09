@@ -280,6 +280,14 @@ copies; that is why they change 0 accesses and certify 0 of 15 today (#179).
    Run the benchmark on each, headless and rendered, from the same states. On Linux, also
    `perf stat -e instructions` over the Outset state. LiquidAzir offered to run any lean build on his phone at
    Outset and at sea (#93). *Read it:* game frames a second at Outset, and instructions a retrace.
+
+   **Also measure the cost of size.** Lean copies make the translated source 64% bigger (1.03 GB to 1.70 GB on the
+   October 4 source; the conservative copies add 10%), and `--no-cold` showed that a module only 4% bigger costs 2 to
+   3% on cores with small caches. So run the Outset state on four E-cores too (pdale-boop's slow-CPU stand-in), and
+   record the compile and training times of both builds. If the E-cores gain much less than the P-cores, or the
+   build gets too long for players, the follow-up is lean copies only in the chunks the training ran hot
+   (`fast_blocks.py` given the profile's hot list, as the builders' tiering already reads it), which keeps most of the
+   speed and little of the size.
 4. **Does it play the same?** The checkpoints will differ (that is the known divergence). Check instead, with the
    `--lean-blocks` build:
    - the benchmark reaches every stop, in the same order, both modes;
