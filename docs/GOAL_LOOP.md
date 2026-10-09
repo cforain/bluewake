@@ -20,7 +20,8 @@ One build day (planned for October 10, when Chris has the compute) makes two thi
 | --- | --- | --- | --- | --- |
 | Controllers plugged in at launch get the smooth stick and play as player 1 (pdale-boop, #195) | #138, #155 | Windows, Mac, Linux | pdale-boop on Windows with two controllers; a test in CI | Mac with a controller at launch |
 | Portable mode keeps controller remaps, keyboard bindings and `imgui.ini` in the `user` folder (#184) | #64 | Windows | CI | A Windows PC ([WINDOWS_TASKS.md](WINDOWS_TASKS.md)) |
-| The window opens in place: centred, then where you left it (saulob, #197; RecompCore patch 0161) | #89 | Windows | CI, once merged | A Windows PC |
+| The window opens in place: centred, then where you left it (saulob, #197; RecompCore patch 0161) | #89 | Windows | CI (merged October 9) | A Windows PC |
+| Optional: the FPS counter's position under Display (saulob, #106; runtime in #199, patch 0162) | none | Windows, Mac | Windows 11 by saulob | Only if #106 is ready by the freeze |
 | Linux builds from source (jkoehler11, #107) | #56 | Linux | Two laptops and a Steam Deck | A package audit before any Linux download |
 
 Not in 0.6.1: `--lean-blocks` on by default (it needs the measurement and Chris's decision), the Smooth Motion
@@ -30,7 +31,7 @@ pacing and renderer-fallback fixes (PERFORMANCE.md phase 2, not written yet), An
 
 | # | Step | Who | Done when |
 | --- | --- | --- | --- |
-| 1 | **Freeze.** Merge #196 (`--lean-blocks`) and #197 (fast-forward RecompCore `bluewake-next` to #19's commit first). Set `version.json` to 0.6.1 build 6, fill in [RELEASE_0.6.1.md](status/RELEASE_0.6.1.md) and record the commit. | Codex | CI green; the commit written in the record |
+| 1 | **Freeze.** #196 (`--lean-blocks`) and #197 (the window) are merged. Merge #199 (fast-forward RecompCore `bluewake-next` to #20's commit first), and #106 if saulob has it ready and green. Set `version.json` to 0.6.1 build 6, fill in [RELEASE_0.6.1.md](status/RELEASE_0.6.1.md) and record the commit. | Codex | CI green; the commit written in the record |
 | 2 | **Windows 0.6.1.** `python scripts\windows\build.py DISC` from the commit, as for 0.6.0. Check the three Windows rows in WINDOWS_TASKS.md: a controller connected at launch, portable remaps, the window in place. Keep a copy of the build folder for step 3. | Chris's PC or a contributor | Build made, rows checked |
 | 3 | **The speed build.** Same commit, same machine: `build.py DISC --lean-blocks --out build\windows-lean`. It reuses the translation; only preparation, training and the compile repeat. | Same machine | Build made |
 | 4 | **Measure.** From save states made once from your own card (PERFORMANCE.md, "How to test"): Outset, the bird scene and Tower room 0, headless and rendered, unpaced, both builds. Then play the lean build for 30 minutes: Outset, a cutscene with music, Dragon Roost Cavern, sailing, a fight. | Chris, or pdale-boop / jkoehler11, who offered | A row in PERFORMANCE.md's "Results" |

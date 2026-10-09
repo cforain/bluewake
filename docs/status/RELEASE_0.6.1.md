@@ -9,7 +9,7 @@ the commit and what was seen. A row stays "not yet" until someone runs it.
 | --- | --- |
 | Version | 0.6.1, build 6 (`version.json`, set at the freeze) |
 | Candidate commit | not yet |
-| RecompCore | `de9d15d2a5104b891236b6c85533197d3d431588` (patches 0160 and 0161), once #197 merges |
+| RecompCore | `34fe2c18db4cd06bbf1b6d6d2b760be88a5c104c` (patches 0160 to 0162) once #199 merges; `de9d15d` (0160 and 0161) without it |
 | Previous release | 0.6.0, October 8 |
 
 ## Release notes (draft, for the release page)
