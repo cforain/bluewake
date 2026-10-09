@@ -38,10 +38,9 @@
 19:36:21.030 [aurora:info:aurora::gpu] Using surface format BGRA8Unorm, present mode FifoRelaxed
 19:36:21.111 [aurora:info:aurora::window] Window shown: input_focus=true flags=0x2221
 19:36:21.260 [aurora:info:aurora::gfx::pipeline_cache] Pipeline compile threads: 4
-19:36:21.267 [aurora:info:aurora::gfx::pipeline_cache] Seeded pipeline cache from '/home/claudio/Software/bluewake/bluewake/build/linux/BlueWake/initial_pipeline_cache.db' (513 rows merged, 0 rows skipped)
+19:36:21.267 [aurora:info:aurora::gfx::pipeline_cache] Seeded pipeline cache from <redacted-path> (513 rows merged, 0 rows skipped)
 19:36:21.268 [aurora:info:aurora] Using framebuffer size 1080x1920 scale 0.9895833
 19:36:21.301 [aurora:info:aurora::texture] Loaded 5739 texture replacement registrations from <redacted-path>
-
 19:36:21.303 [mods] texture-pack=<redacted-path> replacements=5739
 19:36:21.303 [gx-core] renderer = gxcore (default): draws route through the Dolphin-ported gxcore, live Aurora gx layer bypassed
 19:36:21.329 [audio] output available; prebuffering
@@ -52,11 +51,11 @@
 19:36:21.598 [settings] Esc (with the mouse free), F1 or a controller's Back opens the options
 19:36:21.598 [host] renderer=aurora window=960x720
 19:36:21.598 [pad] platform input initialized; live input merged at SI
-19:36:21.598 [card] slot A: /home/claudio/.local/share/BlueWake/GZLE01.card (4 Mbit, 8192-byte sectors, serial C1DF6175E663A953)
-19:36:21.610 [sram] EXI SRAM on (/home/claudio/.local/share/BlueWake/sram.bin): flags=0x2C sound=stereo
+19:36:21.598 [card] slot A: <redacted-path> (4 Mbit, 8192-byte sectors)
+19:36:21.610 [sram] EXI SRAM on (<redacted-path>): flags=0x2C sound=stereo
 19:36:21.610 [dvd] deferred completion=on (default)
 19:36:21.610 [texture-cache] fallback writeback=off
-19:36:21.610 [dvd] disc image: /home/claudio/Software/bluewake/bluewake/build/linux/BlueWake/game/GZLE01.iso (2391 FST entries)
+19:36:21.610 [dvd] disc image: <redacted-path> (2391 FST entries)
 19:36:21.610 [dvd] disc inserted for DI service
 19:36:21.610 [clock] time base starts at 844803381 s since 2000
 19:36:21.610 [clock] cycle-domain cap=16384
