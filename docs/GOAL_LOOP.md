@@ -23,6 +23,7 @@ One build day (planned for October 10, when Chris has the compute) makes two thi
 | The window opens in place: centred, then where you left it (saulob, #197; RecompCore patch 0161) | #89 | Windows | CI (merged October 9) | A Windows PC |
 | Optional: the FPS counter's position under Display (saulob, #106; runtime in #199, patch 0162) | none | Windows, Mac | Windows 11 by saulob | Only if #106 is ready by the freeze |
 | Linux builds from source (jkoehler11, #107) | #56 | Linux | Two laptops and a Steam Deck | A package audit before any Linux download |
+| Building your own copy is faster: training takes about 12 minutes instead of 30 (pdale-boop, #202) | none | Windows and Linux builders | i5-12600KF and i5-6500, matched speeds and checkpoints | The build-day builds themselves |
 
 Not in 0.6.1: `--lean-blocks` on by default (it needs the measurement and Chris's decision), the Smooth Motion
 pacing and renderer-fallback fixes (PERFORMANCE.md phase 2, not written yet), Android (#93).
