@@ -108,3 +108,8 @@ already chooses its cache folder. That folder holds `imgui.ini`, controller butt
 keyboard bindings and `controller_ports.dat`. BlueWake's Windows host points it at the player's data folder,
 so portable mode no longer writes them to `%APPDATA%\BlueWake` (issue #64), and copies any the portable
 folder doesn't have yet. In normal mode the data folder is the one SDL picks, so nothing moves.
+
+Patch 0161 adds `window_pos_x` and `window_pos_y` to `AuroraBackendConfig`, passed to Aurora's `windowPosX` and
+`windowPosY`, so the host creates the window where it should be instead of moving it after it appears (pull
+request #89, saulob). Left at zero they give the screen's corner, as before; the Windows host passes the
+player's last spot or `SDL_WINDOWPOS_CENTERED`.
