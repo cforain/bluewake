@@ -366,7 +366,7 @@ int main(int argc, char** argv) {
                 "Keep that personal build local.\n");
         return 1;
     }
-    const int disc_status = bw_disc_setup(g_exe_dir, g_data_dir);
+    const int disc_status = bw_disc_setup(g_exe_dir, g_data_dir, setup_requested);
     if (disc_status != 0) return disc_status < 0 ? 1 : 0;
     bw_default_path("BLUEWAKE_DOL", g_exe_dir, "game/main.dol");
     bw_default_path("BLUEWAKE_RELS_DIR", g_exe_dir, "game/rels");

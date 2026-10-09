@@ -193,7 +193,7 @@ static int choose(const char* why, char* out, size_t size) {
     return 1;
 }
 
-int bw_disc_setup(const char* exe_dir, const char* data_dir) {
+int bw_disc_setup(const char* exe_dir, const char* data_dir, int remember_explicit_disc) {
     g_exe = exe_dir;
     g_data = data_dir;
     const char* given_dol = getenv("BLUEWAKE_DOL");
@@ -289,7 +289,7 @@ int bw_disc_setup(const char* exe_dir, const char* data_dir) {
         }
         break;
     }
-    if (!explicit_disc && !write_line(remembered, disc)) {
+    if ((!explicit_disc || remember_explicit_disc) && !write_line(remembered, disc)) {
         fprintf(stderr, "[disc] could not remember this disc\n");
         return -1;
     }

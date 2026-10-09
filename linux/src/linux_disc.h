@@ -10,9 +10,12 @@ extern "C" {
 // first time and when it has gone, the one they choose now (checked and
 // prepared once into data_dir/game). 0 when the game can start, 1 when the
 // player chose no disc, -1 when the given disc cannot be used (said in a box).
+// remember_explicit_disc saves a valid explicit selection as the future
+// default; the setup UI uses it, while ordinary --disc overrides remain local
+// to that launch.
 //
 //   BLUEWAKE_DISC_CHOICE=FILE   testing: the file picker's answer, no dialogs
-int bw_disc_setup(const char* exe_dir, const char* data_dir);
+int bw_disc_setup(const char* exe_dir, const char* data_dir, int remember_explicit_disc);
 #ifdef __cplusplus
 }
 #endif
