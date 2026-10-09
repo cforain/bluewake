@@ -232,7 +232,7 @@ static void usage(void) {
             "  --hle-audio        Fast audio for this session\n"
             "  --lle-audio        run the DSP's own microcode instead of the HLE ucode\n"
             "  --mods LIST        mods compiled into the module, by name\n"
-            "  --setup            choose the disc, texture pack and app shortcut\n"
+            "  --setup            choose the disc, texture pack and app launchers\n"
             "  --disc FILE        the disc image to read (a bare .iso/.gcm path also works)\n"
             "  --module FILE      the translated game module (default gGZLE01_recomp.so)\n"
             "Keyboard: arrows D-pad, J A, K B, U X, I Y, W/A/S/D stick,\n"

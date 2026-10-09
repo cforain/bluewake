@@ -130,7 +130,7 @@ typedef struct {
     char result[4096];
     char error[1024];
     bool failed;
-    volatile bool done;
+    SDL_AtomicInt done;
 } ChooseState;
 
 static void SDLCALL choose_callback(void* userdata, const char* const* filelist, int filter) {
@@ -142,7 +142,7 @@ static void SDLCALL choose_callback(void* userdata, const char* const* filelist,
     } else if (filelist[0] != NULL) {
         snprintf(state->result, sizeof state->result, "%s", filelist[0]);
     }
-    state->done = true;
+    SDL_SetAtomicInt(&state->done, 1);
 }
 
 // The explanation goes to stderr (the session log); the picker is SDL's.
@@ -170,12 +170,12 @@ static int choose(const char* why, char* out, size_t size) {
         {"GameCube disc images", "iso;gcm"},
         {"All files", "*"},
     };
-    ChooseState state = {{0}, {0}, false, false};
+    ChooseState state = {0};
     SDL_ClearError();
     SDL_ShowOpenFileDialog(choose_callback, &state, NULL, filters,
                            (int)(sizeof filters / sizeof filters[0]), NULL, false);
     // Pump until the callback fires (the dialog is modal and asynchronous).
-    while (!state.done) {
+    while (!SDL_GetAtomicInt(&state.done)) {
         SDL_PumpEvents();
         SDL_Delay(10);
     }

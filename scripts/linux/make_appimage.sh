@@ -82,7 +82,7 @@ EOF
 chmod +x "$appdir/AppRun"
 
 # The .desktop entry, at the AppDir root (appimagetool looks there first) and
-# symlinked into usr/share/applications for the desktop.
+# copied into usr/share/applications for the desktop.
 cat > "$appdir/BlueWake.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application

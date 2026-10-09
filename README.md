@@ -71,7 +71,7 @@ nothing happens when you open it, see the FAQ below. To build it yourself from y
 
 The native x86-64 Linux source build is available now; a ready-made AppImage has
 not been published yet. Build it from your disc, optionally package the
-AppImage, and open its graphical configuration with `--setup`. See
+AppImage, and open its graphical setup with `--setup`. See
 [BlueWake on Linux](docs/LINUX.md) for the commands, dependencies and AppImage
 instructions.
 
