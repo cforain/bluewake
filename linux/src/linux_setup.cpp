@@ -45,8 +45,7 @@ void SDLCALL picked(void* userdata, const char* const* files, int) {
 
 std::string settings_path() {
     if (const char* selected = std::getenv("BLUEWAKE_SETTINGS"))
-        if (selected[0] != '\0' && std::strcmp(selected, "none") != 0)
-            return selected;
+        if (selected[0] != '\0') return selected;
     if (const char* xdg = std::getenv("XDG_CONFIG_HOME"))
         if (xdg[0] != '\0') return std::string(xdg) + "/BlueWake/settings.ini";
     if (const char* home = std::getenv("HOME"))
@@ -60,35 +59,6 @@ std::string xdg_data_home() {
     if (const char* home = std::getenv("HOME"))
         return std::string(home) + "/.local/share";
     return {};
-}
-
-std::string xdg_desktop_dir() {
-    const char* home_env = std::getenv("HOME");
-    if (home_env == nullptr || home_env[0] == '\0') return {};
-    const std::string home = home_env;
-    std::string config_home;
-    if (const char* xdg = std::getenv("XDG_CONFIG_HOME"))
-        if (xdg[0] != '\0') config_home = xdg;
-    if (config_home.empty()) config_home = home + "/.config";
-
-    std::ifstream input(config_home + "/user-dirs.dirs");
-    std::string line;
-    constexpr const char* prefix = "XDG_DESKTOP_DIR=\"";
-    while (std::getline(input, line)) {
-        if (line.rfind(prefix, 0) != 0 || line.size() <= std::strlen(prefix) || line.back() != '\"')
-            continue;
-        std::string configured = line.substr(std::strlen(prefix),
-                                             line.size() - std::strlen(prefix) - 1);
-        if (configured.rfind("$HOME", 0) == 0)
-            configured.replace(0, 5, home);
-        std::string unescaped;
-        for (size_t i = 0; i < configured.size(); ++i) {
-            if (configured[i] == '\\' && i + 1 < configured.size()) ++i;
-            unescaped += configured[i];
-        }
-        return unescaped;
-    }
-    return home + "/Desktop";
 }
 
 std::string desktop_exec_quote(const std::string& path) {
@@ -128,14 +98,22 @@ bool install_application_shortcuts(const std::string& appimage, std::string& err
         }
     }
 
+    if (!fs::is_regular_file(icon, ec)) {
+        error = "the AppImage does not contain its application icon";
+        return false;
+    }
+
     const fs::path menu_entry = applications / "dev.bluewake.BlueWake.desktop";
     const fs::path pending = menu_entry.string() + ".setup.tmp";
-    const std::string executable = desktop_exec_quote(appimage);
+    std::string executable;
+    if (const char* extract = std::getenv("APPIMAGE_EXTRACT_AND_RUN"))
+        if (extract[0] != '\0' && std::strcmp(extract, "0") != 0)
+            executable = "env APPIMAGE_EXTRACT_AND_RUN=1 ";
+    executable += desktop_exec_quote(appimage);
     // An absolute icon path is valid in a desktop entry and appears
     // immediately even when the desktop has not refreshed its icon-theme
     // cache yet. Keep installing it in hicolor as well for standard tooling.
-    const std::string icon_value = fs::is_regular_file(icon, ec)
-        ? icon.string() : "dev.bluewake.BlueWake";
+    const std::string icon_value = icon.string();
     std::ofstream output(pending, std::ios::trunc);
     if (!output) { error = "could not create " + pending.string(); return false; }
     output << "[Desktop Entry]\n"
@@ -159,8 +137,12 @@ bool install_application_shortcuts(const std::string& appimage, std::string& err
     fs::rename(pending, menu_entry, ec);
     if (ec) { fs::remove(pending); error = ec.message(); return false; }
 
-    const fs::path desktop_dir = xdg_desktop_dir();
-    if (desktop_dir.empty()) { error = "could not find the XDG Desktop directory"; return false; }
+    const char* desktop_path = SDL_GetUserFolder(SDL_FOLDER_DESKTOP);
+    if (desktop_path == nullptr || desktop_path[0] == '\0') {
+        error = std::string("could not find the XDG Desktop directory: ") + SDL_GetError();
+        return false;
+    }
+    const fs::path desktop_dir = desktop_path;
     fs::create_directories(desktop_dir, ec);
     if (ec) { error = "could not create the Desktop directory: " + ec.message(); return false; }
     const fs::path desktop_entry = desktop_dir / "BlueWake.desktop";
@@ -231,11 +213,27 @@ bool validate_disc(const char* path, std::string& status, bool& valid) {
     return true;
 }
 
+bool validate_textures(const char* path, std::string& status, bool& valid) {
+    valid = false;
+    if (path[0] == '\0') {
+        status = "Choose the texture pack's GZL or GZLE01 folder.";
+        return false;
+    }
+    std::error_code ec;
+    if (!fs::is_directory(path, ec)) {
+        status = "The selected texture-pack folder does not exist.";
+        return false;
+    }
+    valid = true;
+    status = "Folder selected; textures load on game start.";
+    return true;
+}
+
 } // namespace
 
-extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long disc_size) {
+extern "C" int bw_linux_setup(const char* data_dir, char* disc, size_t disc_size) {
     const std::string config = settings_path();
-    auto settings = read_settings(config);
+    auto settings = config == "none" ? std::map<std::string, std::string>{} : read_settings(config);
 
     if (disc[0] == '\0') {
         std::ifstream remembered(std::string(data_dir) + "disc.txt");
@@ -247,8 +245,8 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
     bool textures_enabled = textures[0] != '\0';
     const char* appimage_env = std::getenv("APPIMAGE");
     const std::string appimage = appimage_env != nullptr ? appimage_env : "";
-    const bool can_install_shortcut = !appimage.empty();
-    bool install_shortcut = can_install_shortcut;
+    const bool can_install_shortcuts = !appimage.empty();
+    bool install_shortcuts = can_install_shortcuts;
 
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
         std::fprintf(stderr, "[setup] SDL initialization failed: %s\n", SDL_GetError());
@@ -278,11 +276,13 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
     Picker picker;
     enum class PickKind { None, Disc, Textures } pick_kind = PickKind::None;
     std::string disc_status;
-    std::string texture_status = textures_enabled ? "Folder selected; textures load on game start." : "Optional";
+    std::string texture_status = textures_enabled ? "" : "Optional";
     std::string message;
     bool disc_valid = false;
+    bool textures_valid = !textures_enabled;
     if (disc[0] != '\0') validate_disc(disc, disc_status, disc_valid);
     else disc_status = "Choose your GZLE01 revision-0 .iso or .gcm file.";
+    if (textures_enabled) validate_textures(textures, texture_status, textures_valid);
 
     bool done = false, start = false;
     while (!done) {
@@ -306,7 +306,7 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
             } else if (picked_result == 1 && pick_kind == PickKind::Textures) {
                 copy_text(textures, sizeof textures, picker.path);
                 textures_enabled = true;
-                texture_status = "Folder selected; textures load on game start.";
+                validate_textures(textures, texture_status, textures_valid);
             } else if (picked_result < 0) {
                 message = std::string("The XDG file dialog failed: ") +
                           (picker.error[0] ? picker.error : SDL_GetError());
@@ -326,7 +326,8 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
         ImGui::Text("BlueWake Setup");
         ImGui::Separator();
         ImGui::TextWrapped("Choose your own USA GameCube Wind Waker disc. BlueWake validates and prepares it once.");
-        ImGui::InputText("Disc image", disc, disc_size);
+        if (ImGui::InputText("Disc image", disc, disc_size))
+            validate_disc(disc, disc_status, disc_valid);
         ImGui::SameLine();
         ImGui::BeginDisabled(pick_kind != PickKind::None);
         if (ImGui::Button("Browse disc...")) {
@@ -339,9 +340,13 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
                            "%s", disc_status.c_str());
         ImGui::TextDisabled("You can also drag an ISO/GCM onto this window.");
         ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
-        ImGui::Checkbox("Enable HD texture pack", &textures_enabled);
+        if (ImGui::Checkbox("Enable HD texture pack", &textures_enabled)) {
+            if (textures_enabled) validate_textures(textures, texture_status, textures_valid);
+            else { textures_valid = true; texture_status = "Optional"; }
+        }
         ImGui::BeginDisabled(!textures_enabled);
-        ImGui::InputText("Texture folder", textures, sizeof textures);
+        if (ImGui::InputText("Texture folder", textures, sizeof textures))
+            validate_textures(textures, texture_status, textures_valid);
         ImGui::SameLine();
         ImGui::BeginDisabled(pick_kind != PickKind::None);
         if (ImGui::Button("Browse textures...")) {
@@ -353,10 +358,10 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
         ImGui::TextWrapped("%s", texture_status.c_str());
         ImGui::EndDisabled();
         ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
-        ImGui::BeginDisabled(!can_install_shortcut);
-        ImGui::Checkbox("Add or update application-menu and Desktop shortcuts", &install_shortcut);
+        ImGui::BeginDisabled(!can_install_shortcuts);
+        ImGui::Checkbox("Add or update application-menu and Desktop shortcuts", &install_shortcuts);
         ImGui::EndDisabled();
-        if (can_install_shortcut)
+        if (can_install_shortcuts)
             ImGui::TextDisabled("Keep the AppImage at its current path so the shortcut can find it.");
         else
             ImGui::TextDisabled("Application-menu and Desktop integration requires running setup from the AppImage.");
@@ -364,12 +369,14 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
         ImGui::Separator();
         if (ImGui::Button("Quit")) done = true;
         ImGui::SameLine();
-        ImGui::BeginDisabled(!disc_valid);
+        ImGui::BeginDisabled(!disc_valid || !textures_valid);
         if (ImGui::Button("Start BlueWake")) {
             settings["DOL_AURORA_TEXTURE_PACK"] = textures_enabled ? textures : "";
+            setenv("DOL_AURORA_TEXTURE_PACK", settings["DOL_AURORA_TEXTURE_PACK"].c_str(), 1);
             std::string error;
-            if (!write_settings(config, settings, error)) message = "Could not save settings: " + error;
-            else if (install_shortcut && !install_application_shortcuts(appimage, error))
+            if (config != "none" && !write_settings(config, settings, error))
+                message = "Could not save settings: " + error;
+            else if (install_shortcuts && !install_application_shortcuts(appimage, error))
                 message = "Could not install the application shortcuts: " + error;
             else {
                 start = true; done = true;

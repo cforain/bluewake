@@ -70,16 +70,20 @@ upload it.
 (the default `build/linux/BlueWake-x86_64.AppImage` plus its `.zsync` metadata
 for delta-capable update tools). It bundles the host, the translated game
 module, the DSP roms and every shared library the host links except the
-glibc/libstdc++ baseline, so the image runs on any x86-64 desktop. The player's
-disc is not bundled: on first run the launcher asks for it and prepares it into
-the data dir (a disc and files extracted from it are never distributed).
+glibc/libstdc++ baseline. Build release artifacts on a suitably conservative
+Linux system: like other AppImages, compatibility is limited by the glibc and
+CPU baseline of the build host. The player's disc is not bundled: on first run
+the launcher asks for it and prepares it into the data dir (a disc and files
+extracted from it are never distributed).
 
 ### Build the AppImage
 
-The build machine needs `appimagetool`, `desktop-file-validate` (usually from
-`desktop-file-utils`) and `zsyncmake` (usually from `zsync` or `zsync-curl`) on
-`PATH`. ImageMagick is optional and is used to convert the application icon.
-After creating the Linux build from your disc as described above, run:
+The build machine needs the [current `appimagetool`](https://github.com/AppImage/appimagetool/releases),
+`desktop-file-validate` (usually from `desktop-file-utils`), `zsyncmake`
+(usually from `zsync` or `zsync-curl`) and ImageMagick on `PATH`. Do not use
+the obsolete tool from the old AppImageKit release page; it embeds a legacy
+runtime that requires FUSE 2. After creating the Linux build from your disc as
+described above, run:
 
     scripts/linux/make_appimage.sh
 
@@ -123,13 +127,12 @@ behavior. You can also skip setup and supply a disc directly:
 
     ./BlueWake-x86_64.AppImage --disc "/path/to/Wind Waker.iso"
 
-If your system cannot mount AppImages with FUSE, extract and run it temporarily
-instead:
+If your system cannot mount AppImages with FUSE, use its extract-and-run mode:
 
     APPIMAGE_EXTRACT_AND_RUN=1 ./BlueWake-x86_64.AppImage --setup
 
 The setup UI itself has no extra GUI dependency: SDL and Dear ImGui are bundled
-in the AppImage. Its **Choose** buttons need one of these system file-dialog
+in the AppImage. Its **Browse** buttons need one of these system file-dialog
 providers:
 
 - an XDG desktop portal plus a backend for your desktop (for example,
@@ -140,6 +143,13 @@ Most desktop Linux installations already provide an XDG portal. If the buttons
 do not open, install the appropriate backend or type/drag the paths into the
 setup window. FUSE is optional; use `APPIMAGE_EXTRACT_AND_RUN=1` as shown above
 when it is unavailable.
+
+### Steam Deck
+
+Run the AppImage setup in Steam Deck's Desktop Mode. It creates application-menu
+and Desktop launchers there; if extract-and-run mode was needed during setup,
+the generated launchers preserve that fallback. This improves Desktop Mode
+installation but does not add BlueWake to Steam's Gaming Mode library.
 
 ## Releases
 
