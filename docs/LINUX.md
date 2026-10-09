@@ -78,7 +78,8 @@ extracted from it are never distributed).
 
 ### Build the AppImage
 
-The build machine needs the [current `appimagetool`](https://github.com/AppImage/appimagetool/releases),
+These are packaging-only dependencies; end users do not need them. The build
+machine needs the [current `appimagetool`](https://github.com/AppImage/appimagetool/releases),
 `desktop-file-validate` (usually from `desktop-file-utils`), `zsyncmake`
 (usually from `zsync` or `zsync-curl`) and ImageMagick on `PATH`. Do not use
 the obsolete tool from the old AppImageKit release page; it embeds a legacy
@@ -140,18 +141,21 @@ mode instead. Launchers installed during this run remember the fallback:
 
     APPIMAGE_EXTRACT_AND_RUN=1 ./BlueWake-x86_64.AppImage --setup
 
-The setup UI itself has no extra GUI dependency: SDL and Dear ImGui are bundled
-in the AppImage. Its **Browse** buttons need one of these system file-dialog
-providers:
+#### End-user dependencies
+
+The setup feature adds no mandatory runtime library to the AppImage: SDL and
+Dear ImGui are bundled. Its **Browse** buttons use one of these system
+file-dialog providers when available:
 
 - an XDG desktop portal plus a backend for your desktop (for example,
   `xdg-desktop-portal` and `xdg-desktop-portal-gtk`); or
 - Zenity.
 
-Most desktop Linux installations already provide an XDG portal. If the buttons
-do not open, install the appropriate backend or type/drag the paths into the
-setup window. FUSE is optional; use `APPIMAGE_EXTRACT_AND_RUN=1` as shown above
-when it is unavailable.
+Most desktop Linux installations already provide an XDG portal. The provider
+is optional because paths can also be typed or dragged into the setup window.
+If the buttons do not open, install the appropriate backend or use either of
+those alternatives. FUSE is also optional; use
+`APPIMAGE_EXTRACT_AND_RUN=1` as shown above when it is unavailable.
 
 ### Steam Deck
 
