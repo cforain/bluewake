@@ -62,6 +62,35 @@ std::string xdg_data_home() {
     return {};
 }
 
+std::string xdg_desktop_dir() {
+    const char* home_env = std::getenv("HOME");
+    if (home_env == nullptr || home_env[0] == '\0') return {};
+    const std::string home = home_env;
+    std::string config_home;
+    if (const char* xdg = std::getenv("XDG_CONFIG_HOME"))
+        if (xdg[0] != '\0') config_home = xdg;
+    if (config_home.empty()) config_home = home + "/.config";
+
+    std::ifstream input(config_home + "/user-dirs.dirs");
+    std::string line;
+    constexpr const char* prefix = "XDG_DESKTOP_DIR=\"";
+    while (std::getline(input, line)) {
+        if (line.rfind(prefix, 0) != 0 || line.size() <= std::strlen(prefix) || line.back() != '\"')
+            continue;
+        std::string configured = line.substr(std::strlen(prefix),
+                                             line.size() - std::strlen(prefix) - 1);
+        if (configured.rfind("$HOME", 0) == 0)
+            configured.replace(0, 5, home);
+        std::string unescaped;
+        for (size_t i = 0; i < configured.size(); ++i) {
+            if (configured[i] == '\\' && i + 1 < configured.size()) ++i;
+            unescaped += configured[i];
+        }
+        return unescaped;
+    }
+    return home + "/Desktop";
+}
+
 std::string desktop_exec_quote(const std::string& path) {
     std::string quoted = "\"";
     for (const char character : path) {
@@ -76,7 +105,7 @@ std::string desktop_exec_quote(const std::string& path) {
     return quoted + '"';
 }
 
-bool install_application_shortcut(const std::string& appimage, std::string& error) {
+bool install_application_shortcuts(const std::string& appimage, std::string& error) {
     const std::string data_home = xdg_data_home();
     const char* appdir = std::getenv("APPDIR");
     if (data_home.empty()) { error = "HOME and XDG_DATA_HOME are not set"; return false; }
@@ -99,8 +128,8 @@ bool install_application_shortcut(const std::string& appimage, std::string& erro
         }
     }
 
-    const fs::path desktop = applications / "dev.bluewake.BlueWake.desktop";
-    const fs::path pending = desktop.string() + ".setup.tmp";
+    const fs::path menu_entry = applications / "dev.bluewake.BlueWake.desktop";
+    const fs::path pending = menu_entry.string() + ".setup.tmp";
     const std::string executable = desktop_exec_quote(appimage);
     // An absolute icon path is valid in a desktop entry and appears
     // immediately even when the desktop has not refreshed its icon-theme
@@ -127,8 +156,25 @@ bool install_application_shortcut(const std::string& appimage, std::string& erro
                              fs::perms::group_read | fs::perms::others_read,
                     fs::perm_options::replace, ec);
     if (ec) { fs::remove(pending); error = ec.message(); return false; }
-    fs::rename(pending, desktop, ec);
+    fs::rename(pending, menu_entry, ec);
     if (ec) { fs::remove(pending); error = ec.message(); return false; }
+
+    const fs::path desktop_dir = xdg_desktop_dir();
+    if (desktop_dir.empty()) { error = "could not find the XDG Desktop directory"; return false; }
+    fs::create_directories(desktop_dir, ec);
+    if (ec) { error = "could not create the Desktop directory: " + ec.message(); return false; }
+    const fs::path desktop_entry = desktop_dir / "BlueWake.desktop";
+    const fs::path desktop_pending = desktop_entry.string() + ".setup.tmp";
+    fs::copy_file(menu_entry, desktop_pending, fs::copy_options::overwrite_existing, ec);
+    if (ec) { error = "could not install the Desktop shortcut: " + ec.message(); return false; }
+    fs::permissions(desktop_pending, fs::perms::owner_read | fs::perms::owner_write |
+                                     fs::perms::owner_exec | fs::perms::group_read |
+                                     fs::perms::group_exec | fs::perms::others_read |
+                                     fs::perms::others_exec,
+                    fs::perm_options::replace, ec);
+    if (ec) { fs::remove(desktop_pending); error = ec.message(); return false; }
+    fs::rename(desktop_pending, desktop_entry, ec);
+    if (ec) { fs::remove(desktop_pending); error = ec.message(); return false; }
     return true;
 }
 
@@ -308,12 +354,12 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
         ImGui::EndDisabled();
         ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
         ImGui::BeginDisabled(!can_install_shortcut);
-        ImGui::Checkbox("Add or update BlueWake in the application menu", &install_shortcut);
+        ImGui::Checkbox("Add or update application-menu and Desktop shortcuts", &install_shortcut);
         ImGui::EndDisabled();
         if (can_install_shortcut)
             ImGui::TextDisabled("Keep the AppImage at its current path so the shortcut can find it.");
         else
-            ImGui::TextDisabled("Application-menu integration is available when setup runs from the AppImage.");
+            ImGui::TextDisabled("Application-menu and Desktop integration requires running setup from the AppImage.");
         if (!message.empty()) ImGui::TextColored(ImVec4(1.f, .4f, .35f, 1.f), "%s", message.c_str());
         ImGui::Separator();
         if (ImGui::Button("Quit")) done = true;
@@ -323,8 +369,8 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
             settings["DOL_AURORA_TEXTURE_PACK"] = textures_enabled ? textures : "";
             std::string error;
             if (!write_settings(config, settings, error)) message = "Could not save settings: " + error;
-            else if (install_shortcut && !install_application_shortcut(appimage, error))
-                message = "Could not install the application shortcut: " + error;
+            else if (install_shortcut && !install_application_shortcuts(appimage, error))
+                message = "Could not install the application shortcuts: " + error;
             else {
                 start = true; done = true;
             }

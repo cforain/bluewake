@@ -108,9 +108,10 @@ it under the Linux release exception, after it passes the release asset check:
 
        ./BlueWake-x86_64.AppImage --setup
 
-   Leave **Add or update BlueWake in the application menu** enabled to install
-   a launcher with a **Configure BlueWake** action. The launcher points to this
-   AppImage, so keep it at the same path after setup.
+   Leave **Add or update application-menu and Desktop shortcuts** enabled to
+   install both launchers, including a **Configure BlueWake** application-menu
+   action. The launchers point to this AppImage, so keep it at the same path
+   after setup.
 
 3. On later launches, start BlueWake normally by double-clicking the AppImage
    or running:
