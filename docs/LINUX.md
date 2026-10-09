@@ -172,8 +172,7 @@ their disc and attached to the release by hand. The disc, files extracted from
 it, and console keys never enter GitHub or CI (a secret could not hold a 1.4 GB
 disc, and must not). CI builds and tests everything that does not need the disc
 (`.github/workflows/linux-host.yml`), and every published artifact passes
-`scripts/release/check_public_assets.sh`. Only Chris publishes or changes a
-release.
+`scripts/release/check_public_assets.sh`.
 
 ## Why clang
 
