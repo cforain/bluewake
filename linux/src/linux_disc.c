@@ -193,21 +193,43 @@ static int choose(const char* why, char* out, size_t size) {
     return 1;
 }
 
-int bw_disc_setup(const char* exe_dir, const char* data_dir, int remember_explicit_disc) {
+int bw_disc_has_usable_source(const char* exe_dir, const char* data_dir) {
+    const char* given_dol = getenv("BLUEWAKE_DOL");
+    if (given_dol != NULL && given_dol[0] != '\0')
+        return 1;
+    const char* given = getenv("BLUEWAKE_DISC");
+    if (given != NULL && given[0] != '\0')
+        return is_file(given);
+
+    char app_disc[4096], app_dol[4096], app_rels[4096];
+    snprintf(app_disc, sizeof app_disc, "%sgame/GZLE01.iso", exe_dir);
+    snprintf(app_dol, sizeof app_dol, "%sgame/main.dol", exe_dir);
+    snprintf(app_rels, sizeof app_rels, "%sgame/rels", exe_dir);
+    if (is_file(app_disc) && prepared_ready(app_dol, app_rels))
+        return 1;
+
+    char remembered_path[4096], remembered_disc[4096];
+    snprintf(remembered_path, sizeof remembered_path, "%sdisc.txt", data_dir);
+    return read_line(remembered_path, remembered_disc, sizeof remembered_disc) &&
+           is_file(remembered_disc);
+}
+
+int bw_disc_setup(const char* exe_dir, const char* data_dir,
+                  int remember_explicit_disc, int force_picker) {
     g_exe = exe_dir;
     g_data = data_dir;
     const char* given_dol = getenv("BLUEWAKE_DOL");
-    if (given_dol != NULL && given_dol[0] != '\0')
+    if (!force_picker && given_dol != NULL && given_dol[0] != '\0')
         return 0;
     char path[4096];
     const char* given = getenv("BLUEWAKE_DISC");
-    const int explicit_disc = given != NULL && given[0] != '\0';
+    const int explicit_disc = !force_picker && given != NULL && given[0] != '\0';
     // A folder the builder made from the player's disc has it all beside the app.
     char app_disc[4096], app_dol[4096], app_rels[4096];
     snprintf(app_disc, sizeof app_disc, "%sgame/GZLE01.iso", exe_dir);
     snprintf(app_dol, sizeof app_dol, "%sgame/main.dol", exe_dir);
     snprintf(app_rels, sizeof app_rels, "%sgame/rels", exe_dir);
-    if (!explicit_disc && is_file(app_disc) && prepared_ready(app_dol, app_rels))
+    if (!force_picker && !explicit_disc && is_file(app_disc) && prepared_ready(app_dol, app_rels))
         return 0;
 
     char remembered[4096], game[900], game_record[4096], dol[4096], rels[4096], stamp_path[4096];
@@ -219,7 +241,9 @@ int bw_disc_setup(const char* exe_dir, const char* data_dir, int remember_explic
     snprintf(rels, sizeof rels, "%s/rels", game);
     snprintf(stamp_path, sizeof stamp_path, "%s/prepared.txt", game);
     char disc[4096] = "";
-    if (explicit_disc)
+    if (force_picker)
+        disc[0] = '\0';
+    else if (explicit_disc)
         snprintf(disc, sizeof disc, "%s", given);
     else
         read_line(remembered, disc, sizeof disc);

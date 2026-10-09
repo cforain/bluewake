@@ -38,16 +38,19 @@ Useful options:
 
     build/linux/BlueWake/bluewake
 
-Run the app with `--setup` to open **BlueWake Setup**. Choose the USA revision-0
-disc image and, optionally, a Dolphin-format HD texture-pack folder, then press
-**Start BlueWake**. Display, gameplay, controls and other preferences remain in
-the shared F1/Esc settings menu used on every desktop platform. The setup file
-and folder buttons use SDL's native dialog through an XDG
+On an AppImage's first launch, **BlueWake Setup** opens automatically when no
+usable disc has been remembered. Choose the USA revision-0 disc image and,
+optionally, a Dolphin-format HD texture-pack folder, then press **Start
+BlueWake**. Display, gameplay, controls and other preferences remain in the
+shared F1/Esc settings menu used on every desktop platform. The setup file and
+folder buttons use SDL's native dialog through an XDG
 portal or Zenity. Dragging an ISO/GCM onto the setup window and entering paths
 directly also work.
 
-Without `--setup`, BlueWake keeps its ordinary launch behavior: it asks for a
-missing disc with the native file picker and otherwise starts the game.
+Later AppImage launches start the game directly. Use `--setup` to reopen the
+populated setup window, or `--iso` to replace the remembered disc using only
+the native file picker. A development-folder build keeps the simple picker as
+its default when its disc is missing.
 
 `--help` lists the options (widescreen, Smooth Motion, Better Wind Waker, fullscreen,
 disc and module paths). Keyboard: arrows D-pad, J/K/U/I face buttons, W/A/S/D stick,
@@ -109,9 +112,10 @@ it under the Linux release exception, after it passes the release asset check:
 
        chmod +x BlueWake-x86_64.AppImage
 
-2. Open the graphical setup:
+2. Double-click or run the AppImage. If BlueWake does not have a usable
+   remembered disc, it opens the graphical setup automatically:
 
-       ./BlueWake-x86_64.AppImage --setup
+       ./BlueWake-x86_64.AppImage
 
 3. In **BlueWake Setup**:
 
@@ -126,13 +130,21 @@ it under the Linux release exception, after it passes the release asset check:
      the choices, install the requested launchers, and start the game. The
      launchers point to this AppImage, so keep it at the same path afterward.
 
-4. On later launches, start BlueWake normally from either installed launcher,
-   by double-clicking the AppImage, or by running:
+4. On later launches, BlueWake remembers these choices. Start it normally from
+   either installed launcher, by double-clicking the AppImage, or by running:
 
        ./BlueWake-x86_64.AppImage
 
-The setup window is opt-in: launching without `--setup` keeps BlueWake's normal
-behavior. You can also skip setup and supply a disc directly:
+To change the saved setup later, reopen the same window; its disc and texture
+fields are filled with the current remembered values:
+
+    ./BlueWake-x86_64.AppImage --setup
+
+To use the former standalone ISO picker instead:
+
+    ./BlueWake-x86_64.AppImage --iso
+
+You can also bypass setup and supply a disc for only this launch:
 
     ./BlueWake-x86_64.AppImage --disc "/path/to/Wind Waker.iso"
 

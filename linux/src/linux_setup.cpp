@@ -1,4 +1,4 @@
-// BlueWake's opt-in Linux setup window. SDL owns the window and input,
+// BlueWake's Linux first-run/configuration window. SDL owns the window and input,
 // Dear ImGui supplies the widgets, and SDL's file dialogs use XDG Portal when
 // the desktop provides it. Manual entry and drag-and-drop remain available.
 #include "linux_setup.h"

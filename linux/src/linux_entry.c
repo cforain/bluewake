@@ -232,7 +232,8 @@ static void usage(void) {
             "  --hle-audio        Fast audio for this session\n"
             "  --lle-audio        run the DSP's own microcode instead of the HLE ucode\n"
             "  --mods LIST        mods compiled into the module, by name\n"
-            "  --setup            choose the disc, texture pack and app launchers\n"
+            "  --setup            configure the disc, texture pack and app launchers\n"
+            "  --iso              choose and remember a disc with the simple file picker\n"
             "  --disc FILE        the disc image to read (a bare .iso/.gcm path also works)\n"
             "  --module FILE      the translated game module (default gGZLE01_recomp.so)\n"
             "Keyboard: arrows D-pad, J A, K B, U X, I Y, W/A/S/D stick,\n"
@@ -253,6 +254,7 @@ int main(int argc, char** argv) {
 
     const char* module_arg = NULL;
     int setup_requested = 0;
+    int iso_picker_requested = 0;
     char mods[256] = "";
     for (int i = 1; i < argc; i++) {
         const char* a = argv[i];
@@ -275,6 +277,8 @@ int main(int argc, char** argv) {
             snprintf(mods + strlen(mods), sizeof mods - strlen(mods), "%s%s", mods[0] ? "," : "", argv[++i]);
         } else if (strcmp(a, "--setup") == 0) {
             setup_requested = 1;
+        } else if (strcmp(a, "--iso") == 0) {
+            iso_picker_requested = 1;
         } else if (strcmp(a, "--betterww") == 0) {
             snprintf(mods + strlen(mods), sizeof mods - strlen(mods), "%sbetterww", mods[0] ? "," : "");
         } else if (strcmp(a, "--options") == 0 && more) {
@@ -322,11 +326,19 @@ int main(int argc, char** argv) {
     if (mods[0] != '\0')
         setenv("BLUEWAKE_MODS", mods, 1);
 
-    // Keep the ordinary launcher behavior as the default. The combined setup
-    // window is an explicitly requested convenience UI.
-    if (setup_requested) {
+    const char* appimage = getenv("APPIMAGE");
+    const char* explicit_disc = getenv("BLUEWAKE_DISC");
+    const int has_explicit_disc = explicit_disc != NULL && explicit_disc[0] != '\0';
+    // A downloaded AppImage guides a first-time player through disc selection,
+    // optional textures and shortcut installation. Once its remembered disc is
+    // usable, an ordinary launch goes straight to the game. --setup always
+    // reopens the populated window; --iso preserves the former simple picker.
+    const int use_setup = setup_requested ||
+        (!iso_picker_requested && !has_explicit_disc && appimage != NULL && appimage[0] != '\0' &&
+         !bw_disc_has_usable_source(g_exe_dir, g_data_dir));
+    const int use_iso_picker = iso_picker_requested && !use_setup;
+    if (use_setup) {
         char selected_disc[4096] = "";
-        const char* explicit_disc = getenv("BLUEWAKE_DISC");
         if (explicit_disc != NULL)
             snprintf(selected_disc, sizeof selected_disc, "%s", explicit_disc);
         const int setup = bw_linux_setup(g_data_dir, selected_disc, sizeof selected_disc);
@@ -366,7 +378,7 @@ int main(int argc, char** argv) {
                 "Keep that personal build local.\n");
         return 1;
     }
-    const int disc_status = bw_disc_setup(g_exe_dir, g_data_dir, setup_requested);
+    const int disc_status = bw_disc_setup(g_exe_dir, g_data_dir, use_setup, use_iso_picker);
     if (disc_status != 0) return disc_status < 0 ? 1 : 0;
     bw_default_path("BLUEWAKE_DOL", g_exe_dir, "game/main.dol");
     bw_default_path("BLUEWAKE_RELS_DIR", g_exe_dir, "game/rels");

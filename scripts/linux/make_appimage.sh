@@ -9,9 +9,10 @@
 #
 # The AppImage bundles the host, the translated game module, the DSP roms and
 # every shared library the host links except the glibc/libstdc++ baseline. The
-# player's own disc is NOT bundled: on first run the launcher asks for it and
-# prepares it into the data dir (a disc image and files extracted from it must
-# never be distributed; the release gate rejects them). Bundling the disc would
+# player's own disc is NOT bundled: on first run the setup window asks for it,
+# offers to install launchers, and prepares it into the data dir (a disc image
+# and files extracted from it must never be distributed; the release gate
+# rejects them). Bundling the disc would
 # also bloat the image past 4 GB.
 #
 # Requirements on the build host: a current appimagetool,

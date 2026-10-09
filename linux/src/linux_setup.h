@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-// Show the opt-in Linux setup window. Returns 1 to continue into the game,
+// Show the Linux first-run/configuration window. Returns 1 to continue into the game,
 // 0 when the player closes or cancels it, and -1 after reporting an error.
 // The selected disc is returned in `disc`; the texture-pack preference is
 // written to the normal XDG settings file unless BLUEWAKE_SETTINGS=none.
