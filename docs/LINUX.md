@@ -108,17 +108,25 @@ it under the Linux release exception, after it passes the release asset check:
 
        chmod +x BlueWake-x86_64.AppImage
 
-2. Open the graphical setup to choose your disc and optional texture pack:
+2. Open the graphical setup:
 
        ./BlueWake-x86_64.AppImage --setup
 
-   Leave **Add or update application-menu and Desktop shortcuts** enabled to
-   install both launchers, including a **Configure BlueWake** application-menu
-   action. The launchers point to this AppImage, so keep it at the same path
-   after setup.
+3. In **BlueWake Setup**:
 
-3. On later launches, start BlueWake normally by double-clicking the AppImage
-   or running:
+   - Select your USA GZLE01 revision-0 `.iso` or `.gcm` with **Browse disc...**,
+     by typing its path, or by dragging it onto the window.
+   - To use an HD texture pack, enable it and select the pack's `GZL` or
+     `GZLE01` folder with **Browse textures...**.
+   - Leave **Add or update application-menu and Desktop shortcuts** enabled if
+     you want both launchers. The application-menu entry also gets a
+     **Configure BlueWake** action that reopens this window.
+   - Once every enabled selection validates, select **Start BlueWake** to save
+     the choices, install the requested launchers, and start the game. The
+     launchers point to this AppImage, so keep it at the same path afterward.
+
+4. On later launches, start BlueWake normally from either installed launcher,
+   by double-clicking the AppImage, or by running:
 
        ./BlueWake-x86_64.AppImage
 
@@ -127,7 +135,8 @@ behavior. You can also skip setup and supply a disc directly:
 
     ./BlueWake-x86_64.AppImage --disc "/path/to/Wind Waker.iso"
 
-If your system cannot mount AppImages with FUSE, use its extract-and-run mode:
+If your system cannot mount AppImages with FUSE, open setup in extract-and-run
+mode instead. Launchers installed during this run remember the fallback:
 
     APPIMAGE_EXTRACT_AND_RUN=1 ./BlueWake-x86_64.AppImage --setup
 
