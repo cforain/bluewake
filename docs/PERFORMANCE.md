@@ -209,11 +209,12 @@ with the real stop list. About a day.
 
 One pull request each. They don't recompile the game module, so each is minutes to build.
 
-**2a. Say when the renderer falls back** (lever 4). After Aurora starts, call `aurora_get_backend()`
-(`aurora/aurora.h`). On Linux, if it isn't Vulkan, and on Windows, if it isn't D3D12 or Vulkan, write
+**2a. Say when the renderer falls back** (lever 4). After Aurora starts, read the backend it actually chose: the `backend` field of the `AuroraInfo` that
+`aurora_initialize` returns in RecompCore's `dol_aurora_initialize` (`GXRuntime/backends/aurora/aurora_backend.cpp`),
+which needs a small getter there, for example `dol_aurora_backend()`. `aurora_get_backend()` is not it: it returns the
+requested backend (usually `BACKEND_AUTO`). On Linux, if it isn't Vulkan, and on Windows, if it isn't D3D12 or Vulkan, write
 `[renderer] fell back to NAME: ...` to the log and show a notice once on screen that names what to install
-(Linux: the Vulkan loader, `libvulkan1` / `vulkan-loader`). Host code only (`runtime/host/src`, `linux/src`),
-no runtime change. *Check:* Linux CI; ask fehnomenal or jkoehler11 to confirm with Vulkan missing (#107).
+(Linux: the Vulkan loader, `libvulkan1` / `vulkan-loader`). The getter goes to RecompCore; the message is host code (`runtime/host/src`, `linux/src`). *Check:* Linux CI; ask fehnomenal or jkoehler11 to confirm with Vulkan missing (#107).
 
 **2b. Smooth Motion keeps its frames when the CPU has cores to spare** (lever 3). In RecompCore
 `GXRuntime/graphics/aurora/lib/gfx/frame_interp.cpp`, `slow_game` and `pace_steps` drop in-between frames
