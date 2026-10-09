@@ -113,3 +113,7 @@ Patch 0161 adds `window_pos_x` and `window_pos_y` to `AuroraBackendConfig`, pass
 `windowPosY`, so the host creates the window where it should be instead of moving it after it appears (pull
 request #89, saulob). Left at zero they give the screen's corner, as before; the Windows host passes the
 player's last spot or `SDL_WINDOWPOS_CENTERED`.
+
+Patch 0162 is saulob's FPS overlay position (his RecompCore #12, carried onto `bluewake-next` as #20): the counter
+at the top center as before, or in a corner, set with `aurora_set_fps_overlay_position` or `DOL_AURORA_FPS_POSITION`.
+BlueWake's menus use it in pull request #106.
