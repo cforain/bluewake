@@ -45,11 +45,11 @@ static void new_launch(void) {
     setenv("BLUEWAKE_DOL", "", 1); setenv("BLUEWAKE_RELS_DIR", "", 1); setenv("BLUEWAKE_DISC", "", 1);
 }
 int main(void) {
-    char root[4096], data[4096], exe[4096];
-    snprintf(root, sizeof root, "/tmp/bluewake-disc-test-%ld", (long)getpid());
+    char root[] = "/tmp/bluewake-disc-test-XXXXXX";
+    char data[4096], exe[4096];
+    assert(mkdtemp(root) != NULL);
     snprintf(data, sizeof data, "%s/data/", root);
     snprintf(exe, sizeof exe, "%s/app/", root);
-    assert(mkdir(root, 0755) == 0 || errno == EEXIST);
     assert(mkdir(data, 0755) == 0);
     assert(mkdir(exe, 0755) == 0);
     setenv("BLUEWAKE_NO_DIALOG", "1", 1);
