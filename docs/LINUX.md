@@ -39,9 +39,10 @@ Useful options:
     build/linux/BlueWake/bluewake
 
 Run the app with `--setup` to open **BlueWake Setup**. Choose the USA revision-0
-disc image and, optionally, a Dolphin-format HD texture-pack folder, then select
-the ordinary display, gameplay and audio preferences and press **Start
-BlueWake**. The file and folder buttons use SDL's native dialog through an XDG
+disc image and, optionally, a Dolphin-format HD texture-pack folder, then press
+**Start BlueWake**. Display, gameplay, controls and other preferences remain in
+the shared F1/Esc settings menu used on every desktop platform. The setup file
+and folder buttons use SDL's native dialog through an XDG
 portal or Zenity. Dragging an ISO/GCM onto the setup window and entering paths
 directly also work.
 
@@ -103,8 +104,7 @@ it under the Linux release exception, after it passes the release asset check:
 
        chmod +x BlueWake-x86_64.AppImage
 
-2. Open the graphical setup to choose your disc, optional texture pack and
-   launch settings:
+2. Open the graphical setup to choose your disc and optional texture pack:
 
        ./BlueWake-x86_64.AppImage --setup
 

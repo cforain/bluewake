@@ -11,7 +11,6 @@
 #include <backends/imgui_impl_sdlrenderer3.h>
 #include <imgui.h>
 
-#include <algorithm>
 #include <atomic>
 #include <cstdio>
 #include <cstdlib>
@@ -164,11 +163,6 @@ std::string value(const std::map<std::string, std::string>& values, const char* 
     return found == values.end() ? fallback : found->second;
 }
 
-bool on(const std::map<std::string, std::string>& values, const char* key, bool fallback = false) {
-    const auto text = value(values, key, fallback ? "1" : "0");
-    return !text.empty() && text[0] != '0';
-}
-
 void copy_text(char* out, size_t size, const std::string& text) {
     std::snprintf(out, size, "%s", text.c_str());
 }
@@ -199,24 +193,7 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
     }
     char textures[4096]{};
     copy_text(textures, sizeof textures, value(settings, "DOL_AURORA_TEXTURE_PACK"));
-    char window_size[64]{};
-    copy_text(window_size, sizeof window_size, value(settings, "DOL_AURORA_WINDOW", "960x720"));
-
-    static const char* aspects[] = {"4:3 (original)", "16:10", "16:9"};
-    int aspect = value(settings, "BLUEWAKE_ASPECT", "4:3") == "16:9" ? 2 :
-                 value(settings, "BLUEWAKE_ASPECT", "4:3") == "16:10" ? 1 : 0;
-    int scale = std::clamp(std::atoi(value(settings, "DOL_AURORA_RENDER_SCALE", "0").c_str()), 0, 4);
-    int smooth = !on(settings, "DOL_AURORA_FRAME_INTERP") ? 0 :
-                 value(settings, "DOL_AURORA_FRAME_INTERP_STEPS", "1") == "display" ? 3 :
-                 std::atoi(value(settings, "DOL_AURORA_FRAME_INTERP_STEPS", "1").c_str()) >= 3 ? 2 : 1;
-    bool fullscreen = on(settings, "DOL_AURORA_FULLSCREEN");
-    bool fps = on(settings, "DOL_AURORA_SHOW_FPS");
-    bool stretch = !on(settings, "DOL_AURORA_ASPECT_FIT", true);
-    bool mouse = on(settings, "BLUEWAKE_MOUSE_CAMERA", true);
-    bool betterww = value(settings, "BLUEWAKE_MODS").find("betterww") != std::string::npos;
     bool textures_enabled = textures[0] != '\0';
-    bool safe_mode = false;
-    int audio = value(settings, "BLUEWAKE_DSP_MODE", "hle") == "lle" ? 1 : 0;
     const char* appimage_env = std::getenv("APPIMAGE");
     const std::string appimage = appimage_env != nullptr ? appimage_env : "";
     const bool can_install_shortcut = !appimage.empty();
@@ -226,7 +203,7 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
         std::fprintf(stderr, "[setup] SDL initialization failed: %s\n", SDL_GetError());
         return -1;
     }
-    SDL_Window* window = SDL_CreateWindow("BlueWake Setup", 820, 700,
+    SDL_Window* window = SDL_CreateWindow("BlueWake Setup", 820, 520,
                                            SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     SDL_Renderer* renderer = window != nullptr ? SDL_CreateRenderer(window, nullptr) : nullptr;
     if (window == nullptr || renderer == nullptr) {
@@ -297,64 +274,34 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
         ImGui::Text("BlueWake Setup");
         ImGui::Separator();
-        if (ImGui::BeginTabBar("setup-tabs")) {
-            if (ImGui::BeginTabItem("Game files")) {
-                ImGui::TextWrapped("Choose your own USA GameCube Wind Waker disc. BlueWake validates and prepares it once.");
-                ImGui::InputText("Disc image", disc, disc_size);
-                ImGui::SameLine();
-                ImGui::BeginDisabled(pick_kind != PickKind::None);
-                if (ImGui::Button("Browse disc...")) {
-                    static const SDL_DialogFileFilter filters[] = {{"GameCube disc images", "iso;gcm"}};
-                    picker.result.store(0); pick_kind = PickKind::Disc; SDL_ClearError();
-                    SDL_ShowOpenFileDialog(picked, &picker, window, filters, 1, nullptr, false);
-                }
-                ImGui::EndDisabled();
-                ImGui::TextColored(disc_valid ? ImVec4(.35f, .9f, .45f, 1.f) : ImVec4(1.f, .65f, .25f, 1.f),
-                                   "%s", disc_status.c_str());
-                ImGui::TextDisabled("You can also drag an ISO/GCM onto this window.");
-                ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
-                ImGui::Checkbox("Enable HD texture pack", &textures_enabled);
-                ImGui::BeginDisabled(!textures_enabled);
-                ImGui::InputText("Texture folder", textures, sizeof textures);
-                ImGui::SameLine();
-                ImGui::BeginDisabled(pick_kind != PickKind::None);
-                if (ImGui::Button("Browse textures...")) {
-                    picker.result.store(0); pick_kind = PickKind::Textures; SDL_ClearError();
-                    SDL_ShowOpenFolderDialog(picked, &picker, window, nullptr, false);
-                }
-                ImGui::EndDisabled();
-                ImGui::TextDisabled("Select a Dolphin-format pack's GZL or GZLE01 folder.");
-                ImGui::TextWrapped("%s", texture_status.c_str());
-                ImGui::EndDisabled();
-                ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Display")) {
-                ImGui::Combo("Aspect ratio", &aspect, aspects, 3);
-                static const char* scales[] = {"Window pixels", "1x (480p)", "2x (960p)", "3x (1440p)", "4x (1920p)"};
-                ImGui::Combo("Render resolution", &scale, scales, 5);
-                static const char* smooths[] = {"Off (30 FPS)", "60 FPS", "120 FPS", "Match display"};
-                ImGui::Combo("Smooth Motion", &smooth, smooths, 4);
-                ImGui::Checkbox("Fullscreen", &fullscreen);
-                ImGui::Checkbox("Show frame rate", &fps);
-                ImGui::Checkbox("Stretch picture to fill the window", &stretch);
-                ImGui::InputText("Window size", window_size, sizeof window_size);
-                ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Gameplay")) {
-                ImGui::Checkbox("Better Wind Waker", &betterww);
-                ImGui::TextWrapped("Its individual options remain available from F1 > Gameplay after the game starts.");
-                ImGui::Checkbox("Mouse camera", &mouse);
-                ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Advanced")) {
-                static const char* audios[] = {"HLE (recommended)", "LLE DSP microcode"};
-                ImGui::Combo("Audio", &audio, audios, 2);
-                ImGui::Checkbox("Safe mode for this launch", &safe_mode);
-                ImGui::TextWrapped("Compiler and PGO controls are intentionally absent: this AppImage already contains a compiled game module.");
-                ImGui::EndTabItem();
-            }
-            ImGui::EndTabBar();
+        ImGui::TextWrapped("Choose your own USA GameCube Wind Waker disc. BlueWake validates and prepares it once.");
+        ImGui::InputText("Disc image", disc, disc_size);
+        ImGui::SameLine();
+        ImGui::BeginDisabled(pick_kind != PickKind::None);
+        if (ImGui::Button("Browse disc...")) {
+            static const SDL_DialogFileFilter filters[] = {{"GameCube disc images", "iso;gcm"}};
+            picker.result.store(0); pick_kind = PickKind::Disc; SDL_ClearError();
+            SDL_ShowOpenFileDialog(picked, &picker, window, filters, 1, nullptr, false);
         }
+        ImGui::EndDisabled();
+        ImGui::TextColored(disc_valid ? ImVec4(.35f, .9f, .45f, 1.f) : ImVec4(1.f, .65f, .25f, 1.f),
+                           "%s", disc_status.c_str());
+        ImGui::TextDisabled("You can also drag an ISO/GCM onto this window.");
+        ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
+        ImGui::Checkbox("Enable HD texture pack", &textures_enabled);
+        ImGui::BeginDisabled(!textures_enabled);
+        ImGui::InputText("Texture folder", textures, sizeof textures);
+        ImGui::SameLine();
+        ImGui::BeginDisabled(pick_kind != PickKind::None);
+        if (ImGui::Button("Browse textures...")) {
+            picker.result.store(0); pick_kind = PickKind::Textures; SDL_ClearError();
+            SDL_ShowOpenFolderDialog(picked, &picker, window, nullptr, false);
+        }
+        ImGui::EndDisabled();
+        ImGui::TextDisabled("Select a Dolphin-format pack's GZL or GZLE01 folder.");
+        ImGui::TextWrapped("%s", texture_status.c_str());
+        ImGui::EndDisabled();
+        ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
         ImGui::BeginDisabled(!can_install_shortcut);
         ImGui::Checkbox("Add or update BlueWake in the application menu", &install_shortcut);
         ImGui::EndDisabled();
@@ -368,24 +315,12 @@ extern "C" int bw_linux_setup(const char* data_dir, char* disc, unsigned long di
         ImGui::SameLine();
         ImGui::BeginDisabled(!disc_valid);
         if (ImGui::Button("Start BlueWake")) {
-            settings["BLUEWAKE_ASPECT"] = aspect == 2 ? "16:9" : aspect == 1 ? "16:10" : "4:3";
-            settings["DOL_AURORA_RENDER_SCALE"] = std::to_string(scale);
-            settings["DOL_AURORA_FRAME_INTERP"] = smooth ? "1" : "0";
-            settings["DOL_AURORA_FRAME_INTERP_STEPS"] = smooth == 3 ? "display" : smooth == 2 ? "3" : "1";
-            settings["DOL_AURORA_FULLSCREEN"] = fullscreen ? "1" : "0";
-            settings["DOL_AURORA_SHOW_FPS"] = fps ? "1" : "0";
-            settings["DOL_AURORA_ASPECT_FIT"] = stretch ? "0" : "1";
-            settings["DOL_AURORA_WINDOW"] = window_size;
-            settings["BLUEWAKE_MOUSE_CAMERA"] = mouse ? "1" : "0";
-            settings["BLUEWAKE_MODS"] = betterww ? "betterww" : "";
-            settings["BLUEWAKE_DSP_MODE"] = audio ? "lle" : "hle";
             settings["DOL_AURORA_TEXTURE_PACK"] = textures_enabled ? textures : "";
             std::string error;
             if (!write_settings(config, settings, error)) message = "Could not save settings: " + error;
             else if (install_shortcut && !install_application_shortcut(appimage, error))
                 message = "Could not install the application shortcut: " + error;
             else {
-                if (safe_mode) setenv("BLUEWAKE_SAFE_MODE", "1", 1);
                 start = true; done = true;
             }
         }
